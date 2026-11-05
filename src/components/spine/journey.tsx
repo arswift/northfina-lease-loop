@@ -6,6 +6,7 @@ import {
   contractListSchema,
   contractViewSchema,
   quoteViewSchema,
+  relistViewSchema,
 } from '@/data/spine-response-schemas';
 
 import Link from 'next/link';
@@ -21,7 +22,10 @@ import { draftSchema, emptyDraft, selectionSchema } from './draft';
 import { ApplicationPanel } from './application-panel';
 import { ContractPanel } from './contract-panel';
 import { GrossTotals } from './gross-totals';
+import { EndPanel, type EndForm } from './end-panel';
 import { PricePanel, type Bootstrap } from './price-panel';
+import { RelistPanel, type RelistForm } from './relist-panel';
+import { HistoryPanel } from './history-panel';
 import { buttonClass, Field, inputClass, messageFor, MoneyFacts, panelClass } from './ui';
 
 const emptySelection: DemoSelection = { customerId: '', businessDate: '' };
@@ -249,6 +253,33 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
     });
   }
 
+  function end(input: EndForm) {
+    if (!contract) return;
+    void run(async () => {
+      const request = requestId('end', { contractId: contract.id, ...input });
+      const result = await requestJson(
+        'contracts/' + contract.id + '/end',
+        selection,
+        contractViewSchema,
+        { requestId: request.id, ...input }
+      );
+      setContract({ signature, data: result });
+    });
+  }
+
+  function relist(input: RelistForm) {
+    void run(async () => {
+      const request = requestId('relist', { assetId, ...input });
+      await requestJson(
+        'assets/' + assetId + '/relist',
+        selection,
+        relistViewSchema,
+        { requestId: request.id, ...input },
+        true
+      );
+    });
+  }
+
   const onDate = (date: string) => {
     setSelection({ ...selection, businessDate: date });
     setError(null);
@@ -352,6 +383,28 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
                 onIssue={issue}
                 onDate={onDate}
               />
+              <EndPanel
+                key={contract.id}
+                contract={contract}
+                data={data}
+                locale={locale}
+                busy={busy}
+                onDate={onDate}
+                onEnd={end}
+              />
+              {contract.status !== 'active' && data.asset.status === 'available' ? (
+                <button
+                  className={buttonClass}
+                  disabled={busy}
+                  onClick={() => {
+                    saveDraft(emptyDraft);
+                    if (contract.nextCustomerId)
+                      setSelection({ ...selection, customerId: contract.nextCustomerId });
+                  }}
+                >
+                  {t('spine.nextLease')}
+                </button>
+              ) : null}
             </>
           ) : null}
           {!contractId && draft.quote && !quote ? <p role="status">{t('spine.loading')}</p> : null}
@@ -409,6 +462,21 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
               }}
             />
           ) : null}
+          {data.asset.status === 'returned' ? (
+            <RelistPanel
+              key={data.releaseRevision}
+              data={data}
+              locale={locale}
+              busy={busy}
+              onRelist={relist}
+            />
+          ) : null}
+          <HistoryPanel
+            assetId={assetId}
+            selection={selection}
+            locale={locale}
+            revision={revision}
+          />
         </>
       )}
     </div>
