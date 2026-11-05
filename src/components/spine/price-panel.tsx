@@ -156,7 +156,10 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               {t('spine.downHelp')}
             </p>
             <div id="down-band-help" className="mt-3">
-              <p className="ui-note">{t('spine.bandHelp')}</p>
+              <details className="price-control-details">
+                <summary>{t('explain.bandInfoSummary')}</summary>
+                <p className="ui-note mt-2">{t('spine.bandHelp')}</p>
+              </details>
               {price ? (
                 <PriceBandNotice terms={price} table={data.coefficientTable} locale={locale} />
               ) : null}
