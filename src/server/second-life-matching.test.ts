@@ -30,9 +30,9 @@ beforeEach(async () => {
   await resetSpine(state.db);
 });
 
-async function preparation(): Promise<RelistInput> {
+async function preparation(assetId = 'ebike-007'): Promise<RelistInput> {
   const context = await demoContext('cust-aino', '2026-11-06', true);
-  const result = await previewSecondLife(state.db, context, 'ebike-007', previewInput);
+  const result = await previewSecondLife(state.db, context, assetId, previewInput);
   const candidate = result.recommendation!;
   expect(candidate).not.toBeNull();
   return relistInputSchema.parse({
@@ -109,6 +109,37 @@ describe('matching preview and allocation', () => {
         .filter((row) => row.requestId === 'wait-02')
         .every((row) => row.reasons.includes('allocated'))
     ).toBe(true);
+  });
+
+  it('does not allocate one waiting request to two items during overlapping confirmations', async () => {
+    // Synthetic second physical unit with the same inspection inputs, not a product write.
+    await state.db.asset.update({
+      where: { id: 'ebike-008' },
+      data: { status: 'returned', condition: 'fair', usage_value: 18400 },
+    });
+    const context = await demoContext('cust-aino', '2026-11-06', true);
+    const first = await preparation();
+    const second = await preparation('ebike-008');
+    const outcomes = await Promise.allSettled([
+      relistAsset(state.db, context, 'ebike-007', first),
+      relistAsset(state.db, context, 'ebike-008', second),
+    ]);
+    expect(outcomes.filter((outcome) => outcome.status === 'fulfilled')).toHaveLength(1);
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(1);
+    expect(await state.db.assetRelease.count()).toBe(1);
+  });
+
+  it('rejects reusing a committed request identifier with a different customer', async () => {
+    const context = await demoContext('cust-aino', '2026-11-06', true);
+    const input = await preparation();
+    await relistAsset(state.db, context, 'ebike-007', input);
+    await expect(
+      relistAsset(state.db, context, 'ebike-007', {
+        ...input,
+        matching: { ...input.matching!, nextCustomerId: 'cust-lena' },
+      })
+    ).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
+    expect(await state.db.auditLog.count()).toBe(1);
   });
 
   it('does not treat an estimate as completed repairs', async () => {
