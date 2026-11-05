@@ -9,10 +9,10 @@ export const cardClass =
   'rounded-lg border shadow-ledger bg-card border-hairline dark:bg-stone-900 dark:border-stone-800';
 
 export const btnPrimary =
-  'inline-flex items-center justify-center rounded-lg bg-petrol px-4 py-2 font-medium text-white transition-colors hover:bg-petrol-deep disabled:opacity-50';
+  'inline-flex items-center justify-center rounded-lg bg-forest px-4 py-2 font-medium text-white transition-colors hover:bg-forest-deep disabled:opacity-50';
 
 export const btnGhost =
-  'inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium text-lagoon transition-colors hover:bg-sage dark:text-emerald-300 dark:hover:bg-stone-800';
+  'inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium text-forest transition-colors hover:bg-sage dark:text-emerald-300 dark:hover:bg-stone-800';
 
 export const inputClass =
   'w-full rounded-lg border bg-card p-2 border-hairline placeholder:text-ink-muted dark:bg-stone-900 dark:border-stone-800';
@@ -20,7 +20,7 @@ export const inputClass =
 type BadgeTone = 'mint' | 'life' | 'amber' | 'slate';
 
 const badgeTones: Record<BadgeTone, string> = {
-  mint: 'bg-mint text-petrol-ink dark:bg-emerald-950 dark:text-emerald-200',
+  mint: 'bg-mint text-pine dark:bg-emerald-950 dark:text-emerald-200',
   // The active-loop tone: items on a later life stand apart from first-life stock.
   life: 'bg-life-fill text-life-ink dark:bg-emerald-800 dark:text-emerald-100',
   amber: 'bg-amber-fill text-amber-ink dark:bg-amber-950 dark:text-amber-200',
@@ -54,7 +54,7 @@ export function ChipLink({
       aria-current={active ? 'true' : undefined}
       className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
         active
-          ? 'border-petrol bg-petrol text-white'
+          ? 'border-forest bg-forest text-white'
           : 'bg-card text-ink border-hairline hover:bg-sage dark:bg-stone-900 dark:border-stone-800 dark:text-stone-200 dark:hover:bg-stone-800'
       }`}
     >

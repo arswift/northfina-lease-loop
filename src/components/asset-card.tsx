@@ -95,7 +95,7 @@ export function AssetCard({
             <p className="text-xs text-ink-muted dark:text-stone-400">
               {t('asset.monthlyCaption')}
             </p>
-            <p className="mt-0.5 text-xl font-semibold text-petrol tabular-nums dark:text-emerald-300">
+            <p className="mt-0.5 text-xl font-semibold text-forest tabular-nums dark:text-emerald-300">
               {formatEuro(monthlyFromCents, intlLocale[locale])}
             </p>
           </div>

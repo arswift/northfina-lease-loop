@@ -88,7 +88,7 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               id="term"
               aria-label={t('spine.term')}
               type="range"
-              className="mt-3 w-full accent-petrol"
+              className="mt-3 w-full accent-forest"
               min={0}
               max={terms.length - 1}
               step={1}
@@ -117,7 +117,7 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
             <input
               aria-label={t('spine.down')}
               type="range"
-              className="mt-3 w-full accent-petrol"
+              className="mt-3 w-full accent-forest"
               min={0}
               max={maxDown}
               step={1}
