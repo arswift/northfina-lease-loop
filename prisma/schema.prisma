@@ -156,3 +156,22 @@ model AssetRelease {
   relist_request_hash      String?
   asset                    Asset   @relation(fields: [asset_id], references: [id])
 }
+
+// Customer identity comes from the selected demo context, never a submitted customer ID.
+model WaitingRequest {
+  id                         String  @id
+  customer_id                String
+  submitted_on               String
+  request_hash               String
+  category                   String
+  min_condition              String
+  max_monthly_net_rent_cents Int
+  preferred_term_months      Int
+  needed_by                  String
+  status                     String  @default("pending")
+  pending_key                String? @unique
+  allocated_asset_id         String?
+
+  @@index([customer_id])
+  @@index([status, category])
+}
