@@ -20,6 +20,7 @@ import type { ApplicationView, ContractView, QuoteView, listContracts } from '@/
 import { requestJson, RequestFailure, type DemoSelection } from './api';
 import { useDraft } from './use-draft';
 import { draftSchema, emptyDraft, selectionSchema } from './draft';
+import { AssetArt } from '@/components/asset-art';
 import { ApplicationPanel } from './application-panel';
 import { ContractPanel } from './contract-panel';
 import { SavedPriceExplanation } from './saved-price-explanation';
@@ -287,14 +288,33 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 sm:py-14">
-      <Link href={'/' + locale} className="text-emerald-800 underline dark:text-emerald-300">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
+      <Link href={'/' + locale} className="asset-back-link">
         {t('spine.back')}
       </Link>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {data ? data.asset.make + ' ' + data.asset.model : t('spine.title')}
-      </h1>
-      <aside className={panelClass}>
+      <div className="asset-hero">
+        <div className="asset-hero-content">
+          <p className="asset-hero-eyebrow">
+            {data ? t(`category.${data.asset.category}`) : t('spine.title')}
+          </p>
+          <h1 className="asset-hero-title">
+            {data ? data.asset.make + ' ' + data.asset.model : t('spine.title')}
+          </h1>
+          {data ? (
+            <p className="asset-hero-detail">
+              {t('asset.previousLives')}: {data.asset.previous_lives}
+              <span aria-hidden="true"> · </span>
+              {t('condition.label')}: {t(`condition.${data.asset.condition}`)}
+            </p>
+          ) : null}
+        </div>
+        {data ? (
+          <div className="asset-hero-art">
+            <AssetArt category={data.asset.category} />
+          </div>
+        ) : null}
+      </div>
+      <aside className={panelClass + ' demo-panel'}>
         <p className="font-medium">{t('spine.demo')}</p>
         <fieldset disabled={busy} className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field id="demo-customer" label={t('spine.customer')}>
