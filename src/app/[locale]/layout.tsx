@@ -1,12 +1,21 @@
 // The root layout. Every page lives under /[locale] (/en, /fi, /sv, /et), so the
 // <html lang> attribute is always right for the page.
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { getT } from '@/i18n/get-t';
 import { isLocale } from '@/i18n/locales';
 import '../globals.css';
+
+// Self-hosted DM Sans (OFL licence, see src/app/fonts/OFL.txt) so the demo works offline.
+const dmSans = localFont({
+  src: '../fonts/DMSans-Variable.ttf',
+  weight: '100 1000',
+  variable: '--font-dm-sans',
+  display: 'swap',
+});
 
 export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
@@ -21,8 +30,8 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   const t = getT(locale);
 
   return (
-    <html lang={locale}>
-      <body className="flex min-h-dvh flex-col bg-stone-50 text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
+    <html lang={locale} className={dmSans.variable}>
+      <body className="flex min-h-dvh flex-col bg-paper font-sans text-ink antialiased dark:bg-stone-950 dark:text-stone-100">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-10 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-stone-900 focus:shadow"
@@ -30,7 +39,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
           {t('nav.skipToContent')}
         </a>
 
-        <header className="border-b border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+        <header className="border-b bg-white border-hairline dark:border-stone-800 dark:bg-stone-900">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <Link href={`/${locale}`} className="flex items-center gap-3 rounded-lg">
               <LoopMark />
@@ -38,7 +47,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
                 <span className="block text-lg font-semibold tracking-tight">
                   {t('brand.name')}
                 </span>
-                <span className="block text-sm text-stone-600 dark:text-stone-400">
+                <span className="block text-sm text-ink-muted dark:text-stone-400">
                   {t('brand.tagline')}
                 </span>
               </span>
@@ -51,9 +60,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
           {children}
         </main>
 
-        <footer className="border-t border-stone-200 dark:border-stone-800">
-          <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-stone-600 sm:px-6 dark:text-stone-400">
-            {t('footer.skeleton')}
+        <footer className="border-t bg-white border-hairline dark:border-stone-800 dark:bg-stone-900">
+          <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-ink-muted sm:px-6 dark:text-stone-400">
+            {t('footer.note')}
           </div>
         </footer>
       </body>
@@ -67,7 +76,7 @@ function LoopMark() {
     <svg
       aria-hidden="true"
       viewBox="0 0 32 32"
-      className="size-9 shrink-0 rounded-xl bg-emerald-700 p-1.5 text-white"
+      className="size-9 shrink-0 rounded-xl bg-forest p-1.5 text-white"
       fill="none"
       stroke="currentColor"
       strokeWidth="2.5"
