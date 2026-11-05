@@ -112,6 +112,16 @@ try {
           await reflow(page);
           await page.screenshot({ path: resolve(output, name + '.png'), fullPage: true });
           await audit(page, name);
+          if (width === 320) {
+            await page.goto(base + '/' + locale);
+            assert.equal(await page.locator('.catalogue-card').count(), 30);
+            await reflow(page);
+            await page.screenshot({
+              path: resolve(output, name + '-catalogue.png'),
+              fullPage: true,
+            });
+            await audit(page, name + '-catalogue');
+          }
           assert.deepEqual(errors, []);
         });
         await context.close();
@@ -140,10 +150,10 @@ try {
     });
     assert.equal(focus.width, '3px');
     assert.notEqual(focus.style, 'none');
-    const summary = page.locator('.price-summary details > summary');
+    const summary = page.locator('.price-calculation details > summary');
     await summary.focus();
     await summary.press('Space');
-    assert.equal(await page.locator('.price-summary details').getAttribute('open'), '');
+    assert.equal(await page.locator('.price-calculation details').getAttribute('open'), '');
     await page.locator('#down').fill('invalid');
     await page.locator('#price-feedback').waitFor();
     assert.equal(await page.locator('#save-quote').isDisabled(), true);
