@@ -147,6 +147,16 @@
     border: 1px solid var(--ui-line);
     border-radius: 1.25rem;
   }
+  .price-control-details {
+    border-top: 1px solid var(--ui-line);
+    padding-top: 0.5rem;
+  }
+  .price-control-details > summary {
+    color: var(--ui-accent);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
   .price-headline {
     position: relative;
     overflow: hidden;
