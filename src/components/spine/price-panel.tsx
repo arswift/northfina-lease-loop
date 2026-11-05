@@ -8,6 +8,7 @@ import { buttonClass, Field, inputClass, panelClass } from './ui';
 import { priceFailureMessage } from './price-feedback';
 import { PriceExplanation } from './price-explanation';
 import { PriceBandNotice } from './price-band-notice';
+import { PriceComparison } from './price-comparison';
 
 export type Bootstrap = Awaited<ReturnType<typeof getBootstrap>>;
 export type TermDraft = { termMonths: number; downText: string; startDate: string };
@@ -148,25 +149,6 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               onChange={(event) => onChange({ ...draft, startDate: event.target.value })}
             />
           </Field>
-          <button
-            id="save-quote"
-            className={buttonClass}
-            disabled={busy || !option?.ok}
-            aria-describedby="save-help"
-            onClick={() => {
-              if (down.ok && option?.ok && !busy)
-                onSave({
-                  termMonths: draft.termMonths,
-                  downPaymentCents: down.cents,
-                  startDate,
-                });
-            }}
-          >
-            {busy ? t('spine.pending') : t('spine.saveQuote')}
-          </button>
-          <p id="save-help" className="text-sm">
-            {t('explain.saveHelp')}
-          </p>
         </fieldset>
         <div>
           {price && option?.ok ? (
@@ -190,6 +172,34 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
             </p>
           )}
         </div>
+      </div>
+      <PriceComparison
+        data={data}
+        locale={locale}
+        draft={draft}
+        busy={busy}
+        onChoose={(termMonths) => onChange({ ...draft, termMonths })}
+      />
+      <div className="mt-6 space-y-3 border-t border-stone-200 pt-6 dark:border-stone-700">
+        <button
+          id="save-quote"
+          className={buttonClass}
+          disabled={busy || !option?.ok}
+          aria-describedby="save-help"
+          onClick={() => {
+            if (down.ok && option?.ok && !busy)
+              onSave({
+                termMonths: draft.termMonths,
+                downPaymentCents: down.cents,
+                startDate,
+              });
+          }}
+        >
+          {busy ? t('spine.pending') : t('spine.saveQuote')}
+        </button>
+        <p id="save-help" className="text-sm">
+          {t('explain.saveHelp')}
+        </p>
       </div>
     </section>
   );
