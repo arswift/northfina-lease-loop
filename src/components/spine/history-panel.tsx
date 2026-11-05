@@ -59,53 +59,74 @@ export function HistoryPanel({
   });
   return (
     <section className={panelClass} aria-labelledby="history-heading">
-      <h2 id="history-heading" className="text-xl font-semibold">
+      <h2
+        id="history-heading"
+        className="border-b border-hairline pb-3 text-xl font-semibold text-navy dark:border-stone-800 dark:text-stone-100"
+      >
         {t('spine.passport')}
       </h2>
-      <p className="mt-2 text-sm">{t('spine.historyHelp')}</p>
+      <p className="mt-3 text-sm text-ink-muted dark:text-stone-300">{t('spine.historyHelp')}</p>
       {failedKey === key && !state ? <p role="alert">{t('spine.error')}</p> : null}
       {state ? (
         <>
           {state.passport.earlierLivesWithoutRecords > 0 ? (
-            <p className="mt-3">
+            <p className="mt-3 rounded-lg border border-hairline bg-mist/60 px-3 py-2 text-sm text-ink-muted dark:border-stone-800 dark:bg-stone-800/50 dark:text-stone-300">
               {t('spine.previousUnknown', { count: state.passport.earlierLivesWithoutRecords })}
             </p>
           ) : null}
-          <ol className="mt-4 space-y-2">
+          <ol className="mt-4 space-y-2.5">
             {state.passport.lives.map((life) => (
-              <li key={life.life_number}>
-                {t('spine.life', { count: life.life_number })} · {life.start_date} →{' '}
-                {life.closed_on ?? life.end_date} · {messageFor(locale, 'spine.' + life.status)}
+              <li
+                key={life.life_number}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-hairline border-l-4 border-l-ocean bg-mist/45 px-4 py-2.5 text-sm dark:border-stone-800 dark:border-l-cyan-500 dark:bg-stone-800/40"
+              >
+                <span className="font-semibold text-navy dark:text-stone-100">
+                  {t('spine.life', { count: life.life_number })}
+                </span>
+                <span className="text-ink-muted tabular-nums dark:text-stone-300">
+                  {life.start_date} → {life.closed_on ?? life.end_date}
+                </span>
+                <span className="rounded bg-ice px-2 py-0.5 text-xs font-semibold text-ocean dark:bg-cyan-950 dark:text-cyan-300">
+                  {messageFor(locale, 'spine.' + life.status)}
+                </span>
               </li>
             ))}
           </ol>
-          {!state.passport.lives.length ? <p className="mt-3">{t('spine.noHistory')}</p> : null}
-          <h3 className="mt-6 text-lg font-semibold">{t('spine.audit')}</h3>
-          <div className="mt-3 overflow-x-auto">
+          {!state.passport.lives.length ? (
+            <p className="mt-3 rounded-lg border border-hairline bg-mist/40 p-3 text-sm text-ink-muted dark:border-stone-800 dark:bg-stone-800/40 dark:text-stone-400">
+              {t('spine.noHistory')}
+            </p>
+          ) : null}
+          <h3 className="mt-8 border-t border-hairline pt-6 text-lg font-semibold text-navy dark:border-stone-800 dark:text-stone-100">
+            {t('spine.audit')}
+          </h3>
+          <div className="mt-3 overflow-x-auto rounded-lg border border-hairline bg-card dark:border-stone-700 dark:bg-stone-900">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr>
-                  <th scope="col" className="p-2">
+                <tr className="border-b border-hairline bg-mist/80 text-xs tracking-wide text-ink-muted uppercase dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                  <th scope="col" className="p-3 font-semibold">
                     {t('spine.auditTime')}
                   </th>
-                  <th scope="col" className="p-2">
+                  <th scope="col" className="p-3 font-semibold">
                     {t('spine.auditAction')}
                   </th>
-                  <th scope="col" className="p-2">
+                  <th scope="col" className="p-3 font-semibold">
                     {t('spine.auditActor')}
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-hairline dark:divide-stone-800">
                 {state.audit.map((row) => (
                   <tr key={row.id}>
-                    <td className="border-t border-hairline p-2">
+                    <td className="p-3 text-ink-muted tabular-nums dark:text-stone-300">
                       <time dateTime={row.at}>{auditTime.format(new Date(row.at))}</time>
                     </td>
-                    <td className="border-t border-hairline p-2">
+                    <td className="p-3 font-medium text-navy dark:text-stone-100">
                       {messageFor(locale, 'spine.action.' + row.action, 'spine.audit')}
                     </td>
-                    <td className="border-t border-hairline p-2 break-all">{row.actor}</td>
+                    <td className="p-3 font-mono text-xs text-ink-muted break-all dark:text-stone-400">
+                      {row.actor}
+                    </td>
                   </tr>
                 ))}
               </tbody>

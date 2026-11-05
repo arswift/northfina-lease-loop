@@ -12,21 +12,21 @@ type Forecast = ContractView['forecast'][number];
 function InvoiceTable({ rows, locale }: { rows: readonly (Invoice | Forecast)[]; locale: Locale }) {
   const money = (value: number) => formatEuro(value, intlLocale[locale]);
   return (
-    <div className="mt-4 overflow-x-auto">
+    <div className="mt-4 overflow-x-auto rounded-lg border border-hairline bg-card dark:border-stone-700 dark:bg-stone-900">
       <table className="w-full text-left text-sm tabular-nums">
         <thead>
-          <tr>
+          <tr className="border-b border-hairline bg-mist/80 text-xs tracking-wide text-ink-muted uppercase dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
             {['period', 'scheduled', 'invoiceDate', 'due', 'net', 'vat', 'gross'].map((key) => (
-              <th key={key} scope="col" className="border-b border-hairline-strong p-2">
+              <th key={key} scope="col" className="p-3 font-semibold">
                 {messageFor(locale, 'spine.' + key)}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-hairline dark:divide-stone-800">
           {rows.map((row, index) => (
             <tr key={'id' in row ? row.id : row.period}>
-              <th scope="row" className="border-b border-hairline p-2 font-normal">
+              <th scope="row" className="p-3 font-medium text-navy dark:text-stone-200">
                 {'kind' in row && row.kind !== 'rent'
                   ? messageFor(
                       locale,
@@ -34,16 +34,18 @@ function InvoiceTable({ rows, locale }: { rows: readonly (Invoice | Forecast)[];
                     )
                   : row.period || index + 1}
               </th>
-              <td className="border-b border-hairline p-2">
+              <td className="p-3 text-ink-muted dark:text-stone-300">
                 {'scheduledFor' in row ? row.scheduledFor : row.invoiceDate}
               </td>
-              <td className="border-b border-hairline p-2">{row.invoiceDate}</td>
-              <td className="border-b border-hairline p-2">{row.dueDate}</td>
-              <td className="border-b border-hairline p-2">{money(row.netCents)}</td>
-              <td className="border-b border-hairline p-2">
+              <td className="p-3 text-ink-muted dark:text-stone-300">{row.invoiceDate}</td>
+              <td className="p-3 text-ink-muted dark:text-stone-300">{row.dueDate}</td>
+              <td className="p-3">{money(row.netCents)}</td>
+              <td className="p-3 text-ink-muted dark:text-stone-300">
                 {money(row.vatCents)} ({row.vatBasisPoints / 100}%)
               </td>
-              <td className="border-b border-hairline p-2">{money(row.grossCents)}</td>
+              <td className="p-3 font-semibold text-navy dark:text-stone-100">
+                {money(row.grossCents)}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -70,23 +72,30 @@ export function ContractPanel({
   const t = getT(locale);
   return (
     <section className={panelClass} aria-labelledby="agreement-heading">
-      <h2 id="agreement-heading" className="text-xl font-semibold">
-        {t('spine.contract')}
-      </h2>
-      <p className="mt-2 break-all">
-        {t('spine.contractId')}: {contract.id}
-      </p>
-      <p>
-        {t('spine.life', { count: contract.lifeNumber })} ·{' '}
-        {messageFor(locale, 'spine.' + contract.status)}
-      </p>
-      <p>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-4 dark:border-stone-800">
+        <div>
+          <h2
+            id="agreement-heading"
+            className="text-xl font-semibold text-navy dark:text-stone-100"
+          >
+            {t('spine.contract')}
+          </h2>
+          <p className="mt-1 font-mono text-xs text-ink-muted break-all dark:text-stone-400">
+            {t('spine.contractId')}: {contract.id}
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-life-fill px-2.5 py-1 text-xs font-semibold text-life-ink">
+          {t('spine.life', { count: contract.lifeNumber })} ·{' '}
+          {messageFor(locale, 'spine.' + contract.status)}
+        </span>
+      </div>
+      <p className="mt-3 text-sm font-medium text-navy tabular-nums dark:text-stone-200">
         {t('spine.signed', { date: contract.signedOn })} ·{' '}
         {t('spine.endDate', { date: contract.endDate })}
       </p>
       <div className="mt-5">
         <MoneyFacts terms={contract.terms} locale={locale} />
-        <p className="mt-3 text-sm">
+        <p className="mt-3 text-xs text-ink-muted dark:text-stone-400">
           {t('spine.savedOffer', { date: contract.pricedOn, source: contract.priceSource })}
         </p>
         <GrossTotals
@@ -98,13 +107,17 @@ export function ContractPanel({
           locale={locale}
         />
       </div>
-      <p className="mt-4 text-sm">{t('spine.taxHelp')}</p>
-      <h3 className="mt-8 text-lg font-semibold">{t('spine.invoices')}</h3>
-      <p className="mt-2 text-sm">{t('spine.issuedHelp')}</p>
+      <p className="mt-4 text-xs text-ink-muted dark:text-stone-400">{t('spine.taxHelp')}</p>
+      <h3 className="mt-8 border-t border-hairline pt-6 text-lg font-semibold text-navy dark:border-stone-800 dark:text-stone-100">
+        {t('spine.invoices')}
+      </h3>
+      <p className="mt-1 text-sm text-ink-muted dark:text-stone-300">{t('spine.issuedHelp')}</p>
       {contract.invoices.length ? (
         <InvoiceTable rows={contract.invoices} locale={locale} />
       ) : (
-        <p className="mt-3">{t('spine.noneIssued')}</p>
+        <p className="mt-3 rounded-lg border border-hairline bg-mist/40 p-3 text-sm text-ink-muted dark:border-stone-800 dark:bg-stone-800/40 dark:text-stone-400">
+          {t('spine.noneIssued')}
+        </p>
       )}
       {contract.status === 'active' ? (
         <div className="mt-5 flex flex-wrap gap-3">
@@ -122,9 +135,11 @@ export function ContractPanel({
           ) : null}
         </div>
       ) : null}
-      <details className="mt-6">
-        <summary className="cursor-pointer font-medium">{t('spine.forecast')}</summary>
-        <p className="mt-3 text-sm">{t('spine.forecastHelp')}</p>
+      <details className="mt-6 rounded-lg border border-hairline bg-mist/35 p-4 dark:border-stone-800 dark:bg-stone-800/35">
+        <summary className="cursor-pointer text-sm font-semibold text-navy dark:text-stone-100">
+          {t('spine.forecast')}
+        </summary>
+        <p className="mt-3 text-xs text-ink-muted dark:text-stone-300">{t('spine.forecastHelp')}</p>
         {contract.forecastAvailable ? (
           <InvoiceTable rows={contract.forecast} locale={locale} />
         ) : (

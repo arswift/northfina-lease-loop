@@ -105,28 +105,37 @@ export function RelistPanel({
           </Field>
         ) : null}
         {plan.ok ? (
-          <div>
-            <p className="font-medium">{t('spine.workDone')}</p>
-            {plan.tasks.map((task) => (
-              <label key={task.id} className="mt-2 flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={completed.includes(task.id)}
-                  onChange={(event) =>
-                    setCompleted(
-                      event.target.checked
-                        ? [...completed, task.id]
-                        : completed.filter((id) => id !== task.id)
-                    )
-                  }
-                />
-                <span>
-                  {messageFor(locale, 'spine.task.' + task.id)} ·{' '}
-                  {formatEuro(task.netCostCents, intlLocale[locale])}
-                </span>
-              </label>
-            ))}
+          <div className="rounded-lg border border-hairline bg-mist/45 p-4 dark:border-stone-800 dark:bg-stone-800/40">
+            <p className="text-sm font-semibold text-navy dark:text-stone-100">
+              {t('spine.workDone')}
+            </p>
+            <div className="mt-2 space-y-2">
+              {plan.tasks.map((task) => (
+                <label
+                  key={task.id}
+                  className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-hairline bg-card px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-900"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      className="accent-ocean"
+                      checked={completed.includes(task.id)}
+                      onChange={(event) =>
+                        setCompleted(
+                          event.target.checked
+                            ? [...completed, task.id]
+                            : completed.filter((id) => id !== task.id)
+                        )
+                      }
+                    />
+                    <span>{messageFor(locale, 'spine.task.' + task.id)}</span>
+                  </span>
+                  <span className="font-semibold text-navy tabular-nums dark:text-stone-100">
+                    {formatEuro(task.netCostCents, intlLocale[locale])}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
         ) : (
           <p role="status">{messageFor(locale, 'spine.reason.' + plan.reason)}</p>

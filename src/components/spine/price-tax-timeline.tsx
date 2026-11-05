@@ -16,30 +16,30 @@ export function PriceTaxTimeline({
     <div className="space-y-3">
       <h4 className="font-semibold">{t('explain.timelineTitle')}</h4>
       <p className="text-sm text-ink-muted dark:text-stone-300">{t('spine.taxHelp')}</p>
-      <ul className="space-y-3">
+      <ul className="space-y-2.5">
         {periods.map((period) => (
           <li
             key={period.firstDate}
-            className="rounded-xl border border-hairline p-3 dark:border-stone-700"
+            className="rounded-lg border border-hairline border-l-4 border-l-ocean bg-mist/40 p-3.5 dark:border-stone-700 dark:border-l-cyan-500 dark:bg-stone-800/40"
           >
-            <p className="text-sm">
+            <p className="text-xs font-medium text-ink-muted dark:text-stone-300">
               {t('explain.vatPeriod', {
                 count: formatNumber(period.count, locale),
                 first: formatIsoDate(period.firstDate, locale),
                 last: formatIsoDate(period.lastDate, locale),
               })}
             </p>
-            <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-sm">
+            <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-2">
+              <span className="inline-flex rounded bg-ice px-2 py-0.5 text-xs font-semibold text-ocean dark:bg-cyan-950 dark:text-cyan-300">
                 {t('explain.vatRate', { rate: formatNumber(period.vatBasisPoints / 100, locale) })}
               </span>
-              <span className="font-semibold tabular-nums">
+              <span className="font-semibold text-navy tabular-nums dark:text-stone-100">
                 {t('explain.monthlyAmount', {
                   amount: formatEuro(period.grossCents, intlLocale[locale]),
                 })}
               </span>
             </div>
-            <p className="mt-1 text-sm text-ink-muted dark:text-stone-300">
+            <p className="mt-1 text-xs text-ink-muted dark:text-stone-400">
               {t('explain.vatAmount', { amount: formatEuro(period.vatCents, intlLocale[locale]) })}
             </p>
           </li>

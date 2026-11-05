@@ -47,64 +47,70 @@ export function PriceExplanation({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl bg-emerald-50 p-4 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-100">
-        <h3 className="font-semibold">{t('explain.title')}</h3>
-        <p className="mt-3 text-sm">{t('explain.firstPayment')}</p>
-        <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">
+      <div className="rounded-lg border border-ocean/25 bg-gradient-to-br from-ice via-mist to-emerald-50/70 p-5 text-navy shadow-ledger dark:border-cyan-800 dark:from-cyan-950/70 dark:via-stone-900 dark:to-emerald-950/50 dark:text-stone-100">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs font-semibold tracking-wide text-ocean uppercase dark:text-cyan-300">
+            {t('explain.title')}
+          </h3>
+          <span className="rounded bg-white/85 px-2 py-0.5 text-xs font-medium text-navy dark:bg-stone-900/80 dark:text-stone-200">
+            {t('explain.fixedNet', { amount: money(terms.monthlyNetCents) })}
+          </span>
+        </div>
+        <p className="mt-3 text-xs font-medium text-ink-muted dark:text-stone-300">
+          {t('explain.firstPayment')}
+        </p>
+        <p className="mt-1 text-3xl font-semibold tracking-tight text-ocean tabular-nums dark:text-cyan-200">
           {money(firstRent.grossCents)}
         </p>
-        <p className="mt-1 text-sm">
+        <p className="mt-1 text-xs text-ink-muted dark:text-stone-300">
           {t('explain.onDate', { date: formatIsoDate(firstRent.invoiceDate, locale) })}
-        </p>
-        <p className="mt-3 text-sm">
-          {t('explain.fixedNet', { amount: money(terms.monthlyNetCents) })}
         </p>
       </div>
 
-      <p className="text-sm">
+      <p className="text-sm font-medium text-navy dark:text-stone-200">
         {t('explain.rentTerm', {
           count: formatNumber(terms.termMonths, locale),
           date: formatIsoDate(explanation.endDate, locale),
         })}
       </p>
-      <div>
-        <p className="mb-3 text-sm text-ink-muted dark:text-stone-300">
+      <div className="rounded-lg border border-hairline bg-mist/50 p-4 dark:border-stone-800 dark:bg-stone-800/50">
+        <p className="mb-3 text-xs font-medium text-ink-muted dark:text-stone-300">
           {t('explain.source', {
             source: priceSourceLabel(priceSource, locale),
             date: formatIsoDate(pricedOn, locale),
           })}
         </p>
-        <dl className="space-y-3">
+        <dl className="divide-y divide-hairline text-sm dark:divide-stone-700">
           {priceRows.map(([key, cents]) => (
             <AmountRow key={key} label={t(key)} amount={money(cents)} />
           ))}
         </dl>
-        <p className="mt-3 text-sm text-ink-muted dark:text-stone-300">
+        <p className="mt-3 text-xs text-ink-muted dark:text-stone-300">
           {t('explain.financedHelp')}
         </p>
       </div>
 
-      <div className="rounded-xl border border-hairline p-4 dark:border-stone-700">
-        <dl>
+      <div className="rounded-lg border border-hairline bg-card p-4 dark:border-stone-700 dark:bg-stone-900">
+        <dl className="text-sm">
           <AmountRow label={t('explain.upfrontGross')} amount={money(upfront.grossCents)} />
         </dl>
-        <p className="mt-2 text-sm">
+        <p className="mt-1 text-xs text-ink-muted dark:text-stone-300">
           {t('explain.upfrontTiming', { date: formatIsoDate(upfrontDate, locale) })}
         </p>
-        <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">
+        <p className="mt-1.5 text-xs text-ink-muted dark:text-stone-400">
           {t('explain.firstMonthHelp')}
         </p>
       </div>
 
-      <div className="space-y-4 rounded-xl bg-sage p-4 dark:bg-stone-800">
+      <div className="space-y-3 rounded-lg border border-hairline bg-mist p-4 dark:border-stone-800 dark:bg-stone-800">
         <div>
-          <dl>
+          <dl className="text-sm">
             <AmountRow
               label={t('spine.forecastUseGross')}
               amount={money(explanation.useGrossCents)}
             />
           </dl>
-          <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">
+          <p className="mt-1 text-xs text-ink-muted dark:text-stone-300">
             {t('explain.useEquation', {
               upfront: money(upfront.grossCents),
               months: formatNumber(terms.termMonths, locale),
@@ -112,22 +118,22 @@ export function PriceExplanation({
             })}
           </p>
         </div>
-        <div className="border-t border-hairline-strong pt-4 dark:border-stone-600">
-          <dl>
+        <div className="border-t border-hairline-strong pt-3 dark:border-stone-700">
+          <dl className="text-sm">
             <AmountRow label={t('explain.buyoutGross')} amount={money(buyout.grossCents)} />
           </dl>
-          <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">
+          <p className="mt-1 text-xs text-ink-muted dark:text-stone-300">
             {t('explain.buyoutTiming', { date: formatIsoDate(explanation.endDate, locale) })}
           </p>
         </div>
-        <div className="border-t border-hairline-strong pt-4 dark:border-stone-600">
-          <dl>
+        <div className="border-t border-hairline-strong pt-3 dark:border-stone-700">
+          <dl className="text-sm">
             <AmountRow
               label={t('spine.forecastOwnGross')}
               amount={money(explanation.ownGrossCents)}
             />
           </dl>
-          <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">
+          <p className="mt-1 text-xs text-ink-muted dark:text-stone-300">
             {t('explain.ownEquation', {
               use: money(explanation.useGrossCents),
               buyout: money(buyout.grossCents),
@@ -136,9 +142,11 @@ export function PriceExplanation({
         </div>
       </div>
 
-      <details className="rounded-xl border border-hairline p-4 dark:border-stone-700">
-        <summary className="cursor-pointer font-medium">{t('spine.factor')}</summary>
-        <div className="mt-4 space-y-3 text-sm">
+      <details className="rounded-lg border border-hairline bg-card p-4 dark:border-stone-700 dark:bg-stone-900">
+        <summary className="cursor-pointer text-sm font-semibold text-navy dark:text-stone-100">
+          {t('spine.factor')}
+        </summary>
+        <div className="mt-4 space-y-3 border-t border-hairline pt-3 text-sm dark:border-stone-800">
           <p>
             {t('explain.financedFormula', {
               price: money(terms.listPriceCents),
@@ -146,22 +154,24 @@ export function PriceExplanation({
               financed: money(terms.financedCents),
             })}
           </p>
-          <p className="font-semibold tabular-nums">
+          <p className="rounded bg-ice/70 px-3 py-2 font-semibold text-ocean tabular-nums dark:bg-cyan-950/60 dark:text-cyan-200">
             {t('explain.factorFormula', {
               financed: money(terms.financedCents),
               factor,
               monthly: money(terms.monthlyNetCents),
             })}
           </p>
-          <p>
+          <p className="text-xs text-ink-muted dark:text-stone-300">
             {t('explain.factorHelp', {
               band: terms.band,
               version: formatNumber(terms.coefficientTableVersion, locale),
             })}
           </p>
-          <p>{t('explain.rounding')}</p>
-          <h4 className="pt-2 font-semibold">{t('explain.netTotals')}</h4>
-          <dl className="space-y-3">
+          <p className="text-xs text-ink-muted dark:text-stone-300">{t('explain.rounding')}</p>
+          <h4 className="pt-2 text-xs font-semibold tracking-wide text-ink-muted uppercase dark:text-stone-300">
+            {t('explain.netTotals')}
+          </h4>
+          <dl className="divide-y divide-hairline dark:divide-stone-800">
             {totalRows.map(([key, cents]) => (
               <AmountRow key={key} label={t(key)} amount={money(cents)} />
             ))}
@@ -170,7 +180,7 @@ export function PriceExplanation({
       </details>
 
       <PriceTaxTimeline periods={explanation.rentalPeriods} locale={locale} />
-      <p className="text-sm text-ink-muted dark:text-stone-300">
+      <p className="text-xs text-ink-muted dark:text-stone-400">
         {t('explain.assumptions', {
           upfront: formatIsoDate(upfrontDate, locale),
           end: formatIsoDate(explanation.endDate, locale),
@@ -182,9 +192,9 @@ export function PriceExplanation({
 
 function AmountRow({ label, amount }: { label: string; amount: string }) {
   return (
-    <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
-      <dt className="min-w-0 flex-1 basis-44">{label}</dt>
-      <dd className="font-semibold tabular-nums">{amount}</dd>
+    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-1.5">
+      <dt className="min-w-0 flex-1 basis-44 text-ink-muted dark:text-stone-300">{label}</dt>
+      <dd className="font-semibold text-navy tabular-nums dark:text-stone-100">{amount}</dd>
     </div>
   );
 }

@@ -43,16 +43,18 @@ export function GrossTotals({
   ];
   if (issued) rows.push(['spine.issuedTotal', totals.issuedGrossCents]);
   return (
-    <div className="mt-5 space-y-3 rounded-xl bg-emerald-50 p-4 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-100">
-      <dl className="space-y-3">
+    <div className="mt-5 space-y-3 rounded-lg border border-ocean/25 bg-ice/60 p-4 text-navy dark:border-cyan-800 dark:bg-cyan-950/50 dark:text-stone-100">
+      <dl className="divide-y divide-ocean/15 text-sm dark:divide-cyan-800/50">
         {rows.map(([key, cents]) => (
-          <div key={key} className="flex flex-wrap justify-between gap-2">
-            <dt>{t(key)}</dt>
-            <dd className="font-semibold tabular-nums">{formatEuro(cents, intlLocale[locale])}</dd>
+          <div key={key} className="flex flex-wrap justify-between gap-2 py-1.5">
+            <dt className="text-ink-muted dark:text-cyan-200">{t(key)}</dt>
+            <dd className="font-semibold text-ocean tabular-nums dark:text-cyan-100">
+              {formatEuro(cents, intlLocale[locale])}
+            </dd>
           </div>
         ))}
       </dl>
-      <p className="text-sm">{t('spine.forecastTotalHelp')}</p>
+      <p className="text-xs text-ink-muted dark:text-cyan-300">{t('spine.forecastTotalHelp')}</p>
     </div>
   );
 }

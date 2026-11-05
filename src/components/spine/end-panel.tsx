@@ -50,10 +50,13 @@ export function EndPanel({
   if (contract.status !== 'active') return <p className={panelClass}>{t('spine.closed')}</p>;
   return (
     <section className={panelClass} aria-labelledby="end-heading">
-      <h2 id="end-heading" className="text-xl font-semibold">
+      <h2
+        id="end-heading"
+        className="border-b border-hairline pb-3 text-xl font-semibold text-navy dark:border-stone-800 dark:text-stone-100"
+      >
         {t('spine.end')}
       </h2>
-      <p className="mt-3">{t('spine.endHelp')}</p>
+      <p className="mt-3 text-sm text-ink-muted dark:text-stone-300">{t('spine.endHelp')}</p>
       {volatile ? (
         <p role="status" className="mt-3">
           {t('spine.storageWarning')}
@@ -69,12 +72,20 @@ export function EndPanel({
       </button>
       <fieldset disabled={busy} className="mt-5 space-y-4">
         <legend className="sr-only">{t('spine.end')}</legend>
-        <div className="flex flex-wrap gap-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           {(['buy', 'return', 'pass_on'] as const).map((value) => (
-            <label key={value} className="flex items-center gap-2">
+            <label
+              key={value}
+              className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+                choice === value
+                  ? 'border-ocean bg-ice/70 text-navy dark:border-cyan-600 dark:bg-cyan-950/60 dark:text-cyan-100'
+                  : 'border-hairline bg-mist/40 text-ink hover:bg-mist dark:border-stone-800 dark:bg-stone-800/40 dark:text-stone-200'
+              }`}
+            >
               <input
                 type="radio"
                 name="end-choice"
+                className="accent-ocean"
                 value={value}
                 checked={choice === value}
                 onChange={() => saveDraft({ ...draft, choice: value })}

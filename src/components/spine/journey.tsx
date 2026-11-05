@@ -27,7 +27,15 @@ import { EndPanel, type EndForm } from './end-panel';
 import { PricePanel, type Bootstrap } from './price-panel';
 import { RelistPanel, type RelistForm } from './relist-panel';
 import { HistoryPanel } from './history-panel';
-import { buttonClass, Field, inputClass, messageFor, panelClass } from './ui';
+import {
+  AssetShowcase,
+  buttonClass,
+  Field,
+  inputClass,
+  messageFor,
+  panelClass,
+  secondaryButtonClass,
+} from './ui';
 
 const emptySelection: DemoSelection = { customerId: '', businessDate: '' };
 type ContractList = Awaited<ReturnType<typeof listContracts>>;
@@ -287,16 +295,30 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 sm:py-14">
-      <Link href={'/' + locale} className="text-ocean underline dark:text-emerald-300">
-        {t('spine.back')}
-      </Link>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {data ? data.asset.make + ' ' + data.asset.model : t('spine.title')}
-      </h1>
-      <aside className={panelClass}>
-        <p className="font-medium">{t('spine.demo')}</p>
-        <fieldset disabled={busy} className="mt-4 grid gap-4 sm:grid-cols-2">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
+      <div>
+        <Link
+          href={'/' + locale}
+          className="inline-flex items-center gap-2 rounded-lg border border-hairline bg-card px-3 py-1.5 text-sm font-medium text-navy shadow-ledger transition-colors hover:bg-mist dark:border-stone-800 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
+        >
+          <span aria-hidden="true">←</span>
+          {t('spine.back')}
+        </Link>
+      </div>
+
+      {data ? (
+        <AssetShowcase asset={data.asset} offer={data.offer} locale={locale} />
+      ) : (
+        <h1 className="text-3xl font-semibold tracking-tight text-navy dark:text-stone-100">
+          {t('spine.title')}
+        </h1>
+      )}
+
+      <aside className="rounded-lg border border-hairline border-l-4 border-l-ocean bg-mist/75 p-5 shadow-ledger dark:border-stone-800 dark:border-l-cyan-500 dark:bg-stone-900/80">
+        <p className="text-xs font-semibold tracking-wide text-ocean uppercase dark:text-cyan-300">
+          {t('spine.demo')}
+        </p>
+        <fieldset disabled={busy} className="mt-3 grid gap-4 sm:grid-cols-2">
           <Field id="demo-customer" label={t('spine.customer')}>
             <select
               id="demo-customer"
@@ -324,7 +346,7 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
             />
           </Field>
         </fieldset>
-        <p className="mt-3 text-sm">{t('spine.dateHelp')}</p>
+        <p className="mt-3 text-xs text-ink-muted dark:text-stone-400">{t('spine.dateHelp')}</p>
       </aside>
       {selectionVolatile || draftVolatile ? (
         <p className={panelClass} role="status">
@@ -332,8 +354,11 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
         </p>
       ) : null}
       {error ? (
-        <div className={panelClass} role="alert">
-          <p>{messageFor(locale, 'spine.error.' + error)}</p>
+        <div
+          className="rounded-lg border border-red-300 bg-red-50 p-5 text-red-950 shadow-ledger dark:border-red-800 dark:bg-red-950/60 dark:text-red-100"
+          role="alert"
+        >
+          <p className="font-medium">{messageFor(locale, 'spine.error.' + error)}</p>
           <button
             className={buttonClass + ' mt-3'}
             onClick={() => {
@@ -346,34 +371,46 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
         </div>
       ) : null}
       {!data ? (
-        <p role="status">{t('spine.loading')}</p>
+        <p className={panelClass} role="status">
+          {t('spine.loading')}
+        </p>
       ) : (
         <>
           {loaded?.contracts.filter((item) => item.asset_id === assetId).length ? (
             <section className={panelClass}>
-              <h2 className="font-semibold">{t('spine.savedContracts')}</h2>
-              <ul className="mt-3 space-y-2">
+              <h2 className="text-base font-semibold text-navy dark:text-stone-100">
+                {t('spine.savedContracts')}
+              </h2>
+              <ul className="mt-3 flex flex-wrap gap-2">
                 {loaded.contracts
                   .filter((item) => item.asset_id === assetId)
                   .map((item) => (
                     <li key={item.id}>
                       <button
-                        className="break-all text-left underline"
+                        className={`${secondaryButtonClass} text-left`}
                         disabled={busy}
                         onClick={() => {
                           saveDraft({ ...draft, contractId: item.id });
                           setError(null);
                         }}
                       >
-                        {t('spine.openContract')} · {item.start_date} ·{' '}
-                        {messageFor(locale, 'spine.' + item.status)}
+                        <span>{t('spine.openContract')}</span>
+                        <span className="text-ink-muted dark:text-stone-400">·</span>
+                        <span className="tabular-nums">{item.start_date}</span>
+                        <span className="rounded bg-ice px-2 py-0.5 text-xs font-semibold text-ocean dark:bg-cyan-950 dark:text-cyan-300">
+                          {messageFor(locale, 'spine.' + item.status)}
+                        </span>
                       </button>
                     </li>
                   ))}
               </ul>
             </section>
           ) : null}
-          {contractId && !contract ? <p role="status">{t('spine.loading')}</p> : null}
+          {contractId && !contract ? (
+            <p className={panelClass} role="status">
+              {t('spine.loading')}
+            </p>
+          ) : null}
           {contract ? (
             <>
               <ContractPanel
@@ -408,21 +445,29 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
               ) : null}
             </>
           ) : null}
-          {!contractId && draft.quote && !quote ? <p role="status">{t('spine.loading')}</p> : null}
+          {!contractId && draft.quote && !quote ? (
+            <p className={panelClass} role="status">
+              {t('spine.loading')}
+            </p>
+          ) : null}
           {!contractId && quote ? (
             <>
               <section className={panelClass}>
-                <p>{t('spine.quoteSaved', { date: formatIsoDate(quote.validThrough, locale) })}</p>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-4 dark:border-stone-800">
+                  <p className="font-medium text-navy dark:text-stone-100">
+                    {t('spine.quoteSaved', { date: formatIsoDate(quote.validThrough, locale) })}
+                  </p>
+                  <button
+                    className={secondaryButtonClass}
+                    disabled={busy}
+                    onClick={() => {
+                      saveDraft({ ...draft, quote: null, application: null, retries: {} });
+                    }}
+                  >
+                    {t('spine.editTerms')}
+                  </button>
+                </div>
                 <SavedPriceExplanation quote={quote} data={data} locale={locale} />
-                <button
-                  className={buttonClass + ' mt-4'}
-                  disabled={busy}
-                  onClick={() => {
-                    saveDraft({ ...draft, quote: null, application: null, retries: {} });
-                  }}
-                >
-                  {t('spine.editTerms')}
-                </button>
               </section>
               <ApplicationPanel
                 data={data}

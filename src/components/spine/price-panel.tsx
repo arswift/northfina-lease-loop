@@ -61,11 +61,17 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
 
   return (
     <section className={panelClass} aria-labelledby="terms-heading">
-      <h2 id="terms-heading" className="mb-5 text-xl font-semibold">
+      <h2
+        id="terms-heading"
+        className="mb-5 border-b border-hairline pb-3 text-xl font-semibold text-navy dark:border-stone-800 dark:text-stone-100"
+      >
         {t('spine.terms')}
       </h2>
       <div className="grid gap-8 md:grid-cols-2">
-        <fieldset disabled={busy} className="space-y-5">
+        <fieldset
+          disabled={busy}
+          className="space-y-5 rounded-lg border border-hairline bg-mist/45 p-5 dark:border-stone-800 dark:bg-stone-800/40"
+        >
           <Field id="term-select" label={t('spine.term')}>
             <select
               id="term-select"
@@ -98,7 +104,12 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
                 onChange({ ...draft, termMonths: terms[Number(event.target.value)] ?? 12 })
               }
             />
-            <output htmlFor="term">{t('spine.months', { count: draft.termMonths })}</output>
+            <output
+              htmlFor="term"
+              className="mt-1 inline-flex rounded bg-ice px-2 py-0.5 text-xs font-semibold text-ocean tabular-nums dark:bg-cyan-950 dark:text-cyan-300"
+            >
+              {t('spine.months', { count: draft.termMonths })}
+            </output>
           </Field>
           <Field id="down" label={t('spine.down')}>
             <input
@@ -127,10 +138,10 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
                 onChange({ ...draft, downText: String(Number(event.target.value) / 100) })
               }
             />
-            <p id="down-help" className="mt-2 text-sm">
+            <p id="down-help" className="mt-2 text-xs text-ink-muted dark:text-stone-400">
               {t('spine.downHelp')}
             </p>
-            <div id="down-band-help" className="mt-3 text-sm">
+            <div id="down-band-help" className="mt-3 text-xs text-ink-muted dark:text-stone-400">
               <p>{t('spine.bandHelp')}</p>
               {price ? (
                 <PriceBandNotice terms={price} table={data.coefficientTable} locale={locale} />
@@ -164,10 +175,16 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
                 {t('spine.monthlyGross', { date: startDate })}:{' '}
                 {formatEuro(option.explanation.firstRent.grossCents, intlLocale[locale])}
               </p>
-              <p className="mt-4 text-sm">{t('spine.endHelp')}</p>
+              <p className="mt-4 text-xs text-ink-muted dark:text-stone-400">
+                {t('spine.endHelp')}
+              </p>
             </>
           ) : (
-            <p id="price-feedback" role="status">
+            <p
+              id="price-feedback"
+              role="status"
+              className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm font-medium text-amber-950 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-100"
+            >
               {error}
             </p>
           )}

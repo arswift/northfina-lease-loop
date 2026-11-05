@@ -143,19 +143,27 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
       {volatile ? <p role="status">{t('spine.storageWarning')}</p> : null}
       {options ? (
         <div
-          className="overflow-x-auto rounded-xl border border-hairline dark:border-stone-700"
+          className="overflow-x-auto rounded-lg border border-hairline bg-card shadow-ledger dark:border-stone-700 dark:bg-stone-900"
           role="region"
           aria-labelledby={id + '-heading'}
           tabIndex={0}
         >
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead>
-              <tr className="border-b border-hairline dark:border-stone-700">
-                <th scope="col" className="w-2/5 p-3 font-medium">
+              <tr className="border-b border-hairline bg-mist/80 text-xs tracking-wide text-ink-muted uppercase dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                <th scope="col" className="w-2/5 p-3.5 font-semibold">
                   {t('spine.term')}
                 </th>
                 {options.map((option, index) => (
-                  <th key={index} scope="col" className="p-3 text-right font-semibold">
+                  <th
+                    key={index}
+                    scope="col"
+                    className={`p-3.5 text-right font-semibold ${
+                      option.termMonths === draft.termMonths
+                        ? 'bg-ice/60 text-ocean dark:bg-cyan-950/40 dark:text-cyan-300'
+                        : 'text-navy dark:text-stone-100'
+                    }`}
+                  >
                     {t('spine.months', { count: formatNumber(option.termMonths, locale) })}
                   </th>
                 ))}
@@ -163,17 +171,24 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
             </thead>
             <tbody>
               {rows.map((row, rowIndex) => (
-                <tr key={row.label} className="border-b border-hairline dark:border-stone-700">
-                  <th scope="row" className="p-3 font-normal">
+                <tr key={row.label} className="border-b border-hairline dark:border-stone-800">
+                  <th scope="row" className="p-3.5 font-normal text-ink-muted dark:text-stone-300">
                     {t(row.label)}
                   </th>
                   {options.map((option, index) =>
                     option.ok ? (
-                      <td key={index} className="p-3 text-right font-medium tabular-nums">
+                      <td
+                        key={index}
+                        className={`p-3.5 text-right font-semibold tabular-nums ${
+                          option.termMonths === draft.termMonths
+                            ? 'bg-ice/25 text-ocean dark:bg-cyan-950/20 dark:text-cyan-200'
+                            : 'text-navy dark:text-stone-100'
+                        }`}
+                      >
                         {row.value(option.explanation)}
                       </td>
                     ) : rowIndex === 0 ? (
-                      <td key={index} rowSpan={rows.length} className="p-3 align-top">
+                      <td key={index} rowSpan={rows.length} className="p-3.5 align-top">
                         <p role="status">{priceFailureMessage(option.reason, data, locale)}</p>
                       </td>
                     ) : null
@@ -182,12 +197,12 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
               ))}
             </tbody>
             <tfoot>
-              <tr>
-                <th scope="row" className="p-3 font-medium">
+              <tr className="bg-mist/40 dark:bg-stone-800/40">
+                <th scope="row" className="p-3.5 font-medium text-navy dark:text-stone-200">
                   {t('explain.selection')}
                 </th>
                 {options.map((option, index) => (
-                  <td key={index} className="p-3 text-right align-top">
+                  <td key={index} className="p-3.5 text-right align-top">
                     <button
                       type="button"
                       className={buttonClass}

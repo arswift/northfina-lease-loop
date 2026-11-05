@@ -50,7 +50,10 @@ export function ApplicationPanel(props: Props) {
 
   return (
     <section className={panelClass} aria-labelledby="application-heading">
-      <h2 id="application-heading" className="mb-4 text-xl font-semibold">
+      <h2
+        id="application-heading"
+        className="mb-4 border-b border-hairline pb-3 text-xl font-semibold text-navy dark:border-stone-800 dark:text-stone-100"
+      >
         {t('spine.application')}
       </h2>
       <form
@@ -60,7 +63,7 @@ export function ApplicationPanel(props: Props) {
         }}
         noValidate
       >
-        <fieldset disabled={busy} className="grid gap-5 md:grid-cols-2">
+        <fieldset disabled={busy} className="grid gap-4 md:grid-cols-2">
           {flow.activeQuestions.map((question) => {
             const id = question.id;
             const answer = answers[id];
@@ -74,7 +77,10 @@ export function ApplicationPanel(props: Props) {
               'aria-invalid': invalid || undefined,
             };
             return (
-              <div key={id}>
+              <div
+                key={id}
+                className="rounded-lg border border-hairline bg-mist/40 p-4 dark:border-stone-800 dark:bg-stone-800/40"
+              >
                 <Field id={id} label={question.text[locale]}>
                   {question.type === 'choice' ? (
                     <select
@@ -120,16 +126,20 @@ export function ApplicationPanel(props: Props) {
                   )}
                 </Field>
                 {question.type === 'list' ? (
-                  <p className="mt-1 text-sm">{t('spine.listHelp')}</p>
+                  <p className="mt-1.5 text-xs text-ink-muted dark:text-stone-400">
+                    {t('spine.listHelp')}
+                  </p>
                 ) : null}
                 {question.type === 'money' ? (
-                  <p className="mt-1 text-sm">{t('spine.moneyUnit')}</p>
+                  <p className="mt-1.5 text-xs text-ink-muted dark:text-stone-400">
+                    {t('spine.moneyUnit')}
+                  </p>
                 ) : null}
-                <p id={id + '-why'} className="mt-2 text-sm text-ink-muted dark:text-stone-300">
+                <p id={id + '-why'} className="mt-2 text-xs text-ink-muted dark:text-stone-300">
                   {messageFor(locale, 'spine.why.' + id)}
                 </p>
                 {invalid ? (
-                  <p className="mt-1 font-medium text-red-700 dark:text-red-300">
+                  <p className="mt-1.5 text-xs font-semibold text-red-700 dark:text-red-300">
                     {t('spine.required')}
                   </p>
                 ) : null}
@@ -142,9 +152,18 @@ export function ApplicationPanel(props: Props) {
         </button>
       </form>
       {application ? (
-        <div className="mt-6" role="status">
+        <div
+          className={`mt-6 rounded-lg border p-4 text-sm ${
+            application.decision === 'approved'
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-100'
+              : application.decision === 'manual_review'
+                ? 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-100'
+                : 'border-red-300 bg-red-50 text-red-950 dark:border-red-800 dark:bg-red-950/60 dark:text-red-100'
+          }`}
+          role="status"
+        >
           <h3 className="font-semibold">{messageFor(locale, 'spine.' + application.decision)}</h3>
-          <ul className="mt-2 list-disc pl-5">
+          <ul className="mt-2 list-disc space-y-1 pl-5">
             {application.reasons.map((reason) => (
               <li key={reason}>{messageFor(locale, 'spine.reason.' + reason)}</li>
             ))}
