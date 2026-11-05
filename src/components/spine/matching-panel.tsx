@@ -33,8 +33,6 @@ export function MatchingPanel({
   const [age, setAge] = useState('');
   const [original, setOriginal] = useState('');
   const [readyOn, setReadyOn] = useState(data.businessDate);
-  const [customer, setCustomer] = useState('');
-  const [linked, setLinked] = useState(false);
   const [pending, setPending] = useState(false);
   const [failedKey, setFailedKey] = useState<string | null>(null);
   const [loaded, setLoaded] = useState<{ key: string; result: MatchingPreview } | null>(null);
@@ -63,7 +61,6 @@ export function MatchingPanel({
   async function preview() {
     if (!input.success || !valid) return;
     onClear();
-    setLinked(false);
     setPending(true);
     setFailedKey(null);
     try {
@@ -83,12 +80,12 @@ export function MatchingPanel({
   }
   function changed() {
     onClear();
-    setLinked(false);
   }
   return (
     <div className="space-y-4 rounded-xl border border-emerald-300 p-4">
       <h3 className="text-lg font-semibold">{t('match.title')}</h3>
       <p className="text-sm">{t('match.assumptions')}</p>
+      <p className="text-sm">{t('wait.importedHelp')}</p>
       <fieldset disabled={busy || pending} className="grid gap-4 sm:grid-cols-3">
         <Field id="match-age" label={t('match.age')}>
           <input
@@ -147,59 +144,34 @@ export function MatchingPanel({
             {recommendation ? (
               <>
                 <h4 className="mt-4 font-semibold">
-                  {t('match.recommendation', { request: recommendation.requestId })}
+                  {t('match.recommendation', {
+                    request: recommendation.customerName ?? recommendation.requestId,
+                  })}
                 </h4>
+                <p className="text-sm break-all">
+                  {t('wait.requestRef', { id: recommendation.requestId })}
+                </p>
                 <p>
                   {messageFor(locale, 'condition.' + recommendation.condition)} ·{' '}
                   {t('spine.months', { count: recommendation.termMonths })} ·{' '}
                   {t('spine.monthlyNet')}: {moneyText(recommendation.monthlyNetCents)}
                 </p>
                 <fieldset disabled={busy || pending} className="mt-4 space-y-3">
-                  <Field id="match-customer" label={t('match.customer')}>
-                    <select
-                      id="match-customer"
-                      value={customer}
-                      className={inputClass}
-                      onChange={(event) => {
-                        setCustomer(event.target.value);
-                        changed();
-                      }}
-                    >
-                      <option value="">{t('match.chooseCustomer')}</option>
-                      {data.customers.map((person) => (
-                        <option key={person.id} value={person.id}>
-                          {person.name}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <p className="text-sm">{t('match.mapping')}</p>
-                  <label className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      className="mt-1"
-                      checked={linked}
-                      onChange={(event) => {
-                        setLinked(event.target.checked);
-                        onClear();
-                      }}
-                    />
-                    <span>{t('match.linkConfirmed')}</span>
-                  </label>
+                  <p className="text-sm">{t('wait.autoLinked')}</p>
                   <p className="text-sm">{t('match.readinessHelp')}</p>
                   <button
                     type="button"
                     className={buttonClass}
                     disabled={
-                      !input.success || !linked || !customer || readyOn !== data.businessDate
+                      !input.success || !recommendation.customerId || readyOn !== data.businessDate
                     }
                     onClick={() => {
-                      if (input.success && customer && linked)
+                      if (input.success && recommendation.customerId)
                         onSelect(
                           {
                             ...input.data,
                             waitingRequestId: recommendation.requestId,
-                            nextCustomerId: customer,
+                            nextCustomerId: recommendation.customerId,
                           },
                           recommendation
                         );
@@ -242,7 +214,11 @@ export function MatchingPanel({
                       .map((row) => (
                         <tr key={row.requestId + ':' + row.condition}>
                           <th scope="row" className="border-t p-2">
-                            {row.requestId} · {t('spine.months', { count: row.termMonths })}
+                            {row.customerName ?? t('wait.anonymous')} ·{' '}
+                            {t('spine.months', { count: row.termMonths })}
+                            <span className="block text-xs font-normal break-all">
+                              {t('wait.requestRef', { id: row.requestId })}
+                            </span>
                           </th>
                           <td className="border-t p-2">
                             {messageFor(locale, 'condition.' + row.condition)}
