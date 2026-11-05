@@ -453,7 +453,7 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
           ) : null}
           {data.asset.status === 'returned' ? (
             <RelistPanel
-              key={data.releaseRevision}
+              key={`${data.releaseRevision}:${data.businessDate}:${data.customer.id}`}
               data={data}
               locale={locale}
               busy={busy}
