@@ -11,6 +11,7 @@ import {
 import type { DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { submitApplication } from './spine-applications';
+import { issueInvoices } from './spine-invoices';
 import { createQuote } from './spine-quotes';
 import { signContract } from './spine-signing';
 import { getContract, listContracts } from './spine-views';
@@ -173,5 +174,64 @@ describe('atomic, exclusive signing', () => {
       code: 'APPLICATION_NOT_FOUND',
     });
     expect(await listContracts(db, mikko)).toEqual([]);
+  });
+});
+
+describe('issued documents', () => {
+  it('keeps future forecasts separate and freezes the VAT on each actual issue date', async () => {
+    const contract = await createLease(db, aino);
+    expect(contract.invoices).toEqual([]);
+    expect(contract.forecast).toHaveLength(36);
+    expect(contract.nextScheduledDate).toBe('2026-11-05');
+    await issueInvoices(db, aino, contract.id);
+    await issueInvoices(db, { ...aino, businessDate: '2026-12-05' }, contract.id);
+    const january = await issueInvoices(db, { ...aino, businessDate: '2027-01-05' }, contract.id);
+    expect(
+      january.invoices.map((invoice) => [
+        invoice.period,
+        invoice.netCents,
+        invoice.vatCents,
+        invoice.grossCents,
+      ])
+    ).toEqual([
+      [1, 10730, 2736, 13466],
+      [2, 10730, 2736, 13466],
+      [3, 10730, 2790, 13520],
+    ]);
+    expect(await issueInvoices(db, { ...aino, businessDate: '2027-01-05' }, contract.id)).toEqual(
+      january
+    );
+    expect(await db.invoice.count()).toBe(3);
+    expect(january.nextScheduledDate).toBe('2027-02-05');
+  });
+
+  it('issues overdue periods today with today VAT instead of inventing old issuance', async () => {
+    const contract = await createLease(db, aino);
+    const late = await issueInvoices(db, { ...aino, businessDate: '2027-01-05' }, contract.id);
+    expect(late.invoices).toHaveLength(3);
+    expect(late.invoices[0]).toMatchObject({
+      scheduledFor: '2026-11-05',
+      invoiceDate: '2027-01-05',
+      dueDate: '2027-01-05',
+      vatBasisPoints: 2600,
+    });
+    expect(late.invoices.every((invoice) => invoice.grossCents === 13520)).toBe(true);
+  });
+
+  it('stores a down payment separately and reconciles every rent to the locked net total', async () => {
+    const contract = await createLease(db, aino, { downPaymentCents: 50000, termMonths: 12 });
+    expect(contract.invoices).toHaveLength(1);
+    expect(contract.invoices[0]).toMatchObject({
+      kind: 'down_payment',
+      netCents: 50000,
+      vatCents: 12750,
+      grossCents: 62750,
+    });
+    const full = await issueInvoices(db, { ...aino, businessDate: contract.endDate }, contract.id);
+    const rent = full.invoices.filter((invoice) => invoice.kind === 'rent');
+    expect(rent).toHaveLength(12);
+    expect(rent.reduce((sum, invoice) => sum + invoice.netCents, 0)).toBe(
+      contract.terms.totalRentNetCents
+    );
   });
 });
