@@ -1,4 +1,6 @@
 {
+  "wait.titleFor": "Liitu ootenimekirjaga: {category}",
+  "wait.categoryScope": "Kategooria tuleneb vaadatavast varast. Sinu päring võib sobida mis tahes sobiva varaga selles kategoorias.",
   "wait.title": "Liitu ootenimekirjaga",
   "wait.for": "Kliendi {name} ootenimekirja soovid",
   "wait.help": "Vali oma vajadused ja maksimaalne käibemaksuta kuurent. Päring kuulub valitud demokliendile. Liitumine ei broneeri vara ega kinnita liisingut.",
