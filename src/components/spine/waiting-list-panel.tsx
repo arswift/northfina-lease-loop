@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import type { AssetCategory, AssetCondition } from '@/data/schemas';
+import type { AssetCondition } from '@/data/schemas';
 import {
   joinWaitingInputSchema,
   ownWaitingListSchema,
@@ -27,7 +27,7 @@ export function WaitingListPanel({
   onChanged: () => void;
 }) {
   const t = getT(locale);
-  const [category, setCategory] = useState<AssetCategory>(data.asset.category);
+  const category = data.asset.category;
   const [condition, setCondition] = useState<AssetCondition>('good');
   const [budget, setBudget] = useState('');
   const [term, setTerm] = useState(12);
@@ -101,28 +101,15 @@ export function WaitingListPanel({
   return (
     <section className={panelClass} aria-labelledby="waiting-title">
       <h2 id="waiting-title" className="text-xl font-semibold">
-        {t('wait.title')}
+        {t('wait.titleFor', { category: messageFor(locale, 'category.' + category) })}
       </h2>
       <p className="mt-2 font-medium">{t('wait.for', { name: data.customer.name })}</p>
       <p className="mt-2 text-sm">{t('wait.help')}</p>
+      <p className="mt-2 text-sm">{t('wait.categoryScope')}</p>
       <fieldset
         disabled={busy || pending || records === null}
         className="mt-4 grid gap-4 sm:grid-cols-2"
       >
-        <Field id="waiting-category" label={t('wait.category')}>
-          <select
-            id="waiting-category"
-            className={inputClass}
-            value={category}
-            onChange={(event) => setCategory(event.target.value as AssetCategory)}
-          >
-            {(['e_bike', 'laptop', 'farm_machine'] as const).map((value) => (
-              <option key={value} value={value}>
-                {messageFor(locale, 'category.' + value)}
-              </option>
-            ))}
-          </select>
-        </Field>
         <Field id="waiting-condition" label={t('wait.condition')}>
           <select
             id="waiting-condition"

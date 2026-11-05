@@ -1,4 +1,6 @@
 {
+  "wait.titleFor": "Liity jonotuslistalle: {category}",
+  "wait.categoryScope": "Tuoteluokka määräytyy tarkastelemasi tuotteen perusteella. Pyyntösi voi sopia mihin tahansa sopivaan tuotteeseen tässä luokassa.",
   "wait.title": "Liity jonotuslistalle",
   "wait.for": "Asiakkaan {name} jonotustoiveet",
   "wait.help": "Valitse tarpeesi ja veroton enimmäiskuukausivuokra. Pyyntö kuuluu valitulle demoasiakkaalle. Jonottaminen ei varaa tuotetta eikä hyväksy vuokrasopimusta.",

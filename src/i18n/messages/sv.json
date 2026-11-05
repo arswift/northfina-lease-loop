@@ -1,4 +1,6 @@
 {
+  "wait.titleFor": "Gå med i väntelistan: {category}",
+  "wait.categoryScope": "Kategorin hämtas från tillgången du tittar på. Din förfrågan kan matchas med valfri lämplig tillgång i kategorin.",
   "wait.title": "Gå med i väntelistan",
   "wait.for": "Väntelisteönskemål för {name}",
   "wait.help": "Välj vad du behöver och din högsta månadshyra exkl. moms. Förfrågan tillhör vald demokund. Att gå med reserverar ingen tillgång och godkänner ingen leasing.",
