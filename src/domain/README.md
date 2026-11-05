@@ -71,3 +71,13 @@ continues to require good condition unless the caller explicitly supplies
 `acceptsFairCondition`; matching must justify that exception with a waiting
 customer who accepts fair. Mandatory work still applies, including a laptop's
 data wipe. Plans do not record completion, reserve stock or change any asset.
+
+`second-life-matching.ts` offers the post-repair market value as the next net
+list price with zero down payment. It uses the existing coefficient engine and
+the waiting customer's preferred term. Required work, non-negative estimated
+recovery, category, condition, net monthly budget and readiness deadline must all
+pass. Selection prioritises earliest deadline, then least repair cost, then
+request ID and condition. Stable IDs break exact ties; the data has no structured
+registration timestamps, so this is not a claim of first-come-first-served.
+Every candidate retains its rejection reasons. Estimates are not completed work
+or credit approval. Imported history must be entered explicitly by the operator.
