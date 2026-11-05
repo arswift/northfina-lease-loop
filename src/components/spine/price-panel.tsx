@@ -1,6 +1,8 @@
 import { GrossTotals } from './gross-totals';
 import type { getBootstrap } from '@/server/spine-offers';
 import { calculatePrice } from '@/domain/pricing';
+import { isIsoDate } from '@/domain/calendar';
+import { canScheduleLease } from '@/domain/invoicing';
 import { parseCents } from '@/domain/money-arithmetic';
 import { taxOn } from '@/domain/vat';
 import { formatEuro } from '@/domain/money';
@@ -29,17 +31,21 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
     .map(Number)
     .sort((a, b) => a - b);
   const down = parseCents(draft.downText);
-  const price = down.ok
-    ? calculatePrice({
-        listPriceCents: data.offer.priceCents,
-        downPaymentCents: down.cents,
-        termMonths: draft.termMonths,
-        table: data.coefficientTable,
-      })
-    : null;
-  const tax = price?.ok
-    ? taxOn(price.terms.monthlyNetCents, draft.startDate || data.businessDate, data.vatRates)
-    : null;
+  const startDate = draft.startDate || data.businessDate;
+  const validDates =
+    isIsoDate(data.businessDate) &&
+    startDate >= data.businessDate &&
+    canScheduleLease(startDate, draft.termMonths);
+  const price =
+    down.ok && validDates
+      ? calculatePrice({
+          listPriceCents: data.offer.priceCents,
+          downPaymentCents: down.cents,
+          termMonths: draft.termMonths,
+          table: data.coefficientTable,
+        })
+      : null;
+  const tax = price?.ok ? taxOn(price.terms.monthlyNetCents, startDate, data.vatRates) : null;
   const maxDown = Math.max(
     0,
     data.offer.priceCents - (data.coefficientTable.bands[0]?.min_financed_cents ?? 0)
@@ -99,8 +105,9 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               id="start"
               type="date"
               className={inputClass}
-              value={draft.startDate || data.businessDate}
+              value={startDate}
               min={data.businessDate}
+              aria-invalid={!validDates}
               onChange={(event) => onChange({ ...draft, startDate: event.target.value })}
             />
           </Field>
@@ -113,7 +120,7 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
                 onSave({
                   termMonths: draft.termMonths,
                   downPaymentCents: down.cents,
-                  startDate: draft.startDate || data.businessDate,
+                  startDate,
                 });
             }}
           >
@@ -126,14 +133,14 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               <MoneyFacts terms={price.terms} locale={locale} />
               <GrossTotals
                 terms={price.terms}
-                startDate={draft.startDate || data.businessDate}
+                startDate={startDate}
                 upfrontDate={data.businessDate}
                 vatRates={data.vatRates}
                 locale={locale}
               />
               {tax?.ok ? (
                 <p className="mt-4 font-semibold">
-                  {t('spine.monthlyGross', { date: draft.startDate || data.businessDate })}:{' '}
+                  {t('spine.monthlyGross', { date: startDate })}:{' '}
                   {formatEuro(tax.amount.grossCents, intlLocale[locale])}
                 </p>
               ) : null}

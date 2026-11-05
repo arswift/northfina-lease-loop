@@ -1,5 +1,5 @@
 import type { VatRates } from '@/data/schemas';
-import { addMonthsAnchored } from './calendar';
+import { addMonthsAnchored, isIsoDate } from './calendar';
 import { taxOn, type TaxedAmount } from './vat';
 
 export type InvoiceDraft = TaxedAmount & { period: number; invoiceDate: string; dueDate: string };
@@ -8,6 +8,13 @@ function checkTerm(termMonths: number): void {
   if (!Number.isInteger(termMonths) || termMonths < 1 || termMonths > 1200) {
     throw new RangeError('schedule needs 1..1200 whole months');
   }
+}
+
+/** User-entered dates must leave room for maturity, not just the final rental period. */
+export function canScheduleLease(startDate: string, termMonths: number): boolean {
+  if (!isIsoDate(startDate) || !Number.isInteger(termMonths) || termMonths < 1 || termMonths > 1200)
+    return false;
+  return startDate <= addMonthsAnchored('9999-12-31', -termMonths);
 }
 
 /** These are previews, not persisted invoices. The server separately records issuance. */

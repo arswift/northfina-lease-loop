@@ -1,11 +1,17 @@
 // Real migrated SQLite + actual endpoint services: client schemas must accept their replies.
 import { randomUUID } from 'node:crypto';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import { createTestDb } from '../../tests/helpers/test-db';
 import { demoContext, prepareApplication, resetSpine } from '../../tests/helpers/spine';
 import { loadRefurbishmentCosts } from '@/data/load';
 import { refurbishmentPlan } from '@/domain/lifecycle';
 import { applicationConsentKey, endConsentKey } from '@/components/spine/consent-context';
+import { GrossTotals } from '@/components/spine/gross-totals';
+import { PricePanel } from '@/components/spine/price-panel';
+import { calculatePrice } from '@/domain/pricing';
+import { getT } from '@/i18n/get-t';
 import {
   applicationViewSchema,
   auditSchema,
@@ -33,6 +39,53 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   await cleanup();
+});
+
+it('keeps invalid lease dates editable without crashing live or saved totals', async () => {
+  await resetSpine(db);
+  const data = await getBootstrap(db, await demoContext(), 'ebike-003');
+  const priced = calculatePrice({
+    listPriceCents: 389000,
+    downPaymentCents: 0,
+    termMonths: 36,
+    table: data.coefficientTable,
+  });
+  if (!priced.ok) throw new Error('The worked example must be financeable');
+  const renderPrice = (startDate: string, businessDate = data.businessDate) =>
+    renderToStaticMarkup(
+      createElement(PricePanel, {
+        data: { ...data, businessDate },
+        locale: 'en',
+        draft: { termMonths: 36, downText: '0', startDate },
+        busy: false,
+        onChange: () => undefined,
+        onSave: () => undefined,
+      })
+    );
+  const invalidTerms = getT('en')('spine.invalidTerms');
+  for (const dates of [
+    { startDate: '9997-01-01', businessDate: '2026-11-05' },
+    { startDate: '0000-01-01', businessDate: '2026-11-05' },
+    { startDate: '2026-11-05', businessDate: '0000-01-01' },
+  ]) {
+    const markup = renderPrice(dates.startDate, dates.businessDate);
+    expect(markup).toContain(invalidTerms);
+    expect(markup).toMatch(/<button\b[^>]*\bdisabled=""/);
+    const totals = renderToStaticMarkup(
+      createElement(GrossTotals, {
+        terms: priced.terms,
+        startDate: dates.startDate,
+        upfrontDate: dates.businessDate,
+        vatRates: data.vatRates,
+        locale: 'en',
+      })
+    );
+    expect(totals).toContain(invalidTerms);
+  }
+  // All 36 rental dates and maturity fit, with maturity exactly on 9999-12-31.
+  const boundary = renderPrice('9996-12-31');
+  expect(boundary).not.toContain(invalidTerms);
+  expect(boundary).not.toMatch(/<button\b[^>]*\bdisabled=""/);
 });
 
 it('accepts actual response shapes throughout the loop and changes consent context when needed', async () => {

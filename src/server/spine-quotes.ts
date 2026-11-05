@@ -1,5 +1,6 @@
 import { loadCoefficientTable } from '@/data/load';
 import { addDays } from '@/domain/calendar';
+import { canScheduleLease } from '@/domain/invoicing';
 import { calculatePrice } from '@/domain/pricing';
 import type { Quote } from '@/generated/prisma/client';
 import { ApiError } from './api-response';
@@ -36,6 +37,16 @@ export async function ownedQuote(db: PrismaClient, context: DemoContext, id: str
   return quote;
 }
 
+function requireSchedulableLease(startDate: string, termMonths: number): void {
+  if (!canScheduleLease(startDate, termMonths)) {
+    throw new ApiError(
+      422,
+      'INVALID_START_DATE',
+      'Choose a valid start date that allows the full lease term'
+    );
+  }
+}
+
 export function requireValidQuote(quote: Quote, businessDate: string): void {
   if (businessDate < quote.priced_on || businessDate > quote.valid_through) {
     throw new ApiError(409, 'QUOTE_EXPIRED', 'Review a new offer before continuing');
@@ -43,11 +54,14 @@ export function requireValidQuote(quote: Quote, businessDate: string): void {
   if (businessDate > quote.start_date) {
     throw new ApiError(409, 'INVALID_START_DATE', 'Choose a new start date and review the offer');
   }
+  const terms = priceTermsSchema.parse(JSON.parse(quote.terms_json));
+  requireSchedulableLease(quote.start_date, terms.termMonths);
 }
 
 export async function createQuote(db: PrismaClient, context: DemoContext, input: QuoteInput) {
   const existing = await db.quote.findUnique({ where: { id: input.requestId } });
   if (existing) return reuseQuote(existing, context, input);
+  requireSchedulableLease(input.startDate, input.termMonths);
   if (input.startDate < context.businessDate) {
     throw new ApiError(
       422,

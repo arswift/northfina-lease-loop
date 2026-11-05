@@ -1,11 +1,25 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadVatRates } from '@/data/load';
 import type { VatRates } from '@/data/schemas';
-import { invoiceSchedule, termEndDate } from './invoicing';
+import { canScheduleLease, invoiceSchedule, termEndDate } from './invoicing';
 
 let rates: VatRates;
 beforeAll(async () => {
   rates = await loadVatRates();
+});
+
+it.each<[string, number, boolean]>([
+  ['9996-12-31', 36, true],
+  ['9997-01-01', 36, false],
+  ['0000-01-01', 36, false],
+  ['10000-01-01', 36, false],
+  ['2026-02-29', 36, false],
+  ['2026-11-05', 0, false],
+  ['2026-11-05', 1.5, false],
+  ['2026-11-05', 1200, true],
+  ['2026-11-05', 1201, false],
+])('checks that the whole lease fits the supported calendar: %s + %s', (startDate, months, ok) => {
+  expect(canScheduleLease(startDate, months)).toBe(ok);
 });
 
 describe('locked-rent schedule', () => {

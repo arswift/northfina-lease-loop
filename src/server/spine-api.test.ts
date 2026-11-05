@@ -116,6 +116,42 @@ describe('HTTP contract', () => {
     expect(await state.db.quote.count()).toBe(0);
   });
 
+  it.each([
+    { businessDate: '2026-11-05', startDate: '9997-01-01' },
+    { businessDate: '9999-12-31', startDate: '9999-12-31' },
+  ])('rejects an unrepresentable lease before saving it: $startDate', async (dates) => {
+    const input = {
+      requestId: randomUUID(),
+      assetId: 'ebike-003',
+      termMonths: 36,
+      downPaymentCents: 0,
+      startDate: dates.startDate,
+    };
+    const command = request('/api/spine/quotes', input);
+    command.headers.set('x-demo-date', dates.businessDate);
+    const response = await postQuote(command, undefined);
+    expect(response.status).toBe(422);
+    expect((await response.json()).error.code).toBe('INVALID_START_DATE');
+    expect(await state.db.quote.count()).toBe(0);
+    expect(await state.db.auditLog.count()).toBe(0);
+  });
+
+  it('rejects a demo date outside the domain calendar before any write', async () => {
+    const command = request('/api/spine/quotes', {
+      requestId: randomUUID(),
+      assetId: 'ebike-003',
+      termMonths: 36,
+      downPaymentCents: 0,
+      startDate: '2026-11-05',
+    });
+    command.headers.set('x-demo-date', '0000-01-01');
+    const response = await postQuote(command, undefined);
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.code).toBe('VALIDATION_ERROR');
+    expect(await state.db.quote.count()).toBe(0);
+    expect(await state.db.auditLog.count()).toBe(0);
+  });
+
   it('maps malformed JSON to the common safe error envelope', async () => {
     const malformed = new Request('http://localhost/api/spine/quotes', {
       method: 'POST',

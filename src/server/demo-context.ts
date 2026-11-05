@@ -1,6 +1,7 @@
 import type { Customer } from '@/data/schemas';
 import { isoDateSchema } from '@/data/schemas';
 import { loadCustomers } from '@/data/load';
+import { isIsoDate } from '@/domain/calendar';
 import { ApiError } from './api-response';
 import { todayIso } from './today';
 
@@ -21,7 +22,7 @@ export async function readDemoContext(request: Request): Promise<DemoContext> {
   if (!customer) throw new ApiError(400, 'DEMO_CUSTOMER_UNKNOWN', 'Select a demo customer');
 
   const dateHeader = request.headers.get('x-demo-date');
-  const businessDate = isoDateSchema.parse(dateHeader ?? todayIso());
+  const businessDate = isoDateSchema.refine(isIsoDate).parse(dateHeader ?? todayIso());
   const role = request.headers.get('x-demo-role') ?? 'customer';
   if (role !== 'customer' && role !== 'operator') {
     throw new ApiError(400, 'DEMO_ROLE_UNKNOWN', 'Select a demo role');
