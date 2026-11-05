@@ -297,5 +297,21 @@
   "explain.tableNotValid": "The financing table is not yet valid on this demo date. Choose a date on or after {date}.",
   "explain.chooseTerm": "Choose a lease term",
   "explain.saveHelp": "This saves a price offer and opens the application. It does not reserve the item or start a lease.",
-  "explain.firstMonthHelp": "The first monthly rent is scheduled for the start date, even when you also make an upfront payment."
+  "explain.firstMonthHelp": "The first monthly rent is scheduled for the start date, even when you also make an upfront payment.",
+  "explain.monthlyAmount": "{amount} per month, including VAT",
+  "explain.compareTitle": "Compare lease terms",
+  "explain.compareHelp": "Same item, upfront payment and start date. A lower monthly payment can mean a higher total cost.",
+  "explain.compareOption": "Option {number}",
+  "explain.useTerm": "Choose {months} months",
+  "explain.selectedTerm": "Selected",
+  "explain.selection": "Choose your term",
+  "explain.comparisonHelp": "Choosing a term updates your estimate. Save your terms when you are ready to continue to the application.",
+  "explain.comparisonTiming": "The first monthly payment is scheduled for {date}. Totals add all scheduled payments using the supplied VAT rates.",
+  "explain.monthlyCount": "Number of monthly payments",
+  "explain.bandChanged": "Financing {fromAmount} uses band {fromBand} and coefficient {fromFactor}. With {toAmount} financed, band {toBand} applies with coefficient {toFactor}.",
+  "explain.bandReference": "Compared with no upfront payment for the same lease term:",
+  "explain.bandHigher": "With this upfront payment, the monthly rent before VAT is {amount} higher.",
+  "explain.bandLower": "With this upfront payment, the monthly rent before VAT is {amount} lower.",
+  "explain.bandSameAmount": "The rounded monthly rent before VAT is unchanged.",
+  "explain.invalidBusinessDate": "Choose a valid demo date before calculating a price."
 }

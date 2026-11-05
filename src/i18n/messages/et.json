@@ -297,5 +297,21 @@
   "explain.tableNotValid": "Finantseerimistabel sellel demokuupäeval veel ei kehti. Vali {date} või hilisem kuupäev.",
   "explain.chooseTerm": "Vali lepinguperiood",
   "explain.saveHelp": "See salvestab hinnapakkumise ja avab taotluse. Eset ei broneerita ja leping ei alga.",
-  "explain.firstMonthHelp": "Esimene kuu üürimakse on kavandatud alguskuupäevale ka siis, kui teed ettemakse."
+  "explain.firstMonthHelp": "Esimene kuu üürimakse on kavandatud alguskuupäevale ka siis, kui teed ettemakse.",
+  "explain.monthlyAmount": "{amount} kuus koos käibemaksuga",
+  "explain.compareTitle": "Võrdle lepinguperioode",
+  "explain.compareHelp": "Sama ese, ettemakse ja alguskuupäev. Väiksem kuumakse võib tähendada suuremat kogukulu.",
+  "explain.compareOption": "Valik {number}",
+  "explain.useTerm": "Vali {months} kuud",
+  "explain.selectedTerm": "Valitud",
+  "explain.selection": "Vali lepinguperiood",
+  "explain.comparisonHelp": "Lepinguperioodi valimine uuendab prognoosi. Salvesta tingimused, kui oled valmis taotlusega jätkama.",
+  "explain.comparisonTiming": "Esimene kuumakse on kavandatud kuupäevale {date}. Kogusummad liidavad kõik kavandatud maksed, kasutades etteantud käibemaksumäärasid.",
+  "explain.monthlyCount": "Kuumaksete arv",
+  "explain.bandChanged": "Finantseerimine summas {fromAmount} kasutab vahemikku {fromBand} ja koefitsienti {fromFactor}. Summa {toAmount} puhul kehtib vahemik {toBand} ja koefitsient {toFactor}.",
+  "explain.bandReference": "Võrreldes sama lepinguperioodiga ilma ettemakseta:",
+  "explain.bandHigher": "Selle ettemaksega on kuu üür ilma käibemaksuta {amount} suurem.",
+  "explain.bandLower": "Selle ettemaksega on kuu üür ilma käibemaksuta {amount} väiksem.",
+  "explain.bandSameAmount": "Ümardatud kuu üür ilma käibemaksuta jääb samaks.",
+  "explain.invalidBusinessDate": "Vali enne hinna arvutamist sobiv demokuupäev."
 }

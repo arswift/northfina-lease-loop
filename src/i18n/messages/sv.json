@@ -297,5 +297,21 @@
   "explain.tableNotValid": "Finansieringstabellen gäller ännu inte på detta demodatum. Välj {date} eller ett senare datum.",
   "explain.chooseTerm": "Välj avtalstid",
   "explain.saveHelp": "Detta sparar ett priserbjudande och öppnar ansökan. Varan reserveras inte och inget avtal startas.",
-  "explain.firstMonthHelp": "Den första månadshyran är planerad till startdatumet, även när du gör en förskottsbetalning."
+  "explain.firstMonthHelp": "Den första månadshyran är planerad till startdatumet, även när du gör en förskottsbetalning.",
+  "explain.monthlyAmount": "{amount} per månad, inklusive moms",
+  "explain.compareTitle": "Jämför avtalstider",
+  "explain.compareHelp": "Samma vara, förskottsbetalning och startdatum. En lägre månadsbetalning kan ge en högre totalkostnad.",
+  "explain.compareOption": "Alternativ {number}",
+  "explain.useTerm": "Välj {months} månader",
+  "explain.selectedTerm": "Valt",
+  "explain.selection": "Välj avtalstid",
+  "explain.comparisonHelp": "När du väljer avtalstid uppdateras beräkningen. Spara dina villkor när du är redo att gå vidare till ansökan.",
+  "explain.comparisonTiming": "Den första månadsbetalningen är planerad till {date}. Totalerna summerar alla planerade betalningar med de angivna momssatserna.",
+  "explain.monthlyCount": "Antal månadsbetalningar",
+  "explain.bandChanged": "Finansiering av {fromAmount} använder beloppsgrupp {fromBand} med koefficienten {fromFactor}. Med {toAmount} finansierat gäller grupp {toBand} och koefficienten {toFactor}.",
+  "explain.bandReference": "Jämfört med samma avtalstid utan förskottsbetalning:",
+  "explain.bandHigher": "Med denna förskottsbetalning är månadshyran före moms {amount} högre.",
+  "explain.bandLower": "Med denna förskottsbetalning är månadshyran före moms {amount} lägre.",
+  "explain.bandSameAmount": "Den avrundade månadshyran före moms är oförändrad.",
+  "explain.invalidBusinessDate": "Välj ett giltigt demodatum innan priset beräknas."
 }
