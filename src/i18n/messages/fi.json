@@ -309,6 +309,7 @@
   "explain.comparisonTiming": "Ensimmäinen kuukausimaksu on ajoitettu päivälle {date}. Kokonaissummat lasketaan kaikista suunnitelluista maksuista annetuilla ALV-kannoilla.",
   "explain.monthlyCount": "Kuukausimaksujen määrä",
   "explain.bandChanged": "Rahoitettava summa {fromAmount} kuuluu luokkaan {fromBand}, jonka kerroin on {fromFactor}. Kun rahoitettava summa on {toAmount}, käytetään luokkaa {toBand} ja kerrointa {toFactor}.",
+  "explain.bandInfoSummary": "Miksi suurempi alkumaksu voi muuttaa kuukausivuokraa",
   "explain.bandReference": "Verrattuna samaan sopimuskauteen ilman ennakkomaksua:",
   "explain.bandHigher": "Tällä ennakkomaksulla kuukausivuokra ilman ALV:tä on {amount} suurempi.",
   "explain.bandLower": "Tällä ennakkomaksulla kuukausivuokra ilman ALV:tä on {amount} pienempi.",
