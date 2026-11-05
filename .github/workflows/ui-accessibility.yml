@@ -1,0 +1,81 @@
+name: UI accessibility
+
+on:
+  push:
+    branches: ['feat/accessible-price-design']
+  pull_request:
+    paths:
+      - 'src/components/**'
+      - 'src/app/**'
+      - 'src/i18n/**'
+      - 'scripts/check-ui.mjs'
+      - '.github/workflows/ui-accessibility.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: true
+      UI_QA_TOOLS: ${{ runner.temp }}/lease-ui-tools
+      UI_OUTPUT_DIR: ${{ runner.temp }}/lease-ui-results
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install application dependencies
+        run: npm ci
+
+      - name: Prepare isolated synthetic database
+        run: npm run db:setup
+
+      - name: Full repository quality gate
+        run: npm run check:all
+
+      - name: Show formatting differences on failure
+        if: failure()
+        shell: bash
+        run: |
+          while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            npx prettier "$file" > "$RUNNER_TEMP/formatted-file"
+            diff -u "$file" "$RUNNER_TEMP/formatted-file" || true
+          done < <(npx prettier --list-different .)
+
+      - name: Install isolated browser tools
+        run: |
+          npm install --prefix "$UI_QA_TOOLS" --no-save --package-lock=false playwright@1.57.0 axe-core@4.11.0
+          node "$UI_QA_TOOLS/node_modules/playwright/cli.js" install --with-deps chromium
+
+      - name: Verify the actual application in Chromium
+        shell: bash
+        run: |
+          mkdir -p "$UI_OUTPUT_DIR"
+          npm start -- --hostname 127.0.0.1 > "$UI_OUTPUT_DIR/server.log" 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          node scripts/check-ui.mjs
+
+      - name: Preserve screenshots and audit results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: lease-ui-${{ github.sha }}
+          path: ${{ runner.temp }}/lease-ui-results
+          if-no-files-found: ignore
+          retention-days: 7
