@@ -55,9 +55,7 @@ export function PriceExplanation({
           <p className="ui-note">
             {t('explain.onDate', { date: formatIsoDate(firstRent.invoiceDate, locale) })}
           </p>
-          <p className="mt-3">
-            {t('explain.fixedNet', { amount: money(terms.monthlyNetCents) })}
-          </p>
+          <p className="mt-3">{t('explain.fixedNet', { amount: money(terms.monthlyNetCents) })}</p>
         </div>
         <p className="ui-note mt-3">
           {t('explain.rentTerm', {
