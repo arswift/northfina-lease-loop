@@ -8,6 +8,7 @@ import { toAsset } from './assets';
 import type { DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { endLease } from './spine-end';
+import { getPassport, getScopedAudit } from './spine-history';
 import { issueInvoices } from './spine-invoices';
 import { cataloguePrices } from './spine-offers';
 import { getBootstrap } from './spine-offers';
@@ -96,6 +97,13 @@ describe('the complete loop', () => {
       terms: { listPriceCents: 130000 },
     });
     expect((await getContract(db, aino, contract.id)).terms).toEqual(contract.terms);
+    const passport = await getPassport(db, contract.assetId);
+    expect(passport.lives).toHaveLength(2);
+    expect(passport.earlierLivesWithoutRecords).toBe(0);
+    const publicHistory = JSON.stringify(passport);
+    expect(publicHistory).not.toContain('cust-aino');
+    expect(publicHistory).not.toContain(contract.id);
+    expect(publicHistory).not.toContain(aino.customer.email);
     expect(await db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(1);
 
     // A third life must preserve the component service baseline across another return.
@@ -119,6 +127,7 @@ describe('the complete loop', () => {
       termMonths: 12,
     });
     expect(third.lifeNumber).toBe(3);
+    expect((await getPassport(db, contract.assetId)).lives).toHaveLength(3);
   });
 
   it('passes on through nomination and a new application, never by changing the old customer', async () => {
@@ -236,5 +245,14 @@ describe('lifecycle guards and evidence', () => {
     await Promise.all([issueInvoices(db, aino, contract.id), issueInvoices(db, aino, contract.id)]);
     expect(await db.invoice.count()).toBe(1);
     expect(await db.auditLog.count({ where: { action: 'invoices.issued' } })).toBe(1);
+  });
+
+  it('shows imported history as unknown and scopes customer audit rows', async () => {
+    expect((await getPassport(db, 'ebike-008')).earlierLivesWithoutRecords).toBe(2);
+    await createLease(db, aino);
+    const lena = await demoContext('cust-lena');
+    expect(await getScopedAudit(db, lena)).toEqual([]);
+    expect(await getScopedAudit(db, { ...lena, operator: true })).toHaveLength(3);
+    expect(await getScopedAudit(db, aino)).toHaveLength(3);
   });
 });
