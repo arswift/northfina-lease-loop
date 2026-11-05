@@ -125,7 +125,7 @@ export function ApplicationPanel(props: Props) {
                 {question.type === 'money' ? (
                   <p className="mt-1 text-sm">{t('spine.moneyUnit')}</p>
                 ) : null}
-                <p id={id + '-why'} className="mt-2 text-sm text-stone-600 dark:text-stone-300">
+                <p id={id + '-why'} className="mt-2 text-sm text-ink-muted dark:text-stone-300">
                   {messageFor(locale, 'spine.why.' + id)}
                 </p>
                 {invalid ? (
@@ -152,7 +152,7 @@ export function ApplicationPanel(props: Props) {
         </div>
       ) : null}
       {application?.decision === 'approved' ? (
-        <div className="mt-6 space-y-4 border-t border-stone-200 pt-6 dark:border-stone-800">
+        <div className="mt-6 space-y-4 border-t border-hairline pt-6 dark:border-stone-800">
           <h3 className="text-lg font-semibold">{t('spine.review')}</h3>
           <p>{t('spine.reviewHelp')}</p>
           <p>

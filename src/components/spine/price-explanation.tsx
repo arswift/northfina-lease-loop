@@ -68,7 +68,7 @@ export function PriceExplanation({
         })}
       </p>
       <div>
-        <p className="mb-3 text-sm text-stone-600 dark:text-stone-300">
+        <p className="mb-3 text-sm text-ink-muted dark:text-stone-300">
           {t('explain.source', {
             source: priceSourceLabel(priceSource, locale),
             date: formatIsoDate(pricedOn, locale),
@@ -79,24 +79,24 @@ export function PriceExplanation({
             <AmountRow key={key} label={t(key)} amount={money(cents)} />
           ))}
         </dl>
-        <p className="mt-3 text-sm text-stone-600 dark:text-stone-300">
+        <p className="mt-3 text-sm text-ink-muted dark:text-stone-300">
           {t('explain.financedHelp')}
         </p>
       </div>
 
-      <div className="rounded-xl border border-stone-200 p-4 dark:border-stone-700">
+      <div className="rounded-xl border border-hairline p-4 dark:border-stone-700">
         <dl>
           <AmountRow label={t('explain.upfrontGross')} amount={money(upfront.grossCents)} />
         </dl>
         <p className="mt-2 text-sm">
           {t('explain.upfrontTiming', { date: formatIsoDate(upfrontDate, locale) })}
         </p>
-        <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
+        <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">
           {t('explain.firstMonthHelp')}
         </p>
       </div>
 
-      <div className="space-y-4 rounded-xl bg-stone-100 p-4 dark:bg-stone-800">
+      <div className="space-y-4 rounded-xl bg-sage p-4 dark:bg-stone-800">
         <div>
           <dl>
             <AmountRow
@@ -104,7 +104,7 @@ export function PriceExplanation({
               amount={money(explanation.useGrossCents)}
             />
           </dl>
-          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
+          <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">
             {t('explain.useEquation', {
               upfront: money(upfront.grossCents),
               months: formatNumber(terms.termMonths, locale),
@@ -112,22 +112,22 @@ export function PriceExplanation({
             })}
           </p>
         </div>
-        <div className="border-t border-stone-300 pt-4 dark:border-stone-600">
+        <div className="border-t border-hairline-strong pt-4 dark:border-stone-600">
           <dl>
             <AmountRow label={t('explain.buyoutGross')} amount={money(buyout.grossCents)} />
           </dl>
-          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
+          <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">
             {t('explain.buyoutTiming', { date: formatIsoDate(explanation.endDate, locale) })}
           </p>
         </div>
-        <div className="border-t border-stone-300 pt-4 dark:border-stone-600">
+        <div className="border-t border-hairline-strong pt-4 dark:border-stone-600">
           <dl>
             <AmountRow
               label={t('spine.forecastOwnGross')}
               amount={money(explanation.ownGrossCents)}
             />
           </dl>
-          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
+          <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">
             {t('explain.ownEquation', {
               use: money(explanation.useGrossCents),
               buyout: money(buyout.grossCents),
@@ -136,7 +136,7 @@ export function PriceExplanation({
         </div>
       </div>
 
-      <details className="rounded-xl border border-stone-200 p-4 dark:border-stone-700">
+      <details className="rounded-xl border border-hairline p-4 dark:border-stone-700">
         <summary className="cursor-pointer font-medium">{t('spine.factor')}</summary>
         <div className="mt-4 space-y-3 text-sm">
           <p>
@@ -170,7 +170,7 @@ export function PriceExplanation({
       </details>
 
       <PriceTaxTimeline periods={explanation.rentalPeriods} locale={locale} />
-      <p className="text-sm text-stone-600 dark:text-stone-300">
+      <p className="text-sm text-ink-muted dark:text-stone-300">
         {t('explain.assumptions', {
           upfront: formatIsoDate(upfrontDate, locale),
           end: formatIsoDate(explanation.endDate, locale),

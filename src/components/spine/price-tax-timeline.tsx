@@ -15,12 +15,12 @@ export function PriceTaxTimeline({
   return (
     <div className="space-y-3">
       <h4 className="font-semibold">{t('explain.timelineTitle')}</h4>
-      <p className="text-sm text-stone-600 dark:text-stone-300">{t('spine.taxHelp')}</p>
+      <p className="text-sm text-ink-muted dark:text-stone-300">{t('spine.taxHelp')}</p>
       <ul className="space-y-3">
         {periods.map((period) => (
           <li
             key={period.firstDate}
-            className="rounded-xl border border-stone-200 p-3 dark:border-stone-700"
+            className="rounded-xl border border-hairline p-3 dark:border-stone-700"
           >
             <p className="text-sm">
               {t('explain.vatPeriod', {
@@ -39,7 +39,7 @@ export function PriceTaxTimeline({
                 })}
               </span>
             </div>
-            <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+            <p className="mt-1 text-sm text-ink-muted dark:text-stone-300">
               {t('explain.vatAmount', { amount: formatEuro(period.vatCents, intlLocale[locale]) })}
             </p>
           </li>

@@ -76,13 +76,13 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
   ];
 
   return (
-    <section className="mt-8 space-y-4 border-t border-stone-200 pt-8 dark:border-stone-700">
+    <section className="mt-8 space-y-4 border-t border-hairline pt-8 dark:border-stone-700">
       <h3 id={id + '-heading'} className="text-xl font-semibold">
         {t('explain.compareTitle')}
       </h3>
-      <p className="text-sm text-stone-600 dark:text-stone-300">{t('explain.compareHelp')}</p>
+      <p className="text-sm text-ink-muted dark:text-stone-300">{t('explain.compareHelp')}</p>
       {data.offer && isIsoDate(data.businessDate) ? (
-        <div className="rounded-xl bg-stone-100 p-4 text-sm dark:bg-stone-800">
+        <div className="rounded-xl bg-sage p-4 text-sm dark:bg-stone-800">
           <p>
             {t('explain.source', {
               source: priceSourceLabel(data.offer.source, locale),
@@ -91,18 +91,18 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
           </p>
           <dl className="mt-3 grid gap-3 sm:grid-cols-3">
             <div>
-              <dt className="text-stone-600 dark:text-stone-300">{t('spine.list')}</dt>
+              <dt className="text-ink-muted dark:text-stone-300">{t('spine.list')}</dt>
               <dd className="font-medium tabular-nums">{money(data.offer.priceCents)}</dd>
             </div>
             {down.ok ? (
               <div>
-                <dt className="text-stone-600 dark:text-stone-300">{t('spine.down')}</dt>
+                <dt className="text-ink-muted dark:text-stone-300">{t('spine.down')}</dt>
                 <dd className="font-medium tabular-nums">{money(down.cents)}</dd>
               </div>
             ) : null}
             {isIsoDate(startDate) ? (
               <div>
-                <dt className="text-stone-600 dark:text-stone-300">{t('spine.start')}</dt>
+                <dt className="text-ink-muted dark:text-stone-300">{t('spine.start')}</dt>
                 <dd className="font-medium">{formatIsoDate(startDate, locale)}</dd>
               </div>
             ) : null}
@@ -143,14 +143,14 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
       {volatile ? <p role="status">{t('spine.storageWarning')}</p> : null}
       {options ? (
         <div
-          className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-700"
+          className="overflow-x-auto rounded-xl border border-hairline dark:border-stone-700"
           role="region"
           aria-labelledby={id + '-heading'}
           tabIndex={0}
         >
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead>
-              <tr className="border-b border-stone-200 dark:border-stone-700">
+              <tr className="border-b border-hairline dark:border-stone-700">
                 <th scope="col" className="w-2/5 p-3 font-medium">
                   {t('spine.term')}
                 </th>
@@ -163,7 +163,7 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
             </thead>
             <tbody>
               {rows.map((row, rowIndex) => (
-                <tr key={row.label} className="border-b border-stone-200 dark:border-stone-700">
+                <tr key={row.label} className="border-b border-hairline dark:border-stone-700">
                   <th scope="row" className="p-3 font-normal">
                     {t(row.label)}
                   </th>
@@ -217,7 +217,7 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
         </p>
       )}
       {options && isIsoDate(startDate) ? (
-        <p className="text-sm text-stone-600 dark:text-stone-300">
+        <p className="text-sm text-ink-muted dark:text-stone-300">
           {t('explain.comparisonTiming', { date: formatIsoDate(startDate, locale) })}
         </p>
       ) : null}

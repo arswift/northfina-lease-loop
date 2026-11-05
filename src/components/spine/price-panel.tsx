@@ -180,7 +180,7 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
         busy={busy}
         onChoose={(termMonths) => onChange({ ...draft, termMonths })}
       />
-      <div className="mt-6 space-y-3 border-t border-stone-200 pt-6 dark:border-stone-700">
+      <div className="mt-6 space-y-3 border-t border-hairline pt-6 dark:border-stone-700">
         <button
           id="save-quote"
           className={buttonClass}

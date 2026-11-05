@@ -17,7 +17,7 @@ function InvoiceTable({ rows, locale }: { rows: readonly (Invoice | Forecast)[];
         <thead>
           <tr>
             {['period', 'scheduled', 'invoiceDate', 'due', 'net', 'vat', 'gross'].map((key) => (
-              <th key={key} scope="col" className="border-b border-stone-300 p-2">
+              <th key={key} scope="col" className="border-b border-hairline-strong p-2">
                 {messageFor(locale, 'spine.' + key)}
               </th>
             ))}
@@ -26,7 +26,7 @@ function InvoiceTable({ rows, locale }: { rows: readonly (Invoice | Forecast)[];
         <tbody>
           {rows.map((row, index) => (
             <tr key={'id' in row ? row.id : row.period}>
-              <th scope="row" className="border-b border-stone-200 p-2 font-normal">
+              <th scope="row" className="border-b border-hairline p-2 font-normal">
                 {'kind' in row && row.kind !== 'rent'
                   ? messageFor(
                       locale,
@@ -34,16 +34,16 @@ function InvoiceTable({ rows, locale }: { rows: readonly (Invoice | Forecast)[];
                     )
                   : row.period || index + 1}
               </th>
-              <td className="border-b border-stone-200 p-2">
+              <td className="border-b border-hairline p-2">
                 {'scheduledFor' in row ? row.scheduledFor : row.invoiceDate}
               </td>
-              <td className="border-b border-stone-200 p-2">{row.invoiceDate}</td>
-              <td className="border-b border-stone-200 p-2">{row.dueDate}</td>
-              <td className="border-b border-stone-200 p-2">{money(row.netCents)}</td>
-              <td className="border-b border-stone-200 p-2">
+              <td className="border-b border-hairline p-2">{row.invoiceDate}</td>
+              <td className="border-b border-hairline p-2">{row.dueDate}</td>
+              <td className="border-b border-hairline p-2">{money(row.netCents)}</td>
+              <td className="border-b border-hairline p-2">
                 {money(row.vatCents)} ({row.vatBasisPoints / 100}%)
               </td>
-              <td className="border-b border-stone-200 p-2">{money(row.grossCents)}</td>
+              <td className="border-b border-hairline p-2">{money(row.grossCents)}</td>
             </tr>
           ))}
         </tbody>

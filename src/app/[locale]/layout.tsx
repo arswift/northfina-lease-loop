@@ -34,12 +34,13 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
       <body className="flex min-h-dvh flex-col bg-paper font-sans text-ink antialiased dark:bg-stone-950 dark:text-stone-100">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-10 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-stone-900 focus:shadow"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-stone-900 focus:shadow"
         >
           {t('nav.skipToContent')}
         </a>
 
-        <header className="border-b bg-white border-hairline dark:border-stone-800 dark:bg-stone-900">
+        {/* Pinned masthead: stays visible while the ledger scrolls underneath. */}
+        <header className="sticky top-0 z-40 border-b border-hairline bg-white/85 backdrop-blur dark:border-stone-800 dark:bg-stone-900/85">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <Link href={`/${locale}`} className="flex items-center gap-3 rounded-lg">
               <LoopMark />

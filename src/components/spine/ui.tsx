@@ -46,7 +46,7 @@ export function MoneyFacts({ terms, locale }: { terms: PriceTerms; locale: Local
       {values.map(([key, amount]) => (
         <div
           key={key}
-          className="flex flex-wrap justify-between gap-2 border-b border-stone-200 pb-2 dark:border-stone-800"
+          className="flex flex-wrap justify-between gap-2 border-b border-hairline pb-2 dark:border-stone-800"
         >
           <dt>{t(key)}</dt>
           <dd className="font-semibold tabular-nums">{formatEuro(amount, intlLocale[locale])}</dd>

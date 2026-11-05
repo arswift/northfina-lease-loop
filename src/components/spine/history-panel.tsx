@@ -99,13 +99,13 @@ export function HistoryPanel({
               <tbody>
                 {state.audit.map((row) => (
                   <tr key={row.id}>
-                    <td className="border-t border-stone-200 p-2">
+                    <td className="border-t border-hairline p-2">
                       <time dateTime={row.at}>{auditTime.format(new Date(row.at))}</time>
                     </td>
-                    <td className="border-t border-stone-200 p-2">
+                    <td className="border-t border-hairline p-2">
                       {messageFor(locale, 'spine.action.' + row.action, 'spine.audit')}
                     </td>
-                    <td className="border-t border-stone-200 p-2 break-all">{row.actor}</td>
+                    <td className="border-t border-hairline p-2 break-all">{row.actor}</td>
                   </tr>
                 ))}
               </tbody>
