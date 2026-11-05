@@ -2,7 +2,9 @@
 
 The catalogue is styled after the "Nordic Circular Ledger" brief: institutional
 Nordic banking rigor fused with ecological stewardship — calm, hairline-framed,
-audited. This document records the tokens and the honesty rules the UI follows.
+audited. The primary is a deep petrol teal: still green-adjacent enough to keep
+the circular identity, but with the weighted calm of a bank. This document
+records the tokens and the honesty rules the UI follows.
 
 ## Design principles
 
@@ -10,24 +12,24 @@ audited. This document records the tokens and the honesty rules the UI follows.
   white space. No expressive gradients, no floating shadows.
 - **Audited permanence** — money, dates and lifecycle states are the visual
   anchors; every figure is tabular-aligned so columns of numbers read like a ledger.
-- **Natural utility** — forest and sage tones soften the financial structure
+- **Natural utility** — petrol and sage tones soften the financial structure
   without losing institutional weight.
 - **Show only what the data proves** — no decorative metric the data pack cannot
   support. Counts and prices come from `data/*.json` and the pricing engine.
 
 ## Tokens (`src/app/globals.css`, Tailwind v4 `@theme`)
 
-| Token               | Value                          | Use                                           |
-| ------------------- | ------------------------------ | --------------------------------------------- |
-| `paper`             | `#fcf9f5`                      | page canvas (warm off-white for long reading) |
-| `card`              | `#ffffff`                      | cards, tables, inputs                         |
-| `sage` / `mint`     | `#f2f5f3` / `#e8efea`          | quiet status fills and chips                  |
-| `hairline`          | `#e5e5df`                      | 1 px borders (the only framing)               |
-| `ink` / `ink-muted` | `#1c1c1a` / `#575753`          | text / metadata, labels, table keys           |
-| `forest` / `deep`   | `#1b4332` / `#143527`          | primary actions, brand mark (hover `deep`)    |
-| `pine` / `fern`     | `#012d1d` / `#00714e`          | headings, secondary interactive text          |
-| `amber-fill/ink`    | `#fef3c7` / `#92400e`          | attention only: reserved, review states       |
-| `shadow-ledger`     | `0 1px 2px rgba(28,28,26,.03)` | the only shadow                               |
+| Token                   | Value                          | Use                                           |
+| ----------------------- | ------------------------------ | --------------------------------------------- |
+| `paper`                 | `#fcf9f5`                      | page canvas (warm off-white for long reading) |
+| `card`                  | `#ffffff`                      | cards, tables, inputs                         |
+| `sage` / `mint`         | `#eff5f3` / `#e6f1ef`          | quiet status fills and chips                  |
+| `hairline`              | `#e5e5df`                      | 1 px borders (the only framing)               |
+| `ink` / `ink-muted`     | `#1c1c1a` / `#575753`          | text / metadata, labels, table keys           |
+| `petrol` / `deep`       | `#134e4a` / `#0c3f3c`          | primary actions, brand mark (hover `deep`)    |
+| `petrol-ink` / `lagoon` | `#042f2e` / `#0f766e`          | headings, secondary interactive text          |
+| `amber-fill/ink`        | `#fef3c7` / `#92400e`          | attention only: reserved, review states       |
+| `shadow-ledger`         | `0 1px 2px rgba(28,28,26,.03)` | the only shadow                               |
 
 - Typography: self-hosted **DM Sans** variable TTF (`src/app/fonts`, OFL licence)
   wired through `next/font/local` so the demo runs offline. Body ≥ 16 px,

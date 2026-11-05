@@ -8,7 +8,7 @@ export const panelClass =
   'rounded-lg border border-hairline bg-card p-5 shadow-ledger dark:border-stone-800 dark:bg-stone-900';
 export const inputClass = 'mt-1 w-full rounded-lg border border-stone-400 bg-transparent p-2';
 export const buttonClass =
-  'rounded-lg bg-forest px-4 py-2 font-medium text-white transition-colors hover:bg-forest-deep disabled:opacity-50';
+  'rounded-lg bg-petrol px-4 py-2 font-medium text-white transition-colors hover:bg-petrol-deep disabled:opacity-50';
 
 export function messageFor(
   locale: Locale,

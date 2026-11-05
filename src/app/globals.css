@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /* Nordic Circular Ledger design tokens — see docs/ui-nordic-ledger.md.
-   Warm paper canvas, hairline framing, forest primary, amber only for attention. */
+   Warm paper canvas, hairline framing, deep petrol primary, amber only for attention. */
 @theme {
   --font-sans:
     var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
@@ -9,20 +9,20 @@
 
   --color-paper: #fcf9f5;
   --color-paper-dim: #dcdad6;
-  --color-sage: #f2f5f3;
-  --color-mint: #e8efea;
+  --color-sage: #eff5f3;
+  --color-mint: #e6f1ef;
   --color-hairline: #e5e5df;
   --color-hairline-strong: #c1c8c2;
   --color-ink: #1c1c1a;
   --color-ink-muted: #575753;
-  --color-forest: #1b4332;
-  --color-forest-deep: #143527;
-  --color-pine: #012d1d;
-  --color-fern: #00714e;
+  --color-petrol: #134e4a;
+  --color-petrol-deep: #0c3f3c;
+  --color-petrol-ink: #042f2e;
+  --color-lagoon: #0f766e;
   --color-amber-fill: #fef3c7;
   --color-amber-ink: #92400e;
   --color-life-fill: #85f8c4;
-  --color-life-ink: #002114;
+  --color-life-ink: #042f2e;
 
   --shadow-ledger: 0 1px 2px rgba(28, 28, 26, 0.03);
 }
