@@ -12,7 +12,7 @@ import type { Bootstrap, TermDraft } from './price-panel';
 import { priceFailureMessage } from './price-feedback';
 import { priceSourceLabel } from './price-explanation';
 import { useDraft } from './use-draft';
-import { buttonClass, Field, inputClass } from './ui';
+import { Field, inputClass, secondaryButtonClass } from './ui';
 
 const comparisonSchema = z.tuple([z.number().int().positive(), z.number().int().positive()]);
 
@@ -62,12 +62,6 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
         })
       : null;
   const rows: { label: MessageKey; value: (model: PriceExplanation) => string }[] = [
-    {
-      label: 'explain.monthlyCount',
-      value: (model) => formatNumber(model.terms.termMonths, locale),
-    },
-    { label: 'spine.monthlyNet', value: (model) => money(model.terms.monthlyNetCents) },
-    { label: 'explain.firstPayment', value: (model) => money(model.firstRent.grossCents) },
     { label: 'explain.upfrontGross', value: (model) => money(model.upfront.grossCents) },
     { label: 'spine.forecastRentGross', value: (model) => money(model.rentGrossCents) },
     { label: 'spine.forecastUseGross', value: (model) => money(model.useGrossCents) },
@@ -76,152 +70,141 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
   ];
 
   return (
-    <section className="mt-8 space-y-4 border-t border-stone-200 pt-8 dark:border-stone-700">
-      <h3 id={id + '-heading'} className="text-xl font-semibold">
-        {t('explain.compareTitle')}
-      </h3>
-      <p className="text-sm text-stone-600 dark:text-stone-300">{t('explain.compareHelp')}</p>
+    <section className="price-comparison space-y-5" aria-labelledby={id + '-heading'}>
+      <div>
+        <h3 id={id + '-heading'} className="text-2xl font-semibold tracking-tight">
+          {t('explain.compareTitle')}
+        </h3>
+        <p className="ui-note mt-2">{t('explain.compareHelp')}</p>
+      </div>
       {data.offer && isIsoDate(data.businessDate) ? (
-        <div className="rounded-xl bg-stone-100 p-4 text-sm dark:bg-stone-800">
-          <p>
+        <div>
+          <p className="ui-note">
             {t('explain.source', {
               source: priceSourceLabel(data.offer.source, locale),
               date: formatIsoDate(data.businessDate, locale),
             })}
           </p>
-          <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+          <dl className="mt-3 grid gap-4 sm:grid-cols-3">
             <div>
-              <dt className="text-stone-600 dark:text-stone-300">{t('spine.list')}</dt>
-              <dd className="font-medium tabular-nums">{money(data.offer.priceCents)}</dd>
+              <dt className="ui-note">{t('spine.list')}</dt>
+              <dd className="font-semibold tabular-nums">{money(data.offer.priceCents)}</dd>
             </div>
             {down.ok ? (
               <div>
-                <dt className="text-stone-600 dark:text-stone-300">{t('spine.down')}</dt>
-                <dd className="font-medium tabular-nums">{money(down.cents)}</dd>
+                <dt className="ui-note">{t('spine.down')}</dt>
+                <dd className="font-semibold tabular-nums">{money(down.cents)}</dd>
               </div>
             ) : null}
             {isIsoDate(startDate) ? (
               <div>
-                <dt className="text-stone-600 dark:text-stone-300">{t('spine.start')}</dt>
-                <dd className="font-medium">{formatIsoDate(startDate, locale)}</dd>
+                <dt className="ui-note">{t('spine.start')}</dt>
+                <dd className="font-semibold">{formatIsoDate(startDate, locale)}</dd>
               </div>
             ) : null}
           </dl>
         </div>
       ) : null}
-      <fieldset disabled={busy} className="grid gap-4 sm:grid-cols-2">
-        <legend className="sr-only">{t('explain.compareTitle')}</legend>
-        {chosenTerms.map((term, index) => (
-          <Field
-            key={index}
-            id={id + '-term-' + index}
-            label={t('explain.compareOption', { number: formatNumber(index + 1, locale) })}
-          >
-            <select
-              id={id + '-term-' + index}
-              className={inputClass}
-              value={term}
-              onChange={(event) => {
-                const next: [number, number] = [...chosenTerms];
-                next[index] = Number(event.target.value);
-                savePreferences(next);
-              }}
-            >
-              {availableTerms.map((candidate) => (
-                <option
-                  key={candidate}
-                  value={candidate}
-                  disabled={candidate === chosenTerms[1 - index] && availableTerms.length > 1}
-                >
-                  {t('spine.months', { count: formatNumber(candidate, locale) })}
-                </option>
-              ))}
-            </select>
-          </Field>
-        ))}
-      </fieldset>
       {volatile ? <p role="status">{t('spine.storageWarning')}</p> : null}
-      {options ? (
-        <div
-          className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-700"
-          role="region"
-          aria-labelledby={id + '-heading'}
-          tabIndex={0}
-        >
-          <table className="w-full min-w-[32rem] text-left text-sm">
-            <thead>
-              <tr className="border-b border-stone-200 dark:border-stone-700">
-                <th scope="col" className="w-2/5 p-3 font-medium">
-                  {t('spine.term')}
-                </th>
-                {options.map((option, index) => (
-                  <th key={index} scope="col" className="p-3 text-right font-semibold">
-                    {t('spine.months', { count: formatNumber(option.termMonths, locale) })}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, rowIndex) => (
-                <tr key={row.label} className="border-b border-stone-200 dark:border-stone-700">
-                  <th scope="row" className="p-3 font-normal">
-                    {t(row.label)}
-                  </th>
-                  {options.map((option, index) =>
-                    option.ok ? (
-                      <td key={index} className="p-3 text-right font-medium tabular-nums">
-                        {row.value(option.explanation)}
-                      </td>
-                    ) : rowIndex === 0 ? (
-                      <td key={index} rowSpan={rows.length} className="p-3 align-top">
-                        <p role="status">{priceFailureMessage(option.reason, data, locale)}</p>
-                      </td>
-                    ) : null
-                  )}
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th scope="row" className="p-3 font-medium">
-                  {t('explain.selection')}
-                </th>
-                {options.map((option, index) => (
-                  <td key={index} className="p-3 text-right align-top">
-                    <button
-                      type="button"
-                      className={buttonClass}
-                      disabled={busy || !option.ok || option.termMonths === draft.termMonths}
-                      aria-pressed={option.termMonths === draft.termMonths}
-                      onClick={() => onChoose(option.termMonths)}
-                    >
-                      {option.termMonths === draft.termMonths
-                        ? t('explain.selectedTerm')
-                        : t('explain.useTerm', {
-                            months: formatNumber(option.termMonths, locale),
-                          })}
-                    </button>
-                  </td>
-                ))}
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      ) : (
-        <p role="status">
+      {!options ? (
+        <p role="status" className="ui-feedback">
           {!data.offer
             ? t('spine.unavailable')
             : !isIsoDate(data.businessDate)
               ? t('explain.invalidBusinessDate')
               : priceFailureMessage('invalid_money', data, locale)}
         </p>
-      )}
+      ) : null}
+      <div className="comparison-options">
+        {chosenTerms.map((term, index) => {
+          const option = options?.[index];
+          const selected = term === draft.termMonths;
+          const headingId = id + '-option-' + index;
+          return (
+            <article
+              key={index}
+              className="comparison-option"
+              aria-labelledby={headingId}
+              data-selected={selected && !!option?.ok}
+            >
+              <Field
+                id={id + '-term-' + index}
+                label={t('explain.compareOption', { number: formatNumber(index + 1, locale) })}
+              >
+                <select
+                  id={id + '-term-' + index}
+                  name={'comparisonTerm' + index}
+                  className={inputClass}
+                  disabled={busy}
+                  value={term}
+                  onChange={(event) => {
+                    const next: [number, number] = [...chosenTerms];
+                    next[index] = Number(event.target.value);
+                    savePreferences(next);
+                  }}
+                >
+                  {availableTerms.map((candidate) => (
+                    <option
+                      key={candidate}
+                      value={candidate}
+                      disabled={candidate === chosenTerms[1 - index] && availableTerms.length > 1}
+                    >
+                      {t('spine.months', { count: formatNumber(candidate, locale) })}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <h4 id={headingId} className="mt-5 text-xl font-semibold">
+                {t('spine.months', { count: formatNumber(term, locale) })}
+              </h4>
+              {option?.ok ? (
+                <>
+                  <div className="my-4">
+                    <p className="ui-note">{t('explain.firstPayment')}</p>
+                    <p className="price-number">{money(option.explanation.firstRent.grossCents)}</p>
+                    <p className="ui-note mt-2">
+                      {t('explain.fixedNet', {
+                        amount: money(option.explanation.terms.monthlyNetCents),
+                      })}
+                    </p>
+                  </div>
+                  <dl className="mb-5 divide-y divide-stone-200 dark:divide-stone-700">
+                    {rows.map((row) => (
+                      <div key={row.label} className="price-row">
+                        <dt>{t(row.label)}</dt>
+                        <dd>{row.value(option.explanation)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </>
+              ) : option ? (
+                <p role="status" className="ui-feedback my-4">
+                  {priceFailureMessage(option.reason, data, locale)}
+                </p>
+              ) : null}
+              <div className="mt-auto pt-3">
+                <button
+                  type="button"
+                  className={secondaryButtonClass}
+                  disabled={busy || !option?.ok || selected}
+                  aria-pressed={selected}
+                  onClick={() => onChoose(term)}
+                >
+                  {selected
+                    ? t('explain.selectedTerm')
+                    : t('explain.useTerm', { months: formatNumber(term, locale) })}
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
       {options && isIsoDate(startDate) ? (
-        <p className="text-sm text-stone-600 dark:text-stone-300">
+        <p className="ui-note">
           {t('explain.comparisonTiming', { date: formatIsoDate(startDate, locale) })}
         </p>
       ) : null}
-      <p className="text-sm">{t('explain.comparisonHelp')}</p>
+      <p className="ui-note">{t('explain.comparisonHelp')}</p>
     </section>
   );
 }
