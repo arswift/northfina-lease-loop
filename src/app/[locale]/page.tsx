@@ -2,13 +2,12 @@
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { AssetCard } from '@/components/asset-card';
-import { loadPriceLists } from '@/data/load';
 import { assetCategorySchema } from '@/data/schemas';
-import { listPriceOn } from '@/domain/price-list';
 import { formatIsoDate } from '@/i18n/format';
 import { getT } from '@/i18n/get-t';
 import { isLocale } from '@/i18n/locales';
 import { listAssets } from '@/server/assets';
+import { cataloguePrices } from '@/server/spine-offers';
 import { db } from '@/server/db';
 import { todayIso } from '@/server/today';
 
@@ -21,7 +20,7 @@ export default async function CataloguePage({ params }: PageProps<'/[locale]'>) 
 
   const t = getT(locale);
   const today = todayIso(); // the page decides what "today" is; domain code never reads the clock
-  const [assets, priceLists] = await Promise.all([listAssets(db), loadPriceLists()]);
+  const [assets, offers] = await Promise.all([listAssets(db), cataloguePrices(db, today)]);
   const groups = assetCategorySchema.options
     .map((category) => ({ category, assets: assets.filter((a) => a.category === category) }))
     .filter((group) => group.assets.length > 0);
@@ -65,7 +64,16 @@ export default async function CataloguePage({ params }: PageProps<'/[locale]'>) 
               <li key={asset.id}>
                 <AssetCard
                   asset={asset}
-                  price={listPriceOn(priceLists, asset.id, today)}
+                  price={
+                    offers[asset.id]
+                      ? {
+                          ok: true,
+                          priceCents: offers[asset.id]!.priceCents,
+                          priceListVersion: Number(offers[asset.id]!.source.split(':')[1]),
+                        }
+                      : { ok: false, reason: 'no_price_list_on_date' }
+                  }
+                  priceSource={offers[asset.id]?.source}
                   locale={locale}
                   t={t}
                 />
