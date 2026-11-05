@@ -329,6 +329,22 @@
   @media (min-width: 48rem) {
     .price-layout {
       grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      grid-template-rows: auto 1fr;
+      grid-template-areas:
+        'controls outcomes'
+        'basis outcomes';
+    }
+
+    .price-controls {
+      grid-area: controls;
+    }
+
+    .price-outcomes {
+      grid-area: outcomes;
+    }
+
+    .price-basis {
+      grid-area: basis;
     }
 
     .comparison-options {
