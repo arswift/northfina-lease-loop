@@ -309,6 +309,7 @@
   "explain.comparisonTiming": "Den första månadsbetalningen är planerad till {date}. Totalerna summerar alla planerade betalningar med de angivna momssatserna.",
   "explain.monthlyCount": "Antal månadsbetalningar",
   "explain.bandChanged": "Finansiering av {fromAmount} använder beloppsgrupp {fromBand} med koefficienten {fromFactor}. Med {toAmount} finansierat gäller grupp {toBand} och koefficienten {toFactor}.",
+  "explain.bandInfoSummary": "Varför en större förskottsbetalning kan ändra månadshyran",
   "explain.bandReference": "Jämfört med samma avtalstid utan förskottsbetalning:",
   "explain.bandHigher": "Med denna förskottsbetalning är månadshyran före moms {amount} högre.",
   "explain.bandLower": "Med denna förskottsbetalning är månadshyran före moms {amount} lägre.",
