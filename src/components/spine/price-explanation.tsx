@@ -59,7 +59,7 @@ export function PriceExplanation({
         <p className="ui-note mt-2">{t('explain.firstMonthHelp')}</p>
       </div>
 
-      <div>
+      <div className="price-outcome-grid">
         <div className="price-total">
           <dl>
             <AmountRow
@@ -97,7 +97,9 @@ export function PriceExplanation({
         </div>
       </div>
 
-      <PriceTaxTimeline periods={explanation.rentalPeriods} locale={locale} />
+      <div className="price-tax-surface">
+        <PriceTaxTimeline periods={explanation.rentalPeriods} locale={locale} />
+      </div>
       {showCalculation ? (
         <PriceCalculation
           explanation={explanation}
