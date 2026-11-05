@@ -24,8 +24,6 @@ jobs:
     timeout-minutes: 20
     env:
       CI: true
-      UI_QA_TOOLS: ${{ runner.temp }}/lease-ui-tools
-      UI_OUTPUT_DIR: ${{ runner.temp }}/lease-ui-results
     steps:
       - name: Check out
         uses: actions/checkout@v7
@@ -37,6 +35,11 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+
+      - name: Set browser tool paths
+        run: |
+          echo "UI_QA_TOOLS=$RUNNER_TEMP/lease-ui-tools" >> "$GITHUB_ENV"
+          echo "UI_OUTPUT_DIR=$RUNNER_TEMP/lease-ui-results" >> "$GITHUB_ENV"
 
       - name: Install application dependencies
         run: npm ci
