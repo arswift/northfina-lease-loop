@@ -1,12 +1,13 @@
-import { GrossTotals } from './gross-totals';
 import type { getBootstrap } from '@/server/spine-offers';
 import { comparePriceOptions } from '@/domain/price-comparison';
 import { parseCents } from '@/domain/money-arithmetic';
 import { formatEuro } from '@/domain/money';
 import { getT } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
-import { buttonClass, Field, inputClass, MoneyFacts, panelClass } from './ui';
+import { buttonClass, Field, inputClass, panelClass } from './ui';
 import { priceFailureMessage } from './price-feedback';
+import { PriceExplanation } from './price-explanation';
+import { PriceBandNotice } from './price-band-notice';
 
 export type Bootstrap = Awaited<ReturnType<typeof getBootstrap>>;
 export type TermDraft = { termMonths: number; downText: string; startDate: string };
@@ -105,7 +106,11 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               inputMode="decimal"
               value={draft.downText}
               aria-invalid={amountInvalid}
-              aria-describedby={amountInvalid ? 'down-help price-feedback' : 'down-help'}
+              aria-describedby={
+                amountInvalid
+                  ? 'down-help down-band-help price-feedback'
+                  : 'down-help down-band-help'
+              }
               onChange={(event) => onChange({ ...draft, downText: event.target.value })}
             />
             <input
@@ -124,6 +129,12 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
             <p id="down-help" className="mt-2 text-sm">
               {t('spine.downHelp')}
             </p>
+            <div id="down-band-help" className="mt-3 text-sm">
+              <p>{t('spine.bandHelp')}</p>
+              {price ? (
+                <PriceBandNotice terms={price} table={data.coefficientTable} locale={locale} />
+              ) : null}
+            </div>
           </Field>
           <Field id="start" label={t('spine.start')}>
             <input
@@ -137,7 +148,6 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               onChange={(event) => onChange({ ...draft, startDate: event.target.value })}
             />
           </Field>
-          <p className="text-sm">{t('spine.bandHelp')}</p>
           <button
             id="save-quote"
             className={buttonClass}
@@ -161,28 +171,17 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
         <div>
           {price && option?.ok ? (
             <>
-              <MoneyFacts terms={price} locale={locale} />
-              <GrossTotals
-                terms={price}
-                startDate={startDate}
+              <PriceExplanation
+                explanation={option.explanation}
+                pricedOn={data.businessDate}
+                priceSource={data.offer.source}
                 upfrontDate={data.businessDate}
-                vatRates={data.vatRates}
                 locale={locale}
               />
-              <p className="mt-4 font-semibold" role="status" aria-live="polite">
+              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
                 {t('spine.monthlyGross', { date: startDate })}:{' '}
                 {formatEuro(option.explanation.firstRent.grossCents, intlLocale[locale])}
               </p>
-              <details className="mt-4">
-                <summary>{t('spine.factor')}</summary>
-                <p className="mt-2">
-                  {t('spine.factorDetail', {
-                    factor: String(price.factorMillionths / 1000000),
-                    band: price.band,
-                  })}
-                </p>
-              </details>
-              <p className="mt-4 text-sm">{t('spine.taxHelp')}</p>
               <p className="mt-4 text-sm">{t('spine.endHelp')}</p>
             </>
           ) : (
