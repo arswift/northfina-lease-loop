@@ -9,14 +9,14 @@
   :root {
     color-scheme: light;
     --ui-surface: #ffffff;
-    --ui-quiet: #f5f5f4;
-    --ui-ink: #1c1917;
-    --ui-muted: #57534e;
-    --ui-line: #d6d3d1;
-    --ui-control: #78716c;
-    --ui-accent: #047857;
+    --ui-quiet: #eef3e9;
+    --ui-ink: #173b31;
+    --ui-muted: #4d665b;
+    --ui-line: #cbd8cb;
+    --ui-control: #5d7568;
+    --ui-accent: #135d45;
     --ui-on-accent: #ffffff;
-    --ui-tint: #ecfdf5;
+    --ui-tint: #eaf3e2;
     --ui-focus: #0369a1;
     --ui-danger: #b91c1c;
   }
@@ -25,14 +25,14 @@
     :root {
       color-scheme: dark;
       --ui-surface: #1c1917;
-      --ui-quiet: #292524;
-      --ui-ink: #fafaf9;
-      --ui-muted: #d6d3d1;
-      --ui-line: #57534e;
-      --ui-control: #a8a29e;
-      --ui-accent: #6ee7b7;
-      --ui-on-accent: #022c22;
-      --ui-tint: #052e25;
+      --ui-quiet: #213a31;
+      --ui-ink: #f4f8ed;
+      --ui-muted: #d0dfd2;
+      --ui-line: #486355;
+      --ui-control: #a6c1ae;
+      --ui-accent: #d2f78c;
+      --ui-on-accent: #123226;
+      --ui-tint: #254137;
       --ui-focus: #7dd3fc;
       --ui-danger: #fca5a5;
     }
