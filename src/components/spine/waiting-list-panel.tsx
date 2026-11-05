@@ -202,7 +202,7 @@ export function WaitingListPanel({
                 {row.status === 'pending' ? (
                   <button
                     type="button"
-                    className="mt-2 underline"
+                    className="mt-2 rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950 dark:focus-visible:outline-red-400"
                     disabled={busy || pending}
                     onClick={() => void change(row.id)}
                   >
