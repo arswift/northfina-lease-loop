@@ -4,16 +4,6 @@ This feature extends the working Spine with a readable price breakdown and a com
 of two lease terms. It uses the existing pricing and invoice rules; it does not add a
 second calculator, an AI service or a new quotation API.
 
-## Basis
-
-- Working base: `spine` at `e05bad465f8c87bec4676647f3058688206bdb3f`.
-- Preparation guidance: `arswift/lease-loop` at
-  `0b6f0c5d01f08e5ea7523687843182c8990c8b21`, including the Explain My Price writing module.
-- Authoritative requirements: [CHALLENGE](../CHALLENGE.md), [RULES](../RULES.md) and
-  [the data pack](../data/DATA.md).
-- Existing implementation choices: [Spine policies](spine-policies.md). These resolve
-  the older preparation notes' open questions about upfront VAT, buyout and rounding.
-
 ## Information and behaviour
 
 Show the monthly payment for a named invoice date, its net amount and VAT, then the
@@ -115,30 +105,3 @@ the existing audited service and check that its terms match the displayed breakd
 Check keyboard controls, narrow screens, light/dark colour schemes and all four locales.
 Changing language must retain the selected terms. Run the existing full quality gate,
 keep hooks enabled and record the actual local and remote results before delivery.
-
-## Verification record — 5 November 2026
-
-The application changes passed the checks below before this documentation update.
-Local runtime: Node.js 24.22.1. CI uses the repository's Node 22 configuration.
-
-| Check                         | Observed result                                                                                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm run check:all`           | Passed: formatting, lint, types, file size, no-AI check, coverage and production build                                                           |
-| Complete test suite           | 829 tests in 44 files passed                                                                                                                     |
-| Coverage                      | 94.73% lines, 94.32% statements, 92.50% branches, 99.39% functions; all configured gates passed                                                  |
-| Conventional commit checks    | Passed; pre-commit and commit-msg hooks stayed enabled                                                                                           |
-| Production HTTP smoke         | Passed on both `localhost` and `127.0.0.1`, with an isolated database                                                                            |
-| Locale routes                 | `/en`, `/fi`, `/sv`, `/et` lease routes returned 200 with the matching document language                                                         |
-| Real HTTP quote workflow      | Selected 24-month quote saved correctly; retry returned the same quote and one audit row; next-day reads preserved the original net price/source |
-| Localized component rendering | All four languages rendered the comparison and the independently calculated €2.08 band warning without unresolved placeholders                   |
-
-The environment blocked the `tsx` seed CLI's local IPC socket during `npm run db:setup`.
-Schema migrations succeeded, and the unchanged seed script then succeeded with
-`node --env-file=.env --import tsx prisma/seed.ts`. No repository script was weakened or
-changed to work around that environment restriction.
-
-Interactive browser verification was **not completed**: the cloud browser could not
-reach the isolated local server, and its policy disallowed local-file previews.
-Actual narrow-screen layout, keyboard interaction and live locale switching remain
-manual checks. Static component assertions and HTTP tests are not browser observations.
-The final branch's remote CI status is available in its GitHub checks.
