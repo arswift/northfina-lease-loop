@@ -83,83 +83,98 @@ export default async function CataloguePage({ params, searchParams }: PageProps<
   const availableCount = assets.filter((asset) => asset.status === 'available').length;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline pb-8 dark:border-stone-800">
-        <div className="max-w-2xl">
-          <h1 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl dark:text-stone-100">
-            {t('catalogue.title')}
-          </h1>
-          <p className="mt-3 text-lg text-ink-muted dark:text-stone-300">{t('catalogue.intro')}</p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Badge tone="ice">
-              <time dateTime={today}>
-                {t('catalogue.pricesOn', { date: formatIsoDate(today, locale) })}
-              </time>
-            </Badge>
-            {vatPercent ? (
-              <Badge tone="slate">{t('catalogue.currentVat', { rate: vatPercent })}</Badge>
-            ) : null}
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      {/* Hero ledger banner */}
+      <div className="relative overflow-hidden rounded-lg border border-hairline bg-gradient-to-br from-white via-mist/70 to-ice/60 p-6 shadow-ledger sm:p-8 dark:border-stone-800 dark:from-stone-900 dark:via-stone-900 dark:to-cyan-950/30">
+        <div className="relative z-10 flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-2xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="ice">
+                <time dateTime={today}>
+                  {t('catalogue.pricesOn', { date: formatIsoDate(today, locale) })}
+                </time>
+              </Badge>
+              {vatPercent ? (
+                <Badge tone="life">{t('catalogue.currentVat', { rate: vatPercent })}</Badge>
+              ) : null}
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl dark:text-stone-100">
+              {t('catalogue.title')}
+            </h1>
+            <p className="mt-2 text-base text-ink-muted sm:text-lg dark:text-stone-300">
+              {t('catalogue.intro')}
+            </p>
           </div>
+
+          <form
+            role="search"
+            action={`/${locale}`}
+            className="flex w-full items-end gap-2 sm:w-auto"
+          >
+            <input type="hidden" name="category" value={category} />
+            <input type="hidden" name="life" value={life} />
+            <label htmlFor="catalogue-q" className="sr-only">
+              {t('catalogue.search')}
+            </label>
+            <input
+              id="catalogue-q"
+              name="q"
+              type="search"
+              defaultValue={query}
+              placeholder={t('catalogue.search')}
+              className={`${inputClass} sm:w-64`}
+            />
+            <button type="submit" className={btnPrimary}>
+              {t('catalogue.searchSubmit')}
+            </button>
+          </form>
         </div>
 
-        <form role="search" action={`/${locale}`} className="flex items-end gap-2">
-          <input type="hidden" name="category" value={category} />
-          <input type="hidden" name="life" value={life} />
-          <label htmlFor="catalogue-q" className="sr-only">
-            {t('catalogue.search')}
-          </label>
-          <input
-            id="catalogue-q"
-            name="q"
-            type="search"
-            defaultValue={query}
-            placeholder={t('catalogue.search')}
-            className={`${inputClass} w-56`}
-          />
-          <button type="submit" className={btnPrimary}>
-            {t('catalogue.searchSubmit')}
-          </button>
-        </form>
+        <StatStrip
+          stats={[
+            { label: t('catalogue.statTotal'), value: assets.length },
+            { label: t('catalogue.statAvailable'), value: availableCount },
+            { label: t('catalogue.statFirstLife'), value: firstLifeCount },
+            {
+              label: t('catalogue.statLaterLives'),
+              value: assets.length - firstLifeCount,
+            },
+          ]}
+        />
       </div>
 
-      <StatStrip
-        stats={[
-          { label: t('catalogue.statTotal'), value: assets.length },
-          { label: t('catalogue.statAvailable'), value: availableCount },
-          { label: t('catalogue.statFirstLife'), value: firstLifeCount },
-          {
-            label: t('catalogue.statLaterLives'),
-            value: assets.length - firstLifeCount,
-          },
-        ]}
-      />
-
-      <div aria-label={t('catalogue.filterCategory')} className="mt-6 flex flex-wrap gap-2">
-        {assetCategorySchema.options.map((option) => (
-          <ChipLink
-            key={option}
-            href={`/` + locale + withQuery(query, option === category ? 'all' : option, life)}
-            active={option === category}
-            dot={categoryAccents[option]}
-          >
-            {t(`category.${option}`)}
+      {/* Filter toolbar: category chips on the left, life-stage switch on the right */}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline bg-card p-3 shadow-ledger dark:border-stone-800 dark:bg-stone-900">
+        <div aria-label={t('catalogue.filterCategory')} className="flex flex-wrap gap-2">
+          <ChipLink href={'/' + locale + withQuery(query, 'all', life)} active={category === 'all'}>
+            {t('catalogue.filterAll')}
           </ChipLink>
-        ))}
-      </div>
-      <div aria-label={t('catalogue.filterLife')} className="mt-2 flex flex-wrap gap-2">
-        {LIFE_FILTERS.map((option) => (
-          <ChipLink
-            key={option}
-            href={'/' + locale + withQuery(query, category, option === life ? 'all' : option)}
-            active={option === life}
-          >
-            {option === 'first'
-              ? t('catalogue.filterFirstLife')
-              : option === 'later'
-                ? t('catalogue.filterLaterLives')
-                : t('catalogue.filterAll')}
-          </ChipLink>
-        ))}
+          {assetCategorySchema.options.map((option) => (
+            <ChipLink
+              key={option}
+              href={`/` + locale + withQuery(query, option === category ? 'all' : option, life)}
+              active={option === category}
+              dot={categoryAccents[option]}
+            >
+              {t(`category.${option}`)}
+            </ChipLink>
+          ))}
+        </div>
+        <div aria-label={t('catalogue.filterLife')} className="flex flex-wrap gap-1.5">
+          {LIFE_FILTERS.map((option) => (
+            <ChipLink
+              key={option}
+              href={'/' + locale + withQuery(query, category, option === life ? 'all' : option)}
+              active={option === life}
+            >
+              {option === 'first'
+                ? t('catalogue.filterFirstLife')
+                : option === 'later'
+                  ? t('catalogue.filterLaterLives')
+                  : t('catalogue.filterAll')}
+            </ChipLink>
+          ))}
+        </div>
       </div>
 
       {matching.length === 0 ? (
@@ -173,14 +188,21 @@ export default async function CataloguePage({ params, searchParams }: PageProps<
           className="mt-10"
         >
           <div className="flex items-baseline justify-between gap-4 border-b border-hairline pb-3 dark:border-stone-800">
-            <h2 id={`category-${group.category}`} className="text-lg font-semibold">
+            <h2
+              id={`category-${group.category}`}
+              className="flex items-center gap-2.5 text-lg font-semibold text-navy dark:text-stone-100"
+            >
+              <span
+                aria-hidden="true"
+                className={`size-2.5 rounded-full ${categoryAccents[group.category]}`}
+              />
               {t(`category.${group.category}`)}
             </h2>
-            <p className="text-sm text-ink-muted dark:text-stone-400">
+            <p className="text-sm font-medium text-ink-muted tabular-nums dark:text-stone-400">
               {t('catalogue.itemCount', { count: group.assets.length })}
             </p>
           </div>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {group.assets.map((asset) => (
               <li key={asset.id}>
                 <AssetCard

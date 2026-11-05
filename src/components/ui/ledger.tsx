@@ -73,14 +73,25 @@ export function ChipLink({
   );
 }
 
-/** Line of big evidence numbers: counts the data pack can prove, never more. */
+/** Grid of big evidence numbers: counts the data pack can prove, never more. */
 export function StatStrip({ stats }: { stats: { label: string; value: number }[] }) {
   return (
-    <dl className="flex flex-wrap gap-x-10 gap-y-3 rounded-lg border bg-mist px-4 py-3 shadow-ledger border-hairline dark:bg-stone-900 dark:border-stone-800">
-      {stats.map((stat) => (
-        <div key={stat.label} className="flex items-baseline gap-2">
-          <dd className="text-lg font-semibold tabular-nums">{stat.value}</dd>
-          <dt className="text-sm text-ink-muted dark:text-stone-400">{stat.label}</dt>
+    <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {stats.map((stat, index) => (
+        <div
+          key={stat.label}
+          className={`rounded-lg border px-4 py-3 shadow-ledger ${
+            index === 3
+              ? 'border-emerald-300/80 bg-life-fill/35 dark:border-emerald-800 dark:bg-emerald-950/40'
+              : 'border-hairline bg-card dark:border-stone-800 dark:bg-stone-900'
+          }`}
+        >
+          <dt className="text-xs font-medium tracking-wide text-ink-muted uppercase dark:text-stone-400">
+            {stat.label}
+          </dt>
+          <dd className="mt-1 text-2xl font-semibold tracking-tight text-navy tabular-nums dark:text-stone-100">
+            {stat.value}
+          </dd>
         </div>
       ))}
     </dl>

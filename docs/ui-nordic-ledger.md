@@ -52,11 +52,13 @@ This document records the tokens and the honesty rules the UI follows.
   `domain/vat.ts` itself; the from-monthly rent computed by
   `domain/pricing.ts` at the documented default term (24 months, no down
   payment) and labelled as such.
-- Asset card (`src/components/asset-card.tsx`): life badge (`Life {n}`, with a
-  loop mark and the bright loop tone once an item is past its first life),
+- `src/components/asset-visual.tsx` — architectural SVG line-art illustrations
+  (e-bike, laptop, farm tractor) on a category-tinted blueprint grid with
+  overlaid life/condition and status badges plus a `#asset-id` serial chip.
+- Asset card (`src/components/asset-card.tsx`): visual header, life badge (`Life {n} · {condition}`),
   status badge, fact rows framed as ledger rows (label left, evidence right,
-  hairline rules, soft `sage/60` container), list price + price source,
-  from-rent and one primary action.
+  hairline rules, soft `mist/65` container), list price + price source,
+  highlighted monthly rent box and one primary action.
 
 ## Deliberate exclusions
 
