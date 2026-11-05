@@ -62,7 +62,7 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
 
   return (
     <form
-      className={panelClass}
+      className={panelClass + ' price-workbench'}
       aria-labelledby="terms-heading"
       noValidate
       onSubmit={(event) => {
@@ -75,9 +75,12 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
           });
       }}
     >
-      <h2 id="terms-heading" className="mb-6 text-2xl font-semibold tracking-tight">
-        {t('spine.terms')}
-      </h2>
+      <div className="price-section-title">
+        <span aria-hidden="true" className="step-mark">01</span>
+        <h2 id="terms-heading" className="text-2xl font-semibold tracking-tight">
+          {t('spine.terms')}
+        </h2>
+      </div>
       <div className="price-layout">
         <fieldset disabled={busy} className="price-controls space-y-6">
           <legend className="sr-only">{t('spine.terms')}</legend>
