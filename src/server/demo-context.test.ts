@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
+import { NextRequest } from 'next/server';
 import { loadCustomers } from '@/data/load';
 import { handleRoute, ok } from './api-response';
 import { checkRequestOrigin, readDemoContext, requireOperator } from './demo-context';
@@ -103,6 +104,8 @@ describe('browser request origin', () => {
     'http://lease.example.test',
     'https://lease.example.test:444',
     'https://lease.example.test.other.test',
+    'https://lease.example.test/path',
+    'https://user@lease.example.test',
     'null',
     '',
   ])('rejects a different or invalid origin: %s', (origin) => {
@@ -110,4 +113,36 @@ describe('browser request origin', () => {
       expect.objectContaining({ status: 403, code: 'ORIGIN_REJECTED' })
     );
   });
+
+  it.each(['http://127.0.0.1:42109', 'http://[::1]:42109', 'http://localhost:42109'])(
+    'accepts the actual request host after Next normalizes %s',
+    (origin) => {
+      const req = new NextRequest(origin + '/api/spine', {
+        method: 'POST',
+        headers: { origin, host: new URL(origin).host },
+      });
+      expect(() => checkRequestOrigin(req)).not.toThrow();
+    }
+  );
+
+  it('uses the request host when Next exposes a different bind hostname', () => {
+    const req = new NextRequest('http://0.0.0.0:42109/api/spine', {
+      method: 'POST',
+      headers: { origin: 'http://lease.example.test', host: 'lease.example.test' },
+    });
+    expect(() => checkRequestOrigin(req)).not.toThrow();
+  });
+
+  it.each(['http://localhost:42109', 'http://other.example.test'])(
+    'does not allow a different origin or spoofed forwarded host: %s',
+    (origin) => {
+      const req = new NextRequest('http://127.0.0.1:42109/api/spine', {
+        method: 'POST',
+        headers: { origin, host: '127.0.0.1:42109', 'x-forwarded-host': new URL(origin).host },
+      });
+      expect(() => checkRequestOrigin(req)).toThrow(
+        expect.objectContaining({ status: 403, code: 'ORIGIN_REJECTED' })
+      );
+    }
+  );
 });

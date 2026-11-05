@@ -45,7 +45,20 @@ export function requireOperator(context: DemoContext): void {
 // A same-origin browser write is expected. This is CSRF hygiene, not login.
 export function checkRequestOrigin(request: Request): void {
   const origin = request.headers.get('origin');
-  if (origin !== null && origin !== new URL(request.url).origin) {
+  if (origin === null) return;
+  const url = new URL(request.url);
+  // NextRequest can normalize loopback addresses or expose the server's bind hostname.
+  // Host retains the browser's actual authority. Do not trust X-Forwarded-Host here.
+  const host = (request.headers.get('host') ?? url.host).toLowerCase();
+  let matches = false;
+  try {
+    const supplied = new URL(origin);
+    matches =
+      origin === supplied.origin && supplied.protocol === url.protocol && supplied.host === host;
+  } catch {
+    // An opaque or malformed Origin is not a same-origin browser request.
+  }
+  if (!matches) {
     throw new ApiError(403, 'ORIGIN_REJECTED', 'Use this application to make the request');
   }
 }
