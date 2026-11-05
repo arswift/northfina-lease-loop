@@ -15,10 +15,18 @@ Identify what the person is deciding, what they pay now, during the lease and at
 its end, and what the next action actually does. Inspect current components,
 translations and data contracts before proposing another layout.
 
-Keep the existing locale shell, system font and stone/emerald visual family.
-Use spacing, alignment and typographic contrast before adding decoration. One
-strong visual emphasis per region is enough. Do not add font downloads, a UI
-framework, decorative charts or animations for their own sake.
+Use a distinctive visual system, not a generic spreadsheet made of cards.
+In the editorial direction, the body and controls keep the readable system
+sans-serif, while major item and comparison headings may use a local serif
+fallback. Deep evergreen, warm off-white and a restrained lime accent express
+the circular leasing brand. Avoid remote font downloads.
+
+Category illustrations are decorative identification cues, not product photos
+or substitutes for asset details. No art, animation or novel control may
+compete with a dated payment, a total or a necessary warning. Use whitespace,
+alignment and contrasting scale to direct attention; put secondary prose in
+well-structured supporting areas without removing legally or financially
+meaningful information.
 
 ## Protect the information contract
 
