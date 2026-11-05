@@ -4,11 +4,10 @@ import { formatEuro } from '@/domain/money';
 import { getT, messages, type MessageKey } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
 
-export const panelClass =
-  'rounded-2xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900';
-export const inputClass = 'mt-1 w-full rounded-lg border border-stone-400 bg-transparent p-2';
-export const buttonClass =
-  'rounded-lg bg-emerald-700 px-4 py-2 font-medium text-white disabled:opacity-50';
+export const panelClass = 'ui-panel';
+export const inputClass = 'ui-input';
+export const buttonClass = 'ui-button';
+export const secondaryButtonClass = 'ui-button ui-button--secondary';
 
 export function messageFor(
   locale: Locale,
@@ -20,8 +19,8 @@ export function messageFor(
 
 export function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   return (
-    <div>
-      <label htmlFor={id} className="block font-medium">
+    <div className="min-w-0">
+      <label htmlFor={id} className="block font-semibold">
         {label}
       </label>
       {children}
@@ -42,14 +41,11 @@ export function MoneyFacts({ terms, locale }: { terms: PriceTerms; locale: Local
     ['spine.ownTotal', terms.downPaymentCents + terms.totalRentNetCents + terms.buyoutNetCents],
   ];
   return (
-    <dl className="space-y-3">
+    <dl className="divide-y divide-stone-200 dark:divide-stone-700">
       {values.map(([key, amount]) => (
-        <div
-          key={key}
-          className="flex flex-wrap justify-between gap-2 border-b border-stone-200 pb-2 dark:border-stone-800"
-        >
+        <div key={key} className="price-row">
           <dt>{t(key)}</dt>
-          <dd className="font-semibold tabular-nums">{formatEuro(amount, intlLocale[locale])}</dd>
+          <dd>{formatEuro(amount, intlLocale[locale])}</dd>
         </div>
       ))}
     </dl>
