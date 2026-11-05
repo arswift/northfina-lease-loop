@@ -313,5 +313,6 @@
   "explain.bandHigher": "With this upfront payment, the monthly rent before VAT is {amount} higher.",
   "explain.bandLower": "With this upfront payment, the monthly rent before VAT is {amount} lower.",
   "explain.bandSameAmount": "The rounded monthly rent before VAT is unchanged.",
-  "explain.invalidBusinessDate": "Choose a valid demo date before calculating a price."
+  "explain.invalidBusinessDate": "Choose a valid demo date before calculating a price.",
+  "explain.savedBasis": "These are the net prices saved on {date}. Catalogue price changes do not replace this offer while it is valid."
 }

@@ -313,5 +313,6 @@
   "explain.bandHigher": "Med denna förskottsbetalning är månadshyran före moms {amount} högre.",
   "explain.bandLower": "Med denna förskottsbetalning är månadshyran före moms {amount} lägre.",
   "explain.bandSameAmount": "Den avrundade månadshyran före moms är oförändrad.",
-  "explain.invalidBusinessDate": "Välj ett giltigt demodatum innan priset beräknas."
+  "explain.invalidBusinessDate": "Välj ett giltigt demodatum innan priset beräknas.",
+  "explain.savedBasis": "Detta är priserna före moms som sparades {date}. Ändringar i katalogpriserna ersätter inte erbjudandet så länge det är giltigt."
 }

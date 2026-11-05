@@ -313,5 +313,6 @@
   "explain.bandHigher": "Tällä ennakkomaksulla kuukausivuokra ilman ALV:tä on {amount} suurempi.",
   "explain.bandLower": "Tällä ennakkomaksulla kuukausivuokra ilman ALV:tä on {amount} pienempi.",
   "explain.bandSameAmount": "Pyöristetty kuukausivuokra ilman ALV:tä pysyy samana.",
-  "explain.invalidBusinessDate": "Valitse kelvollinen demopäivä ennen hinnan laskemista."
+  "explain.invalidBusinessDate": "Valitse kelvollinen demopäivä ennen hinnan laskemista.",
+  "explain.savedBasis": "Nämä ovat {date} tallennetut hinnat ilman ALV:tä. Hinnaston muutokset eivät korvaa tätä tarjousta sen voimassaoloaikana."
 }

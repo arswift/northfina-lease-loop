@@ -313,5 +313,6 @@
   "explain.bandHigher": "Selle ettemaksega on kuu üür ilma käibemaksuta {amount} suurem.",
   "explain.bandLower": "Selle ettemaksega on kuu üür ilma käibemaksuta {amount} väiksem.",
   "explain.bandSameAmount": "Ümardatud kuu üür ilma käibemaksuta jääb samaks.",
-  "explain.invalidBusinessDate": "Vali enne hinna arvutamist sobiv demokuupäev."
+  "explain.invalidBusinessDate": "Vali enne hinna arvutamist sobiv demokuupäev.",
+  "explain.savedBasis": "Need on {date} salvestatud hinnad ilma käibemaksuta. Kataloogihindade muutused ei asenda seda pakkumist selle kehtivusajal."
 }
