@@ -60,15 +60,30 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
   );
 
   return (
-    <section className={panelClass} aria-labelledby="terms-heading">
-      <h2 id="terms-heading" className="mb-5 text-xl font-semibold">
+    <form
+      className={panelClass}
+      aria-labelledby="terms-heading"
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (down.ok && option?.ok && !busy)
+          onSave({
+            termMonths: draft.termMonths,
+            downPaymentCents: down.cents,
+            startDate,
+          });
+      }}
+    >
+      <h2 id="terms-heading" className="mb-6 text-2xl font-semibold tracking-tight">
         {t('spine.terms')}
       </h2>
-      <div className="grid gap-8 md:grid-cols-2">
-        <fieldset disabled={busy} className="space-y-5">
+      <div className="price-layout">
+        <fieldset disabled={busy} className="price-controls space-y-6">
+          <legend className="sr-only">{t('spine.terms')}</legend>
           <Field id="term-select" label={t('spine.term')}>
             <select
               id="term-select"
+              name="termMonths"
               className={inputClass}
               value={terms.includes(draft.termMonths) ? draft.termMonths : ''}
               aria-invalid={termInvalid}
@@ -88,23 +103,27 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               id="term"
               aria-label={t('spine.term')}
               type="range"
-              className="mt-3 w-full accent-emerald-700"
+              className="mt-2 w-full"
               min={0}
               max={terms.length - 1}
               step={1}
               value={Math.max(0, terms.indexOf(draft.termMonths))}
+              aria-invalid={termInvalid}
+              aria-describedby={termInvalid ? 'price-feedback' : undefined}
               aria-valuetext={t('spine.months', { count: draft.termMonths })}
               onChange={(event) =>
                 onChange({ ...draft, termMonths: terms[Number(event.target.value)] ?? 12 })
               }
             />
-            <output htmlFor="term">{t('spine.months', { count: draft.termMonths })}</output>
           </Field>
           <Field id="down" label={t('spine.down')}>
             <input
               id="down"
+              name="downPayment"
               className={inputClass}
               inputMode="decimal"
+              autoComplete="off"
+              spellCheck={false}
               value={draft.downText}
               aria-invalid={amountInvalid}
               aria-describedby={
@@ -117,21 +136,23 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
             <input
               aria-label={t('spine.down')}
               type="range"
-              className="mt-3 w-full accent-emerald-700"
+              className="mt-2 w-full"
               min={0}
               max={maxDown}
               step={1}
-              value={down.ok ? Math.min(maxDown, down.cents) : 0}
+              value={down.ok ? Math.max(0, Math.min(maxDown, down.cents)) : 0}
+              aria-invalid={amountInvalid}
+              aria-describedby={amountInvalid ? 'down-help price-feedback' : 'down-help'}
               aria-valuetext={down.ok ? formatEuro(down.cents, intlLocale[locale]) : draft.downText}
               onChange={(event) =>
                 onChange({ ...draft, downText: String(Number(event.target.value) / 100) })
               }
             />
-            <p id="down-help" className="mt-2 text-sm">
+            <p id="down-help" className="ui-note mt-2">
               {t('spine.downHelp')}
             </p>
-            <div id="down-band-help" className="mt-3 text-sm">
-              <p>{t('spine.bandHelp')}</p>
+            <div id="down-band-help" className="mt-3">
+              <p className="ui-note">{t('spine.bandHelp')}</p>
               {price ? (
                 <PriceBandNotice terms={price} table={data.coefficientTable} locale={locale} />
               ) : null}
@@ -140,6 +161,7 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
           <Field id="start" label={t('spine.start')}>
             <input
               id="start"
+              name="startDate"
               type="date"
               className={inputClass}
               value={startDate}
@@ -149,8 +171,13 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               onChange={(event) => onChange({ ...draft, startDate: event.target.value })}
             />
           </Field>
+          {error ? (
+            <p id="price-feedback" role="status" className="ui-feedback">
+              {error}
+            </p>
+          ) : null}
         </fieldset>
-        <div>
+        <div className="min-w-0">
           {price && option?.ok ? (
             <>
               <PriceExplanation
@@ -164,13 +191,9 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
                 {t('spine.monthlyGross', { date: startDate })}:{' '}
                 {formatEuro(option.explanation.firstRent.grossCents, intlLocale[locale])}
               </p>
-              <p className="mt-4 text-sm">{t('spine.endHelp')}</p>
+              <p className="ui-note mt-4">{t('spine.endHelp')}</p>
             </>
-          ) : (
-            <p id="price-feedback" role="status">
-              {error}
-            </p>
-          )}
+          ) : null}
         </div>
       </div>
       <PriceComparison
@@ -180,27 +203,20 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
         busy={busy}
         onChoose={(termMonths) => onChange({ ...draft, termMonths })}
       />
-      <div className="mt-6 space-y-3 border-t border-stone-200 pt-6 dark:border-stone-700">
+      <div className="price-actions">
         <button
           id="save-quote"
+          type="submit"
           className={buttonClass}
           disabled={busy || !option?.ok}
           aria-describedby="save-help"
-          onClick={() => {
-            if (down.ok && option?.ok && !busy)
-              onSave({
-                termMonths: draft.termMonths,
-                downPaymentCents: down.cents,
-                startDate,
-              });
-          }}
         >
           {busy ? t('spine.pending') : t('spine.saveQuote')}
         </button>
-        <p id="save-help" className="text-sm">
+        <p id="save-help" className="ui-note">
           {t('explain.saveHelp')}
         </p>
       </div>
-    </section>
+    </form>
   );
 }
