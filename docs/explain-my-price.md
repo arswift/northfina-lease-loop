@@ -56,6 +56,55 @@ For `ebike-003`, list price 389000 cents, zero upfront, start and forecast upfro
 The 36-month option has a smaller monthly payment and a higher total under either
 outcome. These figures are test oracles, not fixture-selected application behaviour.
 
+## Short demo
+
+1. Follow the [quick start](../README.md#quick-start), then open
+   `/en/lease/ebike-003`. Choose Aino and set the demo date to **5 November 2026**.
+2. Keep zero upfront and a start date of 5 November. The selected 36-month term starts
+   at **€134.66 including VAT**. The VAT timeline shows **€135.20** from January 2027.
+3. Compare 24 and 36 months in the table. Both use the same dated price and assumptions.
+   Try 12 and 48 months with the comparison selectors. Choosing an option updates the
+   draft; only **Save these terms and continue** creates an offer.
+4. For the band trap, open `/en/lease/laptop-003` on the same demo date, choose 36 months
+   and enter **0.01** upfront. Financing moves from band B to A; monthly net rent rises
+   from **€55.17 to €57.25**. The notice explains the coefficient change. The effect is
+   calculated from the inputs, not from the asset ID.
+5. For the price-source check, open `/en/lease/laptop-004` on 5 November and choose a
+   start date of **6 November**. Save the offer, then change the demo date to 6 November.
+   The saved explanation retains **€3,490.00 net and price list 1**. Choosing different
+   terms opens the current **€3,211.00 net, price list 2** offer instead.
+
+The screen uses all four locale dictionaries. The existing draft store preserves the
+chosen lease terms; the two comparison selectors have their own per-item, per-persona
+preferences. Neither comparison nor switching languages creates a business record.
+
+## Code map
+
+- `src/domain/price-explanation.ts` groups the existing scheduled invoices and exposes
+  their net/gross amounts. `price-comparison.ts` prices common inputs for each term and
+  provides the zero-upfront reference when the financing band changes.
+- `src/components/spine/price-panel.tsx` owns form presentation and save eligibility.
+  The explanation, VAT timeline, comparison and band notice each have a separate file.
+- `saved-price-explanation.tsx` reads frozen quote terms and their original source.
+  It uses the current assumed invoice date only for the advance's VAT forecast.
+- New domain tests cover independent arithmetic examples, missing tax periods, calendar
+  boundaries and both directions of a band change. The database integration test links
+  comparison, saving and the actual saved-offer component, including four-locale output.
+
+The feature adds no database migration, API endpoint, package dependency or pricing
+formula. It continues through the existing audited quote/application/contract services.
+
+## Runtime integration correction
+
+An HTTP check found that Next.js can normalize a loopback URL to `localhost` or expose
+its bind hostname in `Request.url`. Comparing only that URL with the browser's Origin
+incorrectly rejected a same-origin save opened through `127.0.0.1`.
+
+The origin guard now compares the serialized Origin's protocol and authority with the
+request protocol and actual Host header, falling back to the URL when Host is absent.
+It keeps different hosts, schemes and ports separate and ignores `X-Forwarded-Host`.
+Real `NextRequest` regression cases cover loopback normalization and spoofed headers.
+
 ## Acceptance checks
 
 Verify both terms against the example, a one-cent band crossing, dated VAT changes,
@@ -66,3 +115,30 @@ the existing audited service and check that its terms match the displayed breakd
 Check keyboard controls, narrow screens, light/dark colour schemes and all four locales.
 Changing language must retain the selected terms. Run the existing full quality gate,
 keep hooks enabled and record the actual local and remote results before delivery.
+
+## Verification record — 5 November 2026
+
+The application changes passed the checks below before this documentation update.
+Local runtime: Node.js 24.22.1. CI uses the repository's Node 22 configuration.
+
+| Check                         | Observed result                                                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run check:all`           | Passed: formatting, lint, types, file size, no-AI check, coverage and production build                                                           |
+| Complete test suite           | 829 tests in 44 files passed                                                                                                                     |
+| Coverage                      | 94.73% lines, 94.32% statements, 92.50% branches, 99.39% functions; all configured gates passed                                                  |
+| Conventional commit checks    | Passed; pre-commit and commit-msg hooks stayed enabled                                                                                           |
+| Production HTTP smoke         | Passed on both `localhost` and `127.0.0.1`, with an isolated database                                                                            |
+| Locale routes                 | `/en`, `/fi`, `/sv`, `/et` lease routes returned 200 with the matching document language                                                         |
+| Real HTTP quote workflow      | Selected 24-month quote saved correctly; retry returned the same quote and one audit row; next-day reads preserved the original net price/source |
+| Localized component rendering | All four languages rendered the comparison and the independently calculated €2.08 band warning without unresolved placeholders                   |
+
+The environment blocked the `tsx` seed CLI's local IPC socket during `npm run db:setup`.
+Schema migrations succeeded, and the unchanged seed script then succeeded with
+`node --env-file=.env --import tsx prisma/seed.ts`. No repository script was weakened or
+changed to work around that environment restriction.
+
+Interactive browser verification was **not completed**: the cloud browser could not
+reach the isolated local server, and its policy disallowed local-file previews.
+Actual narrow-screen layout, keyboard interaction and live locale switching remain
+manual checks. Static component assertions and HTTP tests are not browser observations.
+The final branch's remote CI status is available in its GitHub checks.
