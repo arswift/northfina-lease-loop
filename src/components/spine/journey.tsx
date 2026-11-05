@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import { answersFromCustomer } from '@/domain/question-flow';
 import { answersForSubmission } from './form-values';
 import { getT } from '@/i18n/get-t';
+import { formatIsoDate } from '@/i18n/format';
 import type { Locale } from '@/i18n/locales';
 import type { ApplicationView, ContractView, QuoteView, listContracts } from '@/server/spine-views';
 import { requestJson, RequestFailure, type DemoSelection } from './api';
@@ -21,12 +22,12 @@ import { useDraft } from './use-draft';
 import { draftSchema, emptyDraft, selectionSchema } from './draft';
 import { ApplicationPanel } from './application-panel';
 import { ContractPanel } from './contract-panel';
-import { GrossTotals } from './gross-totals';
+import { SavedPriceExplanation } from './saved-price-explanation';
 import { EndPanel, type EndForm } from './end-panel';
 import { PricePanel, type Bootstrap } from './price-panel';
 import { RelistPanel, type RelistForm } from './relist-panel';
 import { HistoryPanel } from './history-panel';
-import { buttonClass, Field, inputClass, messageFor, MoneyFacts, panelClass } from './ui';
+import { buttonClass, Field, inputClass, messageFor, panelClass } from './ui';
 
 const emptySelection: DemoSelection = { customerId: '', businessDate: '' };
 type ContractList = Awaited<ReturnType<typeof listContracts>>;
@@ -411,20 +412,8 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
           {!contractId && quote ? (
             <>
               <section className={panelClass}>
-                <p>{t('spine.quoteSaved', { date: quote.validThrough })}</p>
-                <div className="mt-4">
-                  <MoneyFacts terms={quote.terms} locale={locale} />
-                  <p className="mt-3 text-sm">
-                    {t('spine.savedOffer', { date: quote.pricedOn, source: quote.priceSource })}
-                  </p>
-                  <GrossTotals
-                    terms={quote.terms}
-                    startDate={quote.startDate}
-                    upfrontDate={data.businessDate}
-                    vatRates={data.vatRates}
-                    locale={locale}
-                  />
-                </div>
+                <p>{t('spine.quoteSaved', { date: formatIsoDate(quote.validThrough, locale) })}</p>
+                <SavedPriceExplanation quote={quote} data={data} locale={locale} />
                 <button
                   className={buttonClass + ' mt-4'}
                   disabled={busy}
