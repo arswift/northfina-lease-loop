@@ -7,10 +7,10 @@ import type { ListPriceResult } from '@/domain/price-list';
 import { formatNumber } from '@/i18n/format';
 import type { Translate } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
-import { Badge, btnPrimary, cardClass } from '@/components/ui/ledger';
+import { Badge, btnPrimary, cardClass, categoryAccents } from '@/components/ui/ledger';
 
-const statusTone: Record<AssetStatus, 'mint' | 'amber' | 'slate'> = {
-  available: 'mint',
+const statusTone: Record<AssetStatus, 'ice' | 'amber' | 'slate'> = {
+  available: 'ice',
   reserved: 'amber',
   returned: 'slate',
 };
@@ -21,6 +21,7 @@ const statusDot: Record<AssetStatus, string> = {
   returned: 'bg-stone-500 dark:bg-stone-400',
 };
 
+/** Card colour comes from the shared category palette in components/ui/ledger. */
 type AssetCardProps = {
   asset: Asset;
   price: ListPriceResult;
@@ -45,10 +46,15 @@ export function AssetCard({
   return (
     <article
       aria-labelledby={headingId}
-      className={`${cardClass} flex h-full flex-col p-5 transition-shadow hover:shadow-md`}
+      className={`${cardClass} relative flex h-full flex-col overflow-hidden p-5 transition-shadow hover:shadow-md`}
     >
+      {/* Category accent: the colour mirrors the dot on the filter chip. */}
+      <span
+        aria-hidden="true"
+        className={`absolute inset-x-0 top-0 h-1 ${categoryAccents[asset.category]}`}
+      />
       <div className="flex items-start justify-between gap-3">
-        <Badge tone={lifeNumber > 1 ? 'life' : 'mint'}>
+        <Badge tone={lifeNumber > 1 ? 'life' : 'ice'}>
           {lifeNumber > 1 ? <SecondLifeMark /> : null}
           {t('asset.lifeBadge', { count: lifeNumber })}
         </Badge>
@@ -66,7 +72,7 @@ export function AssetCard({
         </h3>
       </div>
 
-      <dl className="mt-4 mb-5 rounded-lg bg-sage/60 px-3 py-1.5 dark:bg-stone-800/60">
+      <dl className="mt-4 mb-5 rounded-lg bg-mist/60 px-3 py-1.5 dark:bg-stone-800/60">
         <Fact label={t('condition.label')} value={t(`condition.${asset.condition}`)} />
         <Fact label={t('asset.modelYear')} value={String(asset.model_year)} />
         <Fact
@@ -91,11 +97,9 @@ export function AssetCard({
           ) : null}
         </div>
         {monthlyFromCents !== null ? (
-          <div className="text-right">
-            <p className="text-xs text-ink-muted dark:text-stone-400">
-              {t('asset.monthlyCaption')}
-            </p>
-            <p className="mt-0.5 text-xl font-semibold text-forest tabular-nums dark:text-emerald-300">
+          <div className="rounded-lg bg-ice px-3 py-2 text-right dark:bg-cyan-950/60">
+            <p className="text-xs text-ink-muted dark:text-cyan-300">{t('asset.monthlyCaption')}</p>
+            <p className="mt-0.5 text-xl font-semibold text-ocean tabular-nums dark:text-cyan-300">
               {formatEuro(monthlyFromCents, intlLocale[locale])}
             </p>
           </div>

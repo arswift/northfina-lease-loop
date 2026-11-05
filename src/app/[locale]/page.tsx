@@ -11,6 +11,7 @@ import {
   StatStrip,
   btnPrimary,
   cardClass,
+  categoryAccents,
   inputClass,
 } from '@/components/ui/ledger';
 import { loadCoefficientTable, loadVatRates } from '@/data/load';
@@ -85,12 +86,12 @@ export default async function CataloguePage({ params, searchParams }: PageProps<
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline pb-8 dark:border-stone-800">
         <div className="max-w-2xl">
-          <h1 className="text-3xl font-semibold tracking-tight text-pine sm:text-4xl dark:text-stone-100">
+          <h1 className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl dark:text-stone-100">
             {t('catalogue.title')}
           </h1>
           <p className="mt-3 text-lg text-ink-muted dark:text-stone-300">{t('catalogue.intro')}</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Badge tone="mint">
+            <Badge tone="ice">
               <time dateTime={today}>
                 {t('catalogue.pricesOn', { date: formatIsoDate(today, locale) })}
               </time>
@@ -139,6 +140,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps<
             key={option}
             href={`/` + locale + withQuery(query, option === category ? 'all' : option, life)}
             active={option === category}
+            dot={categoryAccents[option]}
           >
             {t(`category.${option}`)}
           </ChipLink>

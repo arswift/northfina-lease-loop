@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /* Nordic Circular Ledger design tokens — see docs/ui-nordic-ledger.md.
-   Warm paper canvas, hairline framing, deep forest primary, amber only for attention. */
+   Warm paper canvas, hairline framing, ocean-blue primary, amber only for attention. */
 @theme {
   --font-sans:
     var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
@@ -9,15 +9,16 @@
 
   --color-paper: #fcf9f5;
   --color-paper-dim: #dcdad6;
-  --color-sage: #f2f5f3;
-  --color-mint: #e8efea;
+  --color-mist: #eef4f7;
+  --color-ice: #e2eef5;
   --color-hairline: #e5e5df;
   --color-hairline-strong: #c1c8c2;
   --color-ink: #1c1c1a;
   --color-ink-muted: #575753;
-  --color-forest: #1b4332;
-  --color-forest-deep: #143527;
-  --color-pine: #012d1d;
+  --color-ocean: #155e75;
+  --color-ocean-deep: #11495c;
+  --color-navy: #083344;
+  --color-steel: #0e7490;
   --color-amber-fill: #fef3c7;
   --color-amber-ink: #b45309;
   --color-life-fill: #85f8c4;
@@ -26,8 +27,8 @@
   --shadow-ledger: 0 1px 2px rgba(28, 28, 26, 0.03);
 }
 
-/* A visible keyboard focus everywhere, in both color schemes (spec ring #10B981). */
+/* A visible keyboard focus everywhere, in both color schemes. */
 :focus-visible {
-  outline: 2px solid var(--color-emerald-500);
+  outline: 2px solid var(--color-sky-500);
   outline-offset: 2px;
 }

@@ -13,8 +13,8 @@ This document records the tokens and the honesty rules the UI follows.
   white space. No expressive gradients, no floating shadows.
 - **Audited permanence** — money, dates and lifecycle states are the visual
   anchors; every figure is tabular-aligned so columns of numbers read like a ledger.
-- **Natural utility** — forest and sage tones soften the financial structure
-  without losing institutional weight.
+- **Natural utility** — ocean-blue structure with mist and ice tints keeps the
+  financial weight; the green loop badge keeps the ecologic warmth.
 - **Show only what the data proves** — no decorative metric the data pack cannot
   support. Counts and prices come from `data/*.json` and the pricing engine.
 
@@ -24,11 +24,12 @@ This document records the tokens and the honesty rules the UI follows.
 | ------------------- | ------------------------------ | --------------------------------------------- |
 | `paper`             | `#fcf9f5`                      | page canvas (warm off-white for long reading) |
 | `card`              | `#ffffff`                      | cards, tables, inputs                         |
-| `sage` / `mint`     | `#f2f5f3` / `#e8efea`          | quiet status fills and chips                  |
+| `mist` / `ice`      | `#eef4f7` / `#e2eef5`          | soft blue-tinted fills and chips              |
 | `hairline`          | `#e5e5df`                      | 1 px borders (the only framing)               |
 | `ink` / `ink-muted` | `#1c1c1a` / `#575753`          | text / metadata, labels, table keys           |
-| `forest` / `deep`   | `#1b4332` / `#143527`          | primary actions, brand mark (hover `deep`)    |
-| `pine`              | `#012d1d`                      | headings-scale ink                            |
+| `ocean` / `deep`    | `#155e75` / `#11495c`          | primary actions, brand mark (hover `deep`)    |
+| `navy` / `steel`    | `#083344` / `#0e7490`          | headings ink, secondary interactive text      |
+| `life-fill` / `ink` | `#85f8c4` / `#002114`          | circular-pop green on later-life badges       |
 | `amber-fill/ink`    | `#fef3c7` / `#92400e`          | attention only: reserved, review states       |
 | `shadow-ledger`     | `0 1px 2px rgba(28,28,26,.03)` | the only shadow                               |
 
@@ -68,7 +69,13 @@ This document records the tokens and the honesty rules the UI follows.
 - **No invented regulatory claims** — the mockup's "Regulated by
   Finanssivalvonta" / "OP & Nordea" copy and decorative CO₂ statistics are
   replaced by real counts or the synthetic-demo footer note.
-- Dark mode keeps the pre-existing stone/emerald pairing; the ledger tokens
+- **Category accent legend** — every catalogue card carries a 4 px accent bar
+  and every category chip a matching dot: e-bikes emerald `#10b981`, laptops
+  indigo `#818cf8`, farm machines amber `#fbbf24`. Colour never carries the
+  information alone; the category name is always beside it.
+- **The circular pop** — the bright green `life-fill` badge (`#85f8c4`) marks
+  items on a later life against the blue structure: blue is the bank, green is
+  the loop.
   target the light theme. Dark rendering is a supporting fallback, not a
   target: new surfaces only need a reasonable dark pairing.
 - **No pagination** — the fleet is 30 seeded assets; hiding any of them behind

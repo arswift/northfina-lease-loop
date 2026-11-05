@@ -288,7 +288,7 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 sm:py-14">
-      <Link href={'/' + locale} className="text-forest underline dark:text-emerald-300">
+      <Link href={'/' + locale} className="text-ocean underline dark:text-emerald-300">
         {t('spine.back')}
       </Link>
       <h1 className="text-3xl font-semibold tracking-tight">

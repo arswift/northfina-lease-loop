@@ -77,7 +77,7 @@ function LoopMark() {
     <svg
       aria-hidden="true"
       viewBox="0 0 32 32"
-      className="size-9 shrink-0 rounded-xl bg-forest p-1.5 text-white"
+      className="size-9 shrink-0 rounded-xl bg-ocean p-1.5 text-white"
       fill="none"
       stroke="currentColor"
       strokeWidth="2.5"
