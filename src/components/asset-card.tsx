@@ -1,5 +1,6 @@
 // One catalogue item. A server component: it renders to HTML and ships no JavaScript.
 import Link from 'next/link';
+import { AssetArt } from '@/components/asset-art';
 import type { Asset, AssetStatus } from '@/data/schemas';
 import { formatEuro } from '@/domain/money';
 import type { ListPriceResult } from '@/domain/price-list';
@@ -39,6 +40,10 @@ export function AssetCard({ asset, price, locale, t, priceSource }: AssetCardPro
 
   return (
     <article aria-labelledby={headingId} className="catalogue-card">
+      <div className="catalogue-visual" data-category={asset.category}>
+        <span className="catalogue-category">{t(`category.${asset.category}`)}</span>
+        <AssetArt category={asset.category} />
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1 basis-36">
           <p className="ui-note">{asset.make}</p>
