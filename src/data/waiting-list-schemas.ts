@@ -25,3 +25,4 @@ export const ownWaitingListSchema = z.array(
     allocated_asset_id: z.string().nullable(),
   })
 );
+export type OwnWaitingRequests = z.infer<typeof ownWaitingListSchema>;

@@ -27,6 +27,7 @@ import { EndPanel, type EndForm } from './end-panel';
 import { PricePanel, type Bootstrap } from './price-panel';
 import { RelistPanel, type RelistForm } from './relist-panel';
 import { HistoryPanel } from './history-panel';
+import { WaitingListPanel } from './waiting-list-panel';
 import { buttonClass, Field, inputClass, messageFor, panelClass } from './ui';
 
 const emptySelection: DemoSelection = { customerId: '', businessDate: '' };
@@ -278,6 +279,10 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
         { requestId: request.id, ...input },
         true
       );
+      if (input.matching) {
+        saveDraft(emptyDraft);
+        setSelection({ ...selection, customerId: input.matching.nextCustomerId });
+      }
     });
   }
 
@@ -349,6 +354,13 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
         <p role="status">{t('spine.loading')}</p>
       ) : (
         <>
+          <WaitingListPanel
+            key={`${data.customer.id}:${data.businessDate}`}
+            data={data}
+            locale={locale}
+            busy={busy}
+            onChanged={() => setRevision((value) => value + 1)}
+          />
           {loaded?.contracts.filter((item) => item.asset_id === assetId).length ? (
             <section className={panelClass}>
               <h2 className="font-semibold">{t('spine.savedContracts')}</h2>
