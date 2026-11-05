@@ -6,6 +6,7 @@ import type { DemoContext } from '@/server/demo-context';
 import type { PrismaClient } from '@/server/prisma-client';
 import { submitApplication } from '@/server/spine-applications';
 import { createQuote } from '@/server/spine-quotes';
+import { signContract } from '@/server/spine-signing';
 
 export async function resetSpine(db: PrismaClient) {
   await db.invoice.deleteMany();
@@ -64,4 +65,15 @@ export async function prepareApplication(
     answers,
   });
   return { quote, application };
+}
+
+export async function createLease(
+  db: PrismaClient,
+  context: DemoContext,
+  input: Parameters<typeof prepareApplication>[2] = {}
+) {
+  const { application } = await prepareApplication(db, context, input);
+  if (application.decision !== 'approved')
+    throw new Error(`Fixture was not approved: ${application.reasons.join(', ')}`);
+  return signContract(db, context, application.id);
 }
