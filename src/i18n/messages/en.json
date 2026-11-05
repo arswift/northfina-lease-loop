@@ -309,6 +309,7 @@
   "explain.comparisonTiming": "The first monthly payment is scheduled for {date}. Totals add all scheduled payments using the supplied VAT rates.",
   "explain.monthlyCount": "Number of monthly payments",
   "explain.bandChanged": "Financing {fromAmount} uses band {fromBand} and coefficient {fromFactor}. With {toAmount} financed, band {toBand} applies with coefficient {toFactor}.",
+  "explain.bandInfoSummary": "Why more upfront may change the monthly rent",
   "explain.bandReference": "Compared with no upfront payment for the same lease term:",
   "explain.bandHigher": "With this upfront payment, the monthly rent before VAT is {amount} higher.",
   "explain.bandLower": "With this upfront payment, the monthly rent before VAT is {amount} lower.",
