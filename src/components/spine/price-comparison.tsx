@@ -71,11 +71,14 @@ export function PriceComparison({ data, locale, draft, busy, onChoose }: Props) 
 
   return (
     <section className="price-comparison space-y-5" aria-labelledby={id + '-heading'}>
-      <div>
-        <h3 id={id + '-heading'} className="text-2xl font-semibold tracking-tight">
-          {t('explain.compareTitle')}
-        </h3>
-        <p className="ui-note mt-2">{t('explain.compareHelp')}</p>
+      <div className="price-section-title">
+        <span aria-hidden="true" className="step-mark">02</span>
+        <div>
+          <h3 id={id + '-heading'} className="text-2xl font-semibold tracking-tight">
+            {t('explain.compareTitle')}
+          </h3>
+          <p className="ui-note mt-2">{t('explain.compareHelp')}</p>
+        </div>
       </div>
       {data.offer && isIsoDate(data.businessDate) ? (
         <div>
