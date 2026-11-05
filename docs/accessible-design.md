@@ -16,15 +16,23 @@ a low total cost. Neither an estimate nor a synthetic demo is a binding real off
 
 ## Skills evaluated
 
-| Resource | Useful contribution | Boundary in this application |
-| --- | --- | --- |
-| Anthropic `frontend-design` | Deliberate hierarchy, coherent visual direction, avoiding a generic collection of cards | Novelty, decorative typography and animation are not goals; retain the system font and familiar native controls |
-| Vercel `web-design-guidelines` | Reviewable implementation checks for semantics, focus, forms, motion and layout | A checklist is not an accessibility certificate or permission to change financial behavior |
-| Existing `plan-ux-content` and `lease-ux-demo` preparation skills | Decision-first content order, consistent vocabulary, four locales and honest demo states | Apply to the current app, not to a retired prototype or hypothetical business policy |
-| New `lease-accessible-ui` | A small, project-specific synthesis of the above and W3C/GOV.UK guidance | Agent-side instructions only; no AI feature, external installer or runtime dependency |
+**Anthropic frontend-design** contributes deliberate hierarchy and a coherent visual
+direction instead of a generic collection of cards. Novelty, decorative typography
+and animation are not goals here; retain the system font and familiar native controls.
 
-The new skill is at `.agents/skills/lease-accessible-ui/SKILL.md`. External skills
-were inspected as reference material, not installed blindly or copied wholesale.
+**Vercel web-design-guidelines** contributes implementation checks for semantics,
+focus, forms, motion and layout. A checklist is not an accessibility certificate or
+permission to change financial behavior.
+
+**Existing plan-ux-content and lease-ux-demo preparation skills** contribute
+ decision-first content order, consistent vocabulary, four locales and honest demo
+states. Apply them to the current app, not a retired prototype or hypothetical policy.
+
+**The new lease-accessible-ui skill** is a small, project-specific synthesis of those
+methods and W3C/GOV.UK guidance. It is an agent-side instruction file, not an AI
+feature, installer or runtime dependency. Its path is
+`.agents/skills/lease-accessible-ui/SKILL.md`. External skills were inspected as
+reference material, not installed blindly or copied wholesale.
 
 ## Decisions implemented
 
@@ -67,15 +75,15 @@ formula is part of this work.
 
 ## Code map
 
-- `src/app/globals.css`: small shared presentation vocabulary, contrast pairs,
-  responsive layouts, keyboard focus and system accessibility preferences.
+- `src/app/globals.css`: shared presentation vocabulary, contrast pairs, responsive
+  layouts, keyboard focus and system accessibility preferences.
 - `src/components/spine/ui.tsx`: shared fields, buttons, panels and money facts.
 - `src/components/spine/price-panel.tsx`: native form, precise controls and recovery.
 - `src/components/spine/price-explanation.tsx`: essential payments versus calculations.
 - `src/components/spine/price-tax-timeline.tsx`: explicit dated payment changes.
 - `src/components/spine/price-comparison.tsx`: comparable, responsive term options.
 - `src/components/asset-card.tsx`: catalogue continuity and readable item facts.
-- `scripts/check-ui.mjs`: focused browser regression and automated accessibility checks.
+- `scripts/check-ui.mjs`: browser regression and automated accessibility checks.
 
 ## Verification and its limits
 
