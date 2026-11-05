@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { assetConditionSchema, isoDateSchema } from '@/data/schemas';
+import { matchingSelectionSchema } from '@/data/second-life-schemas';
 
 import { storageCentsSchema as cents } from '@/data/spine-value-schemas';
 export { priceTermsSchema } from '@/data/spine-value-schemas';
@@ -41,6 +42,7 @@ export const endInputSchema = z.strictObject({
 export type EndInput = z.infer<typeof endInputSchema>;
 
 export const relistInputSchema = z.strictObject({
+  matching: matchingSelectionSchema.optional(),
   releaseRevision: z.number().int().nonnegative(),
   requestId: requestIdSchema,
   netPriceCents: cents.positive(),
