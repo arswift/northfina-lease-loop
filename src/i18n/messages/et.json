@@ -309,6 +309,7 @@
   "explain.comparisonTiming": "Esimene kuumakse on kavandatud kuupäevale {date}. Kogusummad liidavad kõik kavandatud maksed, kasutades etteantud käibemaksumäärasid.",
   "explain.monthlyCount": "Kuumaksete arv",
   "explain.bandChanged": "Finantseerimine summas {fromAmount} kasutab vahemikku {fromBand} ja koefitsienti {fromFactor}. Summa {toAmount} puhul kehtib vahemik {toBand} ja koefitsient {toFactor}.",
+  "explain.bandInfoSummary": "Miks suurem sissemakse võib kuumakset muuta",
   "explain.bandReference": "Võrreldes sama lepinguperioodiga ilma ettemakseta:",
   "explain.bandHigher": "Selle ettemaksega on kuu üür ilma käibemaksuta {amount} suurem.",
   "explain.bandLower": "Selle ettemaksega on kuu üür ilma käibemaksuta {amount} väiksem.",
