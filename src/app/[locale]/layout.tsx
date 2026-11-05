@@ -7,6 +7,7 @@ import { LanguageSwitcher } from '@/components/language-switcher';
 import { getT } from '@/i18n/get-t';
 import { isLocale } from '@/i18n/locales';
 import '../globals.css';
+import '../editorial.css';
 
 export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
