@@ -1,4 +1,5 @@
 // One catalogue item. A server component: it renders to HTML and ships no JavaScript.
+import Link from 'next/link';
 import type { Asset, AssetStatus } from '@/data/schemas';
 import { formatEuro } from '@/domain/money';
 import type { ListPriceResult } from '@/domain/price-list';
@@ -29,9 +30,10 @@ type AssetCardProps = {
   price: ListPriceResult;
   locale: Locale;
   t: Translate;
+  priceSource?: string;
 };
 
-export function AssetCard({ asset, price, locale, t }: AssetCardProps) {
+export function AssetCard({ asset, price, locale, t, priceSource }: AssetCardProps) {
   const headingId = `asset-${asset.id}`;
   const status = statusStyles[asset.status];
 
@@ -70,13 +72,23 @@ export function AssetCard({ asset, price, locale, t }: AssetCardProps) {
         <div className="text-xs text-stone-600 dark:text-stone-400">
           <p>{t('asset.listPrice')}</p>
           {price.ok ? (
-            <p>{t('asset.priceListVersion', { version: price.priceListVersion })}</p>
+            <p>
+              {priceSource?.startsWith('release:')
+                ? t('spine.releasePrice', { version: priceSource.split(':')[1] ?? '' })
+                : t('asset.priceListVersion', { version: price.priceListVersion })}
+            </p>
           ) : null}
         </div>
         <p className="text-right text-xl font-semibold tabular-nums">
           {price.ok ? formatEuro(price.priceCents, intlLocale[locale]) : t('asset.noPrice')}
         </p>
       </div>
+      <Link
+        href={'/' + locale + '/lease/' + encodeURIComponent(asset.id)}
+        className="mt-5 inline-flex justify-center rounded-lg bg-emerald-700 px-4 py-2 font-medium text-white"
+      >
+        {asset.status === 'returned' ? t('spine.relist') : t('spine.open')}
+      </Link>
     </article>
   );
 }
