@@ -58,3 +58,16 @@ This is a market-value estimate, not an automatic refurbishment decision or leas
 offer. Repair costs and a documented next-lease pricing policy must be considered
 separately. Replacing a component does not erase the physical item's cumulative
 usage for this valuation.
+
+`refurbishment-options.ts` compares required work and estimated market value at
+each condition that does not downgrade the asset. Unsupported upgrades remain
+visible with a reason. Net recovery is market value minus all repair costs, not
+accounting profit: acquisition costs, overhead and future lease income are not
+included. Negative recovery is economically unviable; zero is break-even. Missing
+valuation or service history cannot establish viability.
+
+Fair condition is only a conditional option. The existing readiness function
+continues to require good condition unless the caller explicitly supplies
+`acceptsFairCondition`; matching must justify that exception with a waiting
+customer who accepts fair. Mandatory work still applies, including a laptop's
+data wipe. Plans do not record completion, reserve stock or change any asset.
