@@ -39,3 +39,22 @@ Create these as you need them. Do not commit empty files.
 - `invoicing`: the monthly invoices for a contract, including a VAT rate change mid-contract.
 - `end-of-term`: return, buy out or extend, and the value of the returned item.
 - `second-life`: refurbishment cost, matching a returned item to the waiting list, CO2 saved.
+
+## Second-life valuation policy
+
+`residual-value.ts` estimates market value from `data/residual-curves.json`.
+Callers must supply the original net list price at the first lease and the actual
+age in whole months. Missing values return an explicit result; model year and
+previous-life counts are not substitutes for history.
+
+Age percentages are interpolated linearly between curve points and held at the
+endpoints outside the curve. Usage depreciation counts completed steps, applies
+the category's percentage reduction and stops at its cap. Condition applies its
+own multiplier. The calculation uses exact integer ratios and rounds half-up to
+euro cents only once, after multiplying every factor. It never rounds an
+intermediate age-adjusted price.
+
+This is a market-value estimate, not an automatic refurbishment decision or lease
+offer. Repair costs and a documented next-lease pricing policy must be considered
+separately. Replacing a component does not erase the physical item's cumulative
+usage for this valuation.
