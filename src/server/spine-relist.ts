@@ -1,4 +1,4 @@
-import { loadRefurbishmentCosts } from '@/data/load';
+import { loadCustomers, loadRefurbishmentCosts } from '@/data/load';
 import { maintenanceAfterWork, missingReadinessTasks, refurbishmentPlan } from '@/domain/lifecycle';
 import type { AssetRelease } from '@/generated/prisma/client';
 import { ApiError } from './api-response';
@@ -10,6 +10,7 @@ import type { PrismaClient } from './prisma-client';
 import { rethrowDatabaseConflict, requestHash, requireSameRequest } from './request-integrity';
 import type { RelistInput } from './spine-shapes';
 import { readMaintenance } from './spine-maintenance';
+import { previewSecondLife } from './second-life-matching';
 
 function releaseView(release: AssetRelease) {
   return {
@@ -60,12 +61,26 @@ export async function relistAsset(
     );
   }
   const maintenance = readMaintenance(previous);
+  if (input.matching) {
+    const customers = await loadCustomers();
+    if (!customers.some((customer) => customer.id === input.matching?.nextCustomerId)) {
+      throw new ApiError(422, 'SUCCESSOR_UNKNOWN', 'Select a known next customer');
+    }
+    if (
+      input.matching.readyOn !== context.businessDate ||
+      (previous?.reserved_for_customer_id &&
+        previous.reserved_for_customer_id !== input.matching.nextCustomerId)
+    ) {
+      throw new ApiError(409, 'MATCH_CHANGED', 'Refresh the match before allocating');
+    }
+  }
   const plan = refurbishmentPlan({
     asset: toAsset(row),
     targetCondition: input.condition,
     costs,
     lastServiceUsage: input.lastServiceUsage,
     maintenance,
+    acceptsFairCondition: input.condition === 'fair' && input.matching !== undefined,
   });
   if (!plan.ok)
     throw new ApiError(422, 'READINESS_UNAVAILABLE', 'The required work cannot be determined', {
@@ -89,22 +104,51 @@ export async function relistAsset(
           businessDate: context.businessDate,
           revision: input.releaseRevision,
           taskIds: plan.tasks.map((task) => task.id),
+          ...(input.matching ? { matching: input.matching } : {}),
         },
       },
       async (tx) => {
         const latest = await tx.assetRelease.findUnique({ where: { asset_id: assetId } });
         if ((latest?.revision ?? 0) !== input.releaseRevision)
           throw new ApiError(409, 'RELIST_NOT_ALLOWED', 'The return cycle changed');
+        if (input.matching) {
+          const preview = await previewSecondLife(tx, context, assetId, {
+            ...input.matching,
+            lastServiceUsage: input.lastServiceUsage,
+          });
+          const selected = preview.recommendation;
+          if (
+            !selected ||
+            selected.requestId !== input.matching.waitingRequestId ||
+            selected.condition !== input.condition ||
+            selected.netPriceCents !== input.netPriceCents ||
+            (latest?.reserved_for_customer_id &&
+              latest.reserved_for_customer_id !== input.matching.nextCustomerId)
+          ) {
+            throw new ApiError(
+              409,
+              'MATCH_CHANGED',
+              'The recommended match changed; review it again'
+            );
+          }
+        }
         const updated = await tx.asset.updateMany({
-          where: { id: assetId, status: 'returned' },
+          where: {
+            id: assetId,
+            status: 'returned',
+            condition: row.condition,
+            usage_value: row.usage_value,
+          },
           data: { condition: input.condition, status: 'available' },
         });
         if (updated.count !== 1)
           throw new ApiError(409, 'RELIST_NOT_ALLOWED', 'The item is no longer awaiting relisting');
         const values = {
+          ...(input.matching ? { reserved_for_customer_id: input.matching.nextCustomerId } : {}),
           net_price_cents: input.netPriceCents,
           ready_on: context.businessDate,
           readiness_json: JSON.stringify({
+            ...(input.matching ? { matching: input.matching } : {}),
             tasks: plan.tasks,
             totalNetCents: plan.totalNetCents,
             usageBefore: row.usage_value,

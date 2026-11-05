@@ -149,6 +149,13 @@ describe('second-life matchmaking', () => {
     ).toBeNull();
   });
 
+  it('never reallocates a waiting request recorded as fulfilled', () => {
+    const request = fixture.requests.find((row) => row.id === 'wait-02')!;
+    const result = run({ requests: [request], allocatedRequestIds: ['wait-02'] });
+    expect(result.recommendation).toBeNull();
+    expect(result.candidates.every((row) => row.reasons.includes('allocated'))).toBe(true);
+  });
+
   it('does not mutate inputs or depend on current clock time', () => {
     const before = structuredClone(fixture);
     expect(run()).toEqual(run());
