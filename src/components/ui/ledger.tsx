@@ -17,10 +17,12 @@ export const btnGhost =
 export const inputClass =
   'w-full rounded-lg border bg-card p-2 border-hairline placeholder:text-ink-muted dark:bg-stone-900 dark:border-stone-800';
 
-type BadgeTone = 'mint' | 'amber' | 'slate';
+type BadgeTone = 'mint' | 'life' | 'amber' | 'slate';
 
 const badgeTones: Record<BadgeTone, string> = {
   mint: 'bg-mint text-pine dark:bg-emerald-950 dark:text-emerald-200',
+  // The active-loop tone: items on a later life stand apart from first-life stock.
+  life: 'bg-life-fill text-life-ink dark:bg-emerald-800 dark:text-emerald-100',
   amber: 'bg-amber-fill text-amber-ink dark:bg-amber-950 dark:text-amber-200',
   slate: 'bg-sage text-ink-muted dark:bg-stone-800 dark:text-stone-300',
 };

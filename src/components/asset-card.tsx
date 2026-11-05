@@ -48,7 +48,7 @@ export function AssetCard({
       className={`${cardClass} flex h-full flex-col p-5 transition-shadow hover:shadow-md`}
     >
       <div className="flex items-start justify-between gap-3">
-        <Badge tone="mint">
+        <Badge tone={lifeNumber > 1 ? 'life' : 'mint'}>
           {lifeNumber > 1 ? <SecondLifeMark /> : null}
           {t('asset.lifeBadge', { count: lifeNumber })}
         </Badge>
@@ -66,7 +66,7 @@ export function AssetCard({
         </h3>
       </div>
 
-      <dl className="mt-4 mb-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <dl className="mt-4 mb-5 rounded-lg bg-sage/60 px-3 py-1.5 dark:bg-stone-800/60">
         <Fact label={t('condition.label')} value={t(`condition.${asset.condition}`)} />
         <Fact label={t('asset.modelYear')} value={String(asset.model_year)} />
         <Fact
@@ -111,11 +111,12 @@ export function AssetCard({
   );
 }
 
+/** One ledger row: label left, evidence right, hairline rule underneath. */
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="flex items-baseline justify-between gap-4 border-b border-hairline py-1.5 text-sm last:border-b-0 dark:border-stone-800">
       <dt className="text-ink-muted dark:text-stone-400">{label}</dt>
-      <dd className="font-medium">{value}</dd>
+      <dd className="text-right font-medium">{value}</dd>
     </div>
   );
 }

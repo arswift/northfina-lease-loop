@@ -83,7 +83,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps<
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline pb-8 dark:border-stone-800">
         <div className="max-w-2xl">
           <h1 className="text-3xl font-semibold tracking-tight text-pine sm:text-4xl dark:text-stone-100">
             {t('catalogue.title')}
@@ -133,7 +133,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps<
         ]}
       />
 
-      <div aria-label={t('catalogue.filterCategory')} className="mt-8 flex flex-wrap gap-2">
+      <div aria-label={t('catalogue.filterCategory')} className="mt-6 flex flex-wrap gap-2">
         {assetCategorySchema.options.map((option) => (
           <ChipLink
             key={option}

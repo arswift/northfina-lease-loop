@@ -21,6 +21,8 @@
   --color-fern: #00714e;
   --color-amber-fill: #fef3c7;
   --color-amber-ink: #92400e;
+  --color-life-fill: #85f8c4;
+  --color-life-ink: #002114;
 
   --shadow-ledger: 0 1px 2px rgba(28, 28, 26, 0.03);
 }

@@ -37,7 +37,9 @@ audited. This document records the tokens and the honesty rules the UI follows.
 
 ## Components
 
-- `src/components/ui/ledger.tsx` — `Badge` (mint/amber/slate), `ChipLink`
+- `src/components/ui/ledger.tsx` — `Badge` (mint = first-life stock, bright
+  `life-fill #85f8c4` = items on a later life, amber = attention, slate =
+  neutral), `ChipLink`
   (filter chips, `aria-current`, plain links so filtering needs no JavaScript),
   `StatStrip`, card/button/input classes.
 - Catalogue (`src/app/[locale]/page.tsx`): search (GET form) by make, model or
@@ -47,8 +49,10 @@ audited. This document records the tokens and the honesty rules the UI follows.
   `domain/pricing.ts` at the documented default term (24 months, no down
   payment) and labelled as such.
 - Asset card (`src/components/asset-card.tsx`): life badge (`Life {n}`, with a
-  loop mark once an item is past its first life), status badge, facts from
-  `assets.json`, list price + price source, from-rent and one primary action.
+  loop mark and the bright loop tone once an item is past its first life),
+  status badge, fact rows framed as ledger rows (label left, evidence right,
+  hairline rules, soft `sage/60` container), list price + price source,
+  from-rent and one primary action.
 
 ## Deliberate exclusions
 
@@ -62,7 +66,13 @@ audited. This document records the tokens and the honesty rules the UI follows.
   Finanssivalvonta" / "OP & Nordea" copy and decorative CO₂ statistics are
   replaced by real counts or the synthetic-demo footer note.
 - Dark mode keeps the pre-existing stone/emerald pairing; the ledger tokens
-  target the light theme.
+  target the light theme. Dark rendering is a supporting fallback, not a
+  target: new surfaces only need a reasonable dark pairing.
+- **No pagination** — the fleet is 30 seeded assets; hiding any of them behind
+  page breaks would risk the judges' scenario cards. Filtering and search are
+  the navigation. When the catalogue grows past a screen, the grid switches to
+  cursor pagination that composes with the existing `?category`, `?life` and
+  `?q` params; a future note here will mark that switch.
 
 ## Verification
 
