@@ -64,13 +64,17 @@ it('keeps invalid lease dates editable without crashing live or saved totals', a
     );
   const invalidTerms = getT('en')('spine.invalidTerms');
   for (const dates of [
-    { startDate: '9997-01-01', businessDate: '2026-11-05' },
-    { startDate: '0000-01-01', businessDate: '2026-11-05' },
-    { startDate: '2026-11-05', businessDate: '0000-01-01' },
+    { startDate: '9997-01-01', businessDate: '2026-11-05', label: '5 November 2026' },
+    { startDate: '0000-01-01', businessDate: '2026-11-05', label: '5 November 2026' },
+    { startDate: '2026-11-05', businessDate: '0000-01-01', label: '0000-01-01' },
   ]) {
     const markup = renderPrice(dates.startDate, dates.businessDate);
-    expect(markup).toContain(invalidTerms);
-    expect(markup).toMatch(/<button\b[^>]*\bdisabled=""/);
+    expect(markup).toContain(
+      dates.businessDate === '0000-01-01'
+        ? getT('en')('explain.invalidBusinessDate')
+        : getT('en')('explain.invalidStart', { date: dates.label })
+    );
+    expect(markup.match(/<button\b[^>]*\bid="save-quote"[^>]*>/)?.[0]).toContain('disabled=""');
     const totals = renderToStaticMarkup(
       createElement(GrossTotals, {
         terms: priced.terms,
@@ -84,9 +88,47 @@ it('keeps invalid lease dates editable without crashing live or saved totals', a
   }
   // All 36 rental dates and maturity fit, with maturity exactly on 9999-12-31.
   const boundary = renderPrice('9996-12-31');
-  expect(boundary).not.toContain(invalidTerms);
-  expect(boundary).not.toMatch(/<button\b[^>]*\bdisabled=""/);
+  const saveButton = boundary.match(/<button\b[^>]*\bid="save-quote"[^>]*>/)?.[0];
+  expect(saveButton).toBeDefined();
+  expect(saveButton).not.toContain('disabled=');
 });
+
+it.each([
+  ['invalid decimal', 'ebike-003', '1e2', false, 'explain.invalidAmount'],
+  ['below financing minimum', 'ebike-003', '3590.01', false, 'explain.belowMinimum'],
+  ['above financing maximum', 'farm-006', '0', false, 'explain.aboveMaximum'],
+  ['missing future VAT', 'ebike-003', '0', true, 'explain.noVat'],
+] as const)(
+  'prevents saving and hides the price summary for %s',
+  async (_case, assetId, downText, missingFutureVat, messageKey) => {
+    await resetSpine(db);
+    const data = await getBootstrap(db, await demoContext(), assetId);
+    const markup = renderToStaticMarkup(
+      createElement(PricePanel, {
+        data: missingFutureVat
+          ? {
+              ...data,
+              vatRates: {
+                ...data.vatRates,
+                rates: data.vatRates.rates.filter((rate) => rate.valid_to !== null),
+              },
+            }
+          : data,
+        locale: 'en',
+        draft: { termMonths: 36, downText, startDate: data.businessDate },
+        busy: false,
+        onChange: () => undefined,
+        onSave: () => undefined,
+      })
+    );
+    expect(markup).toContain(
+      getT('en')(messageKey, { minimum: '€300.00', maximum: '€250,000.00' })
+    );
+    expect(markup.match(/<button\b[^>]*\bid="save-quote"[^>]*>/)?.[0]).toContain('disabled=""');
+    expect(markup).not.toContain(getT('en')('explain.title'));
+    expect(markup).not.toContain('€134.66');
+  }
+);
 
 it('accepts actual response shapes throughout the loop and changes consent context when needed', async () => {
   await resetSpine(db);
