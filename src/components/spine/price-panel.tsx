@@ -7,6 +7,7 @@ import { intlLocale, type Locale } from '@/i18n/locales';
 import { buttonClass, Field, inputClass, panelClass } from './ui';
 import { priceFailureMessage } from './price-feedback';
 import { PriceExplanation } from './price-explanation';
+import { PriceCalculation } from './price-calculation';
 import { PriceBandNotice } from './price-band-notice';
 import { PriceComparison } from './price-comparison';
 
@@ -78,105 +79,115 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
         {t('spine.terms')}
       </h2>
       <div className="price-layout">
-        <fieldset disabled={busy} className="price-controls space-y-6">
-          <legend className="sr-only">{t('spine.terms')}</legend>
-          <Field id="term-select" label={t('spine.term')}>
-            <select
-              id="term-select"
-              name="termMonths"
-              className={inputClass}
-              value={terms.includes(draft.termMonths) ? draft.termMonths : ''}
-              aria-invalid={termInvalid}
-              aria-describedby={termInvalid ? 'price-feedback' : undefined}
-              onChange={(event) => onChange({ ...draft, termMonths: Number(event.target.value) })}
-            >
-              <option value="" disabled>
-                {t('explain.chooseTerm')}
-              </option>
-              {terms.map((term) => (
-                <option key={term} value={term}>
-                  {t('spine.months', { count: term })}
+        <div className="min-w-0 space-y-6">
+          <fieldset disabled={busy} className="price-controls space-y-6">
+            <legend className="sr-only">{t('spine.terms')}</legend>
+            <Field id="term-select" label={t('spine.term')}>
+              <select
+                id="term-select"
+                name="termMonths"
+                className={inputClass}
+                value={terms.includes(draft.termMonths) ? draft.termMonths : ''}
+                aria-invalid={termInvalid}
+                aria-describedby={termInvalid ? 'price-feedback' : undefined}
+                onChange={(event) => onChange({ ...draft, termMonths: Number(event.target.value) })}
+              >
+                <option value="" disabled>
+                  {t('explain.chooseTerm')}
                 </option>
-              ))}
-            </select>
-            <input
-              id="term"
-              aria-label={t('spine.term')}
-              type="range"
-              className="mt-2 w-full"
-              min={0}
-              max={terms.length - 1}
-              step={1}
-              value={Math.max(0, terms.indexOf(draft.termMonths))}
-              aria-invalid={termInvalid}
-              aria-describedby={termInvalid ? 'price-feedback' : undefined}
-              aria-valuetext={t('spine.months', { count: draft.termMonths })}
-              onChange={(event) =>
-                onChange({ ...draft, termMonths: terms[Number(event.target.value)] ?? 12 })
-              }
+                {terms.map((term) => (
+                  <option key={term} value={term}>
+                    {t('spine.months', { count: term })}
+                  </option>
+                ))}
+              </select>
+              <input
+                id="term"
+                aria-label={t('spine.term')}
+                type="range"
+                className="mt-2 w-full"
+                min={0}
+                max={terms.length - 1}
+                step={1}
+                value={Math.max(0, terms.indexOf(draft.termMonths))}
+                aria-invalid={termInvalid}
+                aria-describedby={termInvalid ? 'price-feedback' : undefined}
+                aria-valuetext={t('spine.months', { count: draft.termMonths })}
+                onChange={(event) =>
+                  onChange({ ...draft, termMonths: terms[Number(event.target.value)] ?? 12 })
+                }
+              />
+            </Field>
+            <Field id="down" label={t('spine.down')}>
+              <input
+                id="down"
+                name="downPayment"
+                className={inputClass}
+                inputMode="decimal"
+                autoComplete="off"
+                spellCheck={false}
+                value={draft.downText}
+                aria-invalid={amountInvalid}
+                aria-describedby={
+                  amountInvalid
+                    ? 'down-help down-band-help price-feedback'
+                    : 'down-help down-band-help'
+                }
+                onChange={(event) => onChange({ ...draft, downText: event.target.value })}
+              />
+              <input
+                aria-label={t('spine.down')}
+                type="range"
+                className="mt-2 w-full"
+                min={0}
+                max={maxDown}
+                step={1}
+                value={down.ok ? Math.max(0, Math.min(maxDown, down.cents)) : 0}
+                aria-invalid={amountInvalid}
+                aria-describedby={amountInvalid ? 'down-help price-feedback' : 'down-help'}
+                aria-valuetext={down.ok ? formatEuro(down.cents, intlLocale[locale]) : draft.downText}
+                onChange={(event) =>
+                  onChange({ ...draft, downText: String(Number(event.target.value) / 100) })
+                }
+              />
+              <p id="down-help" className="ui-note mt-2">
+                {t('spine.downHelp')}
+              </p>
+              <div id="down-band-help" className="mt-3">
+                <p className="ui-note">{t('spine.bandHelp')}</p>
+                {price ? (
+                  <PriceBandNotice terms={price} table={data.coefficientTable} locale={locale} />
+                ) : null}
+              </div>
+            </Field>
+            <Field id="start" label={t('spine.start')}>
+              <input
+                id="start"
+                name="startDate"
+                type="date"
+                className={inputClass}
+                value={startDate}
+                min={data.businessDate}
+                aria-invalid={dateInvalid}
+                aria-describedby={dateInvalid ? 'price-feedback' : undefined}
+                onChange={(event) => onChange({ ...draft, startDate: event.target.value })}
+              />
+            </Field>
+            {error ? (
+              <p id="price-feedback" role="status" className="ui-feedback">
+                {error}
+              </p>
+            ) : null}
+          </fieldset>
+          {price && option?.ok ? (
+            <PriceCalculation
+              explanation={option.explanation}
+              locale={locale}
+              pricedOn={data.businessDate}
+              priceSource={data.offer.source}
             />
-          </Field>
-          <Field id="down" label={t('spine.down')}>
-            <input
-              id="down"
-              name="downPayment"
-              className={inputClass}
-              inputMode="decimal"
-              autoComplete="off"
-              spellCheck={false}
-              value={draft.downText}
-              aria-invalid={amountInvalid}
-              aria-describedby={
-                amountInvalid
-                  ? 'down-help down-band-help price-feedback'
-                  : 'down-help down-band-help'
-              }
-              onChange={(event) => onChange({ ...draft, downText: event.target.value })}
-            />
-            <input
-              aria-label={t('spine.down')}
-              type="range"
-              className="mt-2 w-full"
-              min={0}
-              max={maxDown}
-              step={1}
-              value={down.ok ? Math.max(0, Math.min(maxDown, down.cents)) : 0}
-              aria-invalid={amountInvalid}
-              aria-describedby={amountInvalid ? 'down-help price-feedback' : 'down-help'}
-              aria-valuetext={down.ok ? formatEuro(down.cents, intlLocale[locale]) : draft.downText}
-              onChange={(event) =>
-                onChange({ ...draft, downText: String(Number(event.target.value) / 100) })
-              }
-            />
-            <p id="down-help" className="ui-note mt-2">
-              {t('spine.downHelp')}
-            </p>
-            <div id="down-band-help" className="mt-3">
-              <p className="ui-note">{t('spine.bandHelp')}</p>
-              {price ? (
-                <PriceBandNotice terms={price} table={data.coefficientTable} locale={locale} />
-              ) : null}
-            </div>
-          </Field>
-          <Field id="start" label={t('spine.start')}>
-            <input
-              id="start"
-              name="startDate"
-              type="date"
-              className={inputClass}
-              value={startDate}
-              min={data.businessDate}
-              aria-invalid={dateInvalid}
-              aria-describedby={dateInvalid ? 'price-feedback' : undefined}
-              onChange={(event) => onChange({ ...draft, startDate: event.target.value })}
-            />
-          </Field>
-          {error ? (
-            <p id="price-feedback" role="status" className="ui-feedback">
-              {error}
-            </p>
           ) : null}
-        </fieldset>
+        </div>
         <div className="min-w-0">
           {price && option?.ok ? (
             <>
@@ -186,6 +197,7 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
                 priceSource={data.offer.source}
                 upfrontDate={data.businessDate}
                 locale={locale}
+                showCalculation={false}
               />
               <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
                 {t('spine.monthlyGross', { date: startDate })}:{' '}
