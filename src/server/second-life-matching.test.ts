@@ -9,6 +9,7 @@ import { previewSecondLife } from './second-life-matching';
 import { relistAsset } from './spine-relist';
 import { readMaintenance } from './spine-maintenance';
 import { createQuote } from './spine-quotes';
+import { joinWaitingList, cancelWaitingRequest } from './waiting-list';
 
 const state = vi.hoisted(() => ({ db: null as unknown as PrismaClient }));
 vi.mock('@/server/db', () => ({
@@ -19,6 +20,7 @@ vi.mock('@/server/db', () => ({
 import { POST as matches } from '@/app/api/spine/assets/[id]/matches/route';
 
 let cleanup: () => Promise<void>;
+let waitingId: string;
 const previewInput = { ageMonths: 24, originalPriceCents: 250000, readyOn: '2026-11-06' };
 beforeAll(async () => {
   ({ db: state.db, cleanup } = await createTestDb());
@@ -28,6 +30,15 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await resetSpine(state.db);
+  const joined = await joinWaitingList(state.db, await demoContext('cust-aino', '2026-11-06'), {
+    requestId: randomUUID(),
+    category: 'e_bike',
+    minCondition: 'fair',
+    monthlyBudgetCents: 9000,
+    termMonths: 12,
+    neededBy: '2026-11-10',
+  });
+  waitingId = joined.id;
 });
 
 async function preparation(assetId = 'ebike-007'): Promise<RelistInput> {
@@ -65,8 +76,13 @@ describe('matching preview and allocation', () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.success).toBe(true);
-    expect(matchingPreviewSchema.parse(body.data).recommendation?.requestId).toBe('wait-02');
-    expect(await state.db.auditLog.count()).toBe(0);
+    expect(matchingPreviewSchema.parse(body.data).recommendation).toMatchObject({
+      requestId: waitingId,
+      customerId: 'cust-aino',
+      customerName: 'Aino Virtanen',
+      imported: false,
+    });
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(0);
     expect(await state.db.assetRelease.count()).toBe(0);
   });
 
@@ -76,14 +92,17 @@ describe('matching preview and allocation', () => {
     const release = await relistAsset(state.db, context, 'ebike-007', input);
     expect(release.offer.priceCents).toBe(67600);
     expect(await relistAsset(state.db, context, 'ebike-007', input)).toEqual(release);
-    expect(await state.db.auditLog.count()).toBe(1);
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(1);
     const stored = await state.db.assetRelease.findUniqueOrThrow({
       where: { asset_id: 'ebike-007' },
     });
     expect(stored.reserved_for_customer_id).toBe('cust-aino');
     expect(readMaintenance(stored)).toEqual({ batteryReplacementAtUsage: 18400 });
-    const audit = await state.db.auditLog.findFirstOrThrow();
-    expect(JSON.parse(audit.details_json!).matching.waitingRequestId).toBe('wait-02');
+    const audit = await state.db.auditLog.findFirstOrThrow({ where: { action: 'asset.relisted' } });
+    expect(JSON.parse(audit.details_json!).matching.waitingRequestId).toBe(waitingId);
+    expect(
+      (await state.db.waitingRequest.findUniqueOrThrow({ where: { id: waitingId } })).status
+    ).toBe('allocated');
     await expect(
       createQuote(state.db, await demoContext('cust-lena', '2026-11-06'), {
         requestId: randomUUID(),
@@ -104,11 +123,7 @@ describe('matching preview and allocation', () => {
     const context = await demoContext('cust-aino', '2026-11-06', true);
     await relistAsset(state.db, context, 'ebike-007', await preparation());
     const preview = await previewSecondLife(state.db, context, 'ebike-008', previewInput);
-    expect(
-      preview.candidates
-        .filter((row) => row.requestId === 'wait-02')
-        .every((row) => row.reasons.includes('allocated'))
-    ).toBe(true);
+    expect(preview.candidates.some((row) => row.requestId === waitingId)).toBe(false);
   });
 
   it('does not allocate one waiting request to two items during overlapping confirmations', async () => {
@@ -139,7 +154,7 @@ describe('matching preview and allocation', () => {
         matching: { ...input.matching!, nextCustomerId: 'cust-lena' },
       })
     ).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
-    expect(await state.db.auditLog.count()).toBe(1);
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(1);
   });
 
   it('does not treat an estimate as completed repairs', async () => {
@@ -150,7 +165,7 @@ describe('matching preview and allocation', () => {
         completedTaskIds: [],
       })
     ).rejects.toMatchObject({ code: 'READINESS_INCOMPLETE' });
-    expect(await state.db.auditLog.count()).toBe(0);
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(0);
   });
 
   it('rejects a forged price or changed recommendation without allocating', async () => {
@@ -171,6 +186,12 @@ describe('matching preview and allocation', () => {
   it('rejects stale dates, unknown customers and overriding a nominated successor', async () => {
     const context = await demoContext('cust-aino', '2026-11-06', true);
     const input = await preparation();
+    await expect(
+      relistAsset(state.db, context, 'ebike-007', {
+        ...input,
+        matching: { ...input.matching!, nextCustomerId: 'cust-lena' },
+      })
+    ).rejects.toMatchObject({ code: 'MATCH_CHANGED' });
     await expect(
       relistAsset(state.db, context, 'ebike-007', {
         ...input,
@@ -203,7 +224,10 @@ describe('matching preview and allocation', () => {
       )
     ).rejects.toThrow();
     expect(await state.db.assetRelease.count()).toBe(0);
-    expect(await state.db.auditLog.count()).toBe(0);
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(0);
+    expect(
+      (await state.db.waitingRequest.findUniqueOrThrow({ where: { id: waitingId } })).status
+    ).toBe('pending');
     expect((await state.db.asset.findUniqueOrThrow({ where: { id: 'ebike-007' } })).status).toBe(
       'returned'
     );
@@ -237,5 +261,39 @@ describe('matching preview and allocation', () => {
         false
       );
     }
+  });
+
+  it('keeps anonymous imported entries as comparison only after the known customer cancels', async () => {
+    const context = await demoContext('cust-aino', '2026-11-06', true);
+    await cancelWaitingRequest(state.db, context, waitingId);
+    const preview = await previewSecondLife(state.db, context, 'ebike-007', previewInput);
+    expect(preview.recommendation).toBeNull();
+    expect(
+      preview.candidates.every(
+        (row) => row.customerId === null && row.reasons.includes('identity_unknown')
+      )
+    ).toBe(true);
+  });
+
+  it('rejects confirmation after the customer cancels the previewed request', async () => {
+    const context = await demoContext('cust-aino', '2026-11-06', true);
+    const input = await preparation();
+    await cancelWaitingRequest(state.db, context, waitingId);
+    await expect(relistAsset(state.db, context, 'ebike-007', input)).rejects.toMatchObject({
+      code: 'MATCH_CHANGED',
+    });
+    expect(await state.db.assetRelease.count()).toBe(0);
+  });
+
+  it('does not show requests registered after the simulated business date', async () => {
+    const context = await demoContext('cust-aino', '2026-11-05', true);
+    expect(
+      (
+        await previewSecondLife(state.db, context, 'ebike-007', {
+          ...previewInput,
+          readyOn: '2026-11-05',
+        })
+      ).recommendation
+    ).toBeNull();
   });
 });

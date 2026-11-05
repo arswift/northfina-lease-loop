@@ -1,12 +1,14 @@
 import { z } from 'zod';
+import { secondLifeRequestSchema } from '@/data/schemas';
 import {
   loadCoefficientTable,
+  loadCustomers,
   loadRefurbishmentCosts,
   loadResidualCurves,
   loadSecondLifeDemand,
 } from '@/data/load';
 import { matchingSelectionSchema, type MatchingPreviewInput } from '@/data/second-life-schemas';
-import { matchSecondLife } from '@/domain/second-life-matching';
+import { matchSecondLife, type MatchCandidate } from '@/domain/second-life-matching';
 import { ApiError } from './api-response';
 import { toAsset } from './assets';
 import type { TransactionClient } from './audit';
@@ -26,32 +28,84 @@ export async function previewSecondLife(
   requireOperator(context);
   if (input.readyOn < context.businessDate)
     throw new ApiError(422, 'MATCH_CHANGED', 'Refresh the readiness date');
-  const [row, release, audits, table, costs, rules, requests] = await Promise.all([
-    db.asset.findUnique({ where: { id: assetId } }),
-    db.assetRelease.findUnique({ where: { asset_id: assetId } }),
-    db.auditLog.findMany({ where: { action: 'asset.relisted' }, select: { details_json: true } }),
-    loadCoefficientTable(),
-    loadRefurbishmentCosts(),
-    loadResidualCurves(),
-    loadSecondLifeDemand(),
-  ]);
+  const [row, release, audits, table, costs, rules, requests, registered, customers] =
+    await Promise.all([
+      db.asset.findUnique({ where: { id: assetId } }),
+      db.assetRelease.findUnique({ where: { asset_id: assetId } }),
+      db.auditLog.findMany({ where: { action: 'asset.relisted' }, select: { details_json: true } }),
+      loadCoefficientTable(),
+      loadRefurbishmentCosts(),
+      loadResidualCurves(),
+      loadSecondLifeDemand(),
+      db.waitingRequest.findMany({
+        where: { status: 'pending', submitted_on: { lte: context.businessDate } },
+      }),
+      loadCustomers(),
+    ]);
   if (!row) throw new ApiError(404, 'ASSET_NOT_FOUND', 'The item was not found');
   const allocatedRequestIds = audits.flatMap((row) => {
     const parsed = auditDetails.safeParse(row.details_json ? JSON.parse(row.details_json) : {});
     return parsed.success && parsed.data.matching ? [parsed.data.matching.waitingRequestId] : [];
   });
+  const identities = new Map(
+    registered.map((request) => [
+      request.id,
+      {
+        customerId: request.customer_id,
+        customerName:
+          customers.find((customer) => customer.id === request.customer_id)?.name ?? null,
+      },
+    ])
+  );
+  const result = matchSecondLife({
+    ...input,
+    asset: toAsset(row),
+    table,
+    costs,
+    rules,
+    requests: [
+      ...requests,
+      ...registered.map((request) =>
+        secondLifeRequestSchema.parse({
+          id: request.id,
+          category: request.category,
+          min_condition: request.min_condition,
+          max_monthly_net_rent_cents: request.max_monthly_net_rent_cents,
+          preferred_term_months: request.preferred_term_months,
+          needed_by: request.needed_by,
+          who: '',
+        })
+      ),
+    ],
+    maintenance: readMaintenance(release),
+    onDate: context.businessDate,
+    allocatedRequestIds,
+    unidentifiedRequestIds: [
+      ...requests.map((request) => request.id),
+      ...registered
+        .filter((request) => !identities.get(request.id)?.customerName)
+        .map((request) => request.id),
+    ],
+    incompatibleReservationIds: registered
+      .filter(
+        (request) =>
+          release?.reserved_for_customer_id &&
+          release.reserved_for_customer_id !== request.customer_id
+      )
+      .map((request) => request.id),
+  });
+  function identified(candidate: MatchCandidate) {
+    const identity = identities.get(candidate.requestId);
+    return {
+      ...candidate,
+      customerId: identity?.customerId ?? null,
+      customerName: identity?.customerName ?? null,
+      imported: !identity,
+    };
+  }
   return {
     releaseRevision: release?.revision ?? 0,
-    ...matchSecondLife({
-      ...input,
-      asset: toAsset(row),
-      table,
-      costs,
-      rules,
-      requests,
-      maintenance: readMaintenance(release),
-      onDate: context.businessDate,
-      allocatedRequestIds,
-    }),
+    candidates: result.candidates.map(identified),
+    recommendation: result.recommendation ? identified(result.recommendation) : null,
   };
 }
