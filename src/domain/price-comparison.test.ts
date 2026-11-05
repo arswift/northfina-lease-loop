@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import coefficientData from '../../data/coefficient-table.json';
 import vatData from '../../data/vat-rates.json';
 import { coefficientTableSchema, vatRatesSchema } from '@/data/schemas';
-import { comparePriceOptions } from './price-comparison';
+import { calculatePrice } from './pricing';
+import { comparePriceOptions, downPaymentBandReference } from './price-comparison';
 
 const input = {
   listPriceCents: 389000,
@@ -110,5 +111,59 @@ describe('price comparison', () => {
       { termMonths: 24, ok: false, reason: 'below_minimum' },
       { termMonths: 36, ok: false, reason: 'below_minimum' },
     ]);
+  });
+});
+
+describe('down-payment band explanation', () => {
+  it.each([
+    [1, 208],
+    [10000, -78],
+  ])(
+    'reports the actual signed rent difference after %s cents down',
+    (downPaymentCents, difference) => {
+      const selected = calculatePrice({
+        listPriceCents: 200000,
+        downPaymentCents,
+        termMonths: 36,
+        table: input.table,
+      });
+      if (!selected.ok) throw new Error('Both band-edge examples must be financeable');
+      expect(downPaymentBandReference(selected.terms, input.table)).toMatchObject({
+        referenceTerms: { downPaymentCents: 0, band: 'B', monthlyNetCents: 5517 },
+        monthlyNetDifferenceCents: difference,
+      });
+    }
+  );
+
+  it.each([
+    [389000, 0],
+    [389000, 10000],
+    [26000000, 1000000],
+  ])(
+    'omits a reference without two financeable, distinct bands: price %s / advance %s',
+    (listPriceCents, downPaymentCents) => {
+      const selected = calculatePrice({
+        listPriceCents,
+        downPaymentCents,
+        termMonths: 36,
+        table: input.table,
+      });
+      if (!selected.ok) throw new Error('The selected option must be financeable');
+      expect(downPaymentBandReference(selected.terms, input.table)).toBeNull();
+    }
+  );
+
+  it('does not explain a saved offer using a different coefficient table', () => {
+    const selected = calculatePrice({
+      listPriceCents: 200000,
+      downPaymentCents: 1,
+      termMonths: 36,
+      table: input.table,
+    });
+    if (!selected.ok) throw new Error('The boundary option must be financeable');
+    expect(downPaymentBandReference(selected.terms, { ...input.table, version: 2 })).toBeNull();
+    expect(
+      downPaymentBandReference(selected.terms, { ...input.table, id: 'another-table' })
+    ).toBeNull();
   });
 });
