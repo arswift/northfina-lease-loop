@@ -1,14 +1,12 @@
 import { GrossTotals } from './gross-totals';
 import type { getBootstrap } from '@/server/spine-offers';
-import { calculatePrice } from '@/domain/pricing';
-import { isIsoDate } from '@/domain/calendar';
-import { canScheduleLease } from '@/domain/invoicing';
+import { comparePriceOptions } from '@/domain/price-comparison';
 import { parseCents } from '@/domain/money-arithmetic';
-import { taxOn } from '@/domain/vat';
 import { formatEuro } from '@/domain/money';
 import { getT } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
 import { buttonClass, Field, inputClass, MoneyFacts, panelClass } from './ui';
+import { priceFailureMessage } from './price-feedback';
 
 export type Bootstrap = Awaited<ReturnType<typeof getBootstrap>>;
 export type TermDraft = { termMonths: number; downText: string; startDate: string };
@@ -32,20 +30,28 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
     .sort((a, b) => a - b);
   const down = parseCents(draft.downText);
   const startDate = draft.startDate || data.businessDate;
-  const validDates =
-    isIsoDate(data.businessDate) &&
-    startDate >= data.businessDate &&
-    canScheduleLease(startDate, draft.termMonths);
-  const price =
-    down.ok && validDates
-      ? calculatePrice({
-          listPriceCents: data.offer.priceCents,
-          downPaymentCents: down.cents,
-          termMonths: draft.termMonths,
-          table: data.coefficientTable,
-        })
-      : null;
-  const tax = price?.ok ? taxOn(price.terms.monthlyNetCents, startDate, data.vatRates) : null;
+  const option = down.ok
+    ? comparePriceOptions({
+        listPriceCents: data.offer.priceCents,
+        downPaymentCents: down.cents,
+        termMonths: [draft.termMonths],
+        table: data.coefficientTable,
+        startDate,
+        upfrontDate: data.businessDate,
+        vatRates: data.vatRates,
+      })[0]
+    : null;
+  const reason = !down.ok ? 'invalid_money' : option && !option.ok ? option.reason : null;
+  const error = reason ? priceFailureMessage(reason, data, locale) : null;
+  const amountInvalid = [
+    'invalid_money',
+    'invalid_down_payment',
+    'below_minimum',
+    'above_maximum',
+  ].includes(reason ?? '');
+  const dateInvalid = reason === 'invalid_date';
+  const termInvalid = reason === 'invalid_term' || reason === 'unknown_term';
+  const price = option?.ok ? option.explanation.terms : null;
   const maxDown = Math.max(
     0,
     data.offer.priceCents - (data.coefficientTable.bands[0]?.min_financed_cents ?? 0)
@@ -58,9 +64,27 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
       </h2>
       <div className="grid gap-8 md:grid-cols-2">
         <fieldset disabled={busy} className="space-y-5">
-          <Field id="term" label={t('spine.term')}>
+          <Field id="term-select" label={t('spine.term')}>
+            <select
+              id="term-select"
+              className={inputClass}
+              value={terms.includes(draft.termMonths) ? draft.termMonths : ''}
+              aria-invalid={termInvalid}
+              aria-describedby={termInvalid ? 'price-feedback' : undefined}
+              onChange={(event) => onChange({ ...draft, termMonths: Number(event.target.value) })}
+            >
+              <option value="" disabled>
+                {t('explain.chooseTerm')}
+              </option>
+              {terms.map((term) => (
+                <option key={term} value={term}>
+                  {t('spine.months', { count: term })}
+                </option>
+              ))}
+            </select>
             <input
               id="term"
+              aria-label={t('spine.term')}
               type="range"
               className="mt-3 w-full accent-emerald-700"
               min={0}
@@ -80,7 +104,8 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               className={inputClass}
               inputMode="decimal"
               value={draft.downText}
-              aria-describedby="down-help"
+              aria-invalid={amountInvalid}
+              aria-describedby={amountInvalid ? 'down-help price-feedback' : 'down-help'}
               onChange={(event) => onChange({ ...draft, downText: event.target.value })}
             />
             <input
@@ -107,16 +132,19 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               className={inputClass}
               value={startDate}
               min={data.businessDate}
-              aria-invalid={!validDates}
+              aria-invalid={dateInvalid}
+              aria-describedby={dateInvalid ? 'price-feedback' : undefined}
               onChange={(event) => onChange({ ...draft, startDate: event.target.value })}
             />
           </Field>
           <p className="text-sm">{t('spine.bandHelp')}</p>
           <button
+            id="save-quote"
             className={buttonClass}
-            disabled={!price?.ok || !down.ok || !tax?.ok}
+            disabled={busy || !option?.ok}
+            aria-describedby="save-help"
             onClick={() => {
-              if (down.ok && price?.ok)
+              if (down.ok && option?.ok && !busy)
                 onSave({
                   termMonths: draft.termMonths,
                   downPaymentCents: down.cents,
@@ -126,30 +154,31 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
           >
             {busy ? t('spine.pending') : t('spine.saveQuote')}
           </button>
+          <p id="save-help" className="text-sm">
+            {t('explain.saveHelp')}
+          </p>
         </fieldset>
-        <div aria-live="polite" aria-atomic="true">
-          {price?.ok ? (
+        <div>
+          {price && option?.ok ? (
             <>
-              <MoneyFacts terms={price.terms} locale={locale} />
+              <MoneyFacts terms={price} locale={locale} />
               <GrossTotals
-                terms={price.terms}
+                terms={price}
                 startDate={startDate}
                 upfrontDate={data.businessDate}
                 vatRates={data.vatRates}
                 locale={locale}
               />
-              {tax?.ok ? (
-                <p className="mt-4 font-semibold">
-                  {t('spine.monthlyGross', { date: startDate })}:{' '}
-                  {formatEuro(tax.amount.grossCents, intlLocale[locale])}
-                </p>
-              ) : null}
+              <p className="mt-4 font-semibold" role="status" aria-live="polite">
+                {t('spine.monthlyGross', { date: startDate })}:{' '}
+                {formatEuro(option.explanation.firstRent.grossCents, intlLocale[locale])}
+              </p>
               <details className="mt-4">
                 <summary>{t('spine.factor')}</summary>
                 <p className="mt-2">
                   {t('spine.factorDetail', {
-                    factor: String(price.terms.factorMillionths / 1000000),
-                    band: price.terms.band,
+                    factor: String(price.factorMillionths / 1000000),
+                    band: price.band,
                   })}
                 </p>
               </details>
@@ -157,7 +186,9 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
               <p className="mt-4 text-sm">{t('spine.endHelp')}</p>
             </>
           ) : (
-            <p role="status">{t('spine.invalidTerms')}</p>
+            <p id="price-feedback" role="status">
+              {error}
+            </p>
           )}
         </div>
       </div>
