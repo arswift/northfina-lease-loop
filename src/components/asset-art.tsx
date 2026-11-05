@@ -11,13 +11,29 @@ export function AssetArt({ category }: { category: AssetCategory }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="160" cy="100" r="82" stroke="currentColor" strokeOpacity=".18" strokeWidth="1.5" />
-      <circle cx="160" cy="100" r="112" stroke="currentColor" strokeOpacity=".09" strokeWidth="1.5" />
+      <circle
+        cx="160"
+        cy="100"
+        r="82"
+        stroke="currentColor"
+        strokeOpacity=".18"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="160"
+        cy="100"
+        r="112"
+        stroke="currentColor"
+        strokeOpacity=".09"
+        strokeWidth="1.5"
+      />
       {category === 'e_bike' ? (
         <g stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="75" cy="140" r="35" />
           <circle cx="245" cy="140" r="35" />
-          <path d="m75 140 58-73 51 73H75Zm58-73 41-12m-14-11h34m-10 96 61-65m-14-8h27m-123 0-13-24h-20" />
+          <path
+            d="m75 140 58-73 51 73H75Zm58-73 41-12m-14-11h34m-10 96 61-65m-14-8h27m-123 0-13-24h-20"
+          />
           <circle cx="184" cy="140" r="8" fill="currentColor" stroke="none" />
         </g>
       ) : category === 'laptop' ? (
