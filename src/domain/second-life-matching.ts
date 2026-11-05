@@ -24,6 +24,8 @@ export type MatchingInput = Parameters<typeof compareRefurbishmentPlans>[0] & {
   onDate: string;
   readyOn: string;
   allocatedRequestIds?: readonly string[];
+  unidentifiedRequestIds?: readonly string[];
+  incompatibleReservationIds?: readonly string[];
 };
 
 /**
@@ -55,6 +57,9 @@ export function matchSecondLife(input: MatchingInput): {
     }
     return options.map((option): MatchCandidate => {
       const reasons: string[] = [];
+      if (input.unidentifiedRequestIds?.includes(request.id)) reasons.push('identity_unknown');
+      if (input.incompatibleReservationIds?.includes(request.id))
+        reasons.push('reserved_for_other');
       if (input.allocatedRequestIds?.includes(request.id)) reasons.push('allocated');
       if (input.asset.status !== 'returned') reasons.push('not_returned');
       if (request.category !== input.asset.category) reasons.push('category');

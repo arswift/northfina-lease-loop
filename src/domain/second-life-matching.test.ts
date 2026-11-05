@@ -149,6 +149,16 @@ describe('second-life matchmaking', () => {
     ).toBeNull();
   });
 
+  it('does not allocate anonymous requests or overwrite an existing reservation', () => {
+    const request = fixture.requests.find((row) => row.id === 'wait-02')!;
+    for (const change of [
+      { unidentifiedRequestIds: [request.id] },
+      { incompatibleReservationIds: [request.id] },
+    ]) {
+      expect(run({ requests: [request], ...change }).recommendation).toBeNull();
+    }
+  });
+
   it('never reallocates a waiting request recorded as fulfilled', () => {
     const request = fixture.requests.find((row) => row.id === 'wait-02')!;
     const result = run({ requests: [request], allocatedRequestIds: ['wait-02'] });

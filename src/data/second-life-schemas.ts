@@ -17,6 +17,9 @@ export type MatchingPreviewInput = z.infer<typeof matchingPreviewInputSchema>;
 export type MatchingSelection = z.infer<typeof matchingSelectionSchema>;
 
 const candidateSchema = z.object({
+  customerId: z.string().nullable(),
+  customerName: z.string().nullable(),
+  imported: z.boolean(),
   requestId: z.string(),
   condition: assetConditionSchema,
   termMonths: meter,

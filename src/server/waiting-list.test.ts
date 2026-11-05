@@ -117,6 +117,17 @@ describe('customer-owned waiting requests', () => {
       code: 'WAITING_REQUEST_EXISTS',
     });
   });
+
+  it('keeps overlapping registrations to one pending request and one audit', async () => {
+    const context = await demoContext('cust-aino', '2026-11-06');
+    const outcomes = await Promise.allSettled([
+      joinWaitingList(state.db, context, input()),
+      joinWaitingList(state.db, context, input()),
+    ]);
+    expect(outcomes.filter((outcome) => outcome.status === 'fulfilled')).toHaveLength(1);
+    expect(await state.db.waitingRequest.count()).toBe(1);
+    expect(await state.db.auditLog.count()).toBe(1);
+  });
   it('cancels only an owned pending request and permits joining again', async () => {
     const context = await demoContext('cust-aino', '2026-11-06');
     const joined = await joinWaitingList(state.db, context, input());
