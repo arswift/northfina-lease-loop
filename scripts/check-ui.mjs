@@ -189,7 +189,8 @@ try {
     await reflow(page);
     await page.screenshot({ path: resolve(output, 'forced-colours.png'), fullPage: true });
     const response = page.waitForResponse(
-      (item) => item.request().method() === 'POST' && new URL(item.url()).pathname.endsWith('/quotes')
+      (item) =>
+        item.request().method() === 'POST' && new URL(item.url()).pathname.endsWith('/quotes')
     );
     await page.locator('#save-quote').click();
     assert.ok((await response).ok());
@@ -210,4 +211,6 @@ try {
 }
 
 if (failures.length) throw new Error(failures.length + ' UI checks failed. See summary.json.');
-console.log('All ' + results.length + ' UI checks passed. Manual assistive testing is still needed.');
+console.log(
+  'All ' + results.length + ' UI checks passed. Manual assistive testing is still needed.'
+);
