@@ -37,6 +37,8 @@ export function WaitingListPanel({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ id: string; revision: number } | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const manuallyToggled = useRef(false);
   const conditionInput = useRef<HTMLSelectElement>(null);
   const retry = useRef<{ key: string; id: string } | null>(null);
   const selection = { customerId: data.customer.id, businessDate: data.businessDate };
@@ -51,13 +53,20 @@ export function WaitingListPanel({
       controller.signal
     )
       .then((rows) => {
-        if (!controller.signal.aborted) setRecords(rows);
+        if (controller.signal.aborted) return;
+        setRecords(rows);
+        if (!manuallyToggled.current) {
+          setExpanded(rows.some((row) => row.category === category && row.status !== 'cancelled'));
+        }
       })
       .catch(() => {
-        if (!controller.signal.aborted) setError('REQUEST_FAILED');
+        if (!controller.signal.aborted) {
+          setError('REQUEST_FAILED');
+          setExpanded(true);
+        }
       });
     return () => controller.abort();
-  }, [data.customer.id, data.businessDate]);
+  }, [data.customer.id, data.businessDate, category]);
   const money = parseCents(budget);
   const preferences = {
     category,
@@ -78,6 +87,7 @@ export function WaitingListPanel({
     if (!id && (!valid || (alreadyPending && !editing))) return;
     if (!id && retry.current?.key !== key) retry.current = { key, id: crypto.randomUUID() };
     setPending(true);
+    setExpanded(true);
     setError(null);
     try {
       if (id)
@@ -117,12 +127,24 @@ export function WaitingListPanel({
     }
   }
   return (
-    <section className={panelClass} aria-labelledby="waiting-title">
-      <h2 id="waiting-title" className="text-xl font-semibold">
-        {t(editing ? 'wait.editTitle' : 'wait.titleFor', {
-          category: messageFor(locale, 'category.' + category),
-        })}
-      </h2>
+    <details
+      className={panelClass}
+      open={expanded}
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+      aria-labelledby="waiting-title"
+    >
+      <summary
+        className="cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
+        onClick={() => {
+          manuallyToggled.current = true;
+        }}
+      >
+        <h2 id="waiting-title" className="inline text-xl font-semibold">
+          {t(editing ? 'wait.editTitle' : 'wait.titleFor', {
+            category: messageFor(locale, 'category.' + category),
+          })}
+        </h2>
+      </summary>
       <p className="mt-2 font-medium">{t('wait.for', { name: data.customer.name })}</p>
       <p className="mt-2 text-sm">{t('wait.help')}</p>
       <p className="mt-2 text-sm">{t('wait.categoryScope')}</p>
@@ -281,6 +303,6 @@ export function WaitingListPanel({
           </ul>
         )}
       </div>
-    </section>
+    </details>
   );
 }
