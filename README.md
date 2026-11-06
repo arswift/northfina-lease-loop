@@ -34,9 +34,6 @@ See [the feature guide](docs/explain-my-price.md) for the calculation rules, exa
 short demo and verification record. The complete loop is described in
 [the Spine demo](docs/spine-demo.md).
 
-See [the 6 November clarification review](docs/mentor-clarifications.md) for the corrected
-company-signature scenario, imported-item valuation assumptions and remaining demo limits.
-
 | Command                 | What it does                                                   |
 | ----------------------- | -------------------------------------------------------------- |
 | `npm run dev`           | Start the app with hot reload                                  |

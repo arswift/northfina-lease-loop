@@ -3,9 +3,6 @@
 These are explicit reference-implementation choices, not additional organiser rules.
 Record the team's accepted choices in its decision board before changing these defaults.
 
-See [the 6 November organiser clarification review](mentor-clarifications.md) for the
-single-item signatory scenario and approved assumptions for imported used items.
-
 ## Money and time
 
 - Store money as integer cents. Factors use millionths; percentages use basis points.
