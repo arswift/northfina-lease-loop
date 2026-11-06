@@ -48,7 +48,7 @@ export function mayEndLease(input: {
 }): { ok: true } | { ok: false; reason: EndReason } {
   const readiness = endLeaseReadiness(input);
   if (!readiness.ok) return readiness;
-  if (input.usageValue < input.previousUsageValue) {
+  if (input.choice !== 'buy' && input.usageValue < input.previousUsageValue) {
     return { ok: false, reason: 'usage_decreased' };
   }
   if (

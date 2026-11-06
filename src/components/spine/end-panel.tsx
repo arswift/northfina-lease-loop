@@ -46,7 +46,10 @@ export function EndPanel({
     endDraftSchema
   );
   const { choice, condition, usageText, successorId } = draft;
-  const usageValue = wholeInput(usageText, data.asset.usage.value);
+  const inspectionRequired = choice !== 'buy';
+  const usageValue = inspectionRequired
+    ? wholeInput(usageText, data.asset.usage.value)
+    : data.asset.usage.value;
   const invalid = usageValue === null || (choice === 'pass_on' && !successorId);
   const rentalInvoiceCount = contract.invoices.filter((invoice) => invoice.kind === 'rent').length;
   const latestInvoiceDate = contract.invoices.reduce<string | undefined>(
@@ -125,49 +128,53 @@ export function EndPanel({
               </label>
             ))}
           </div>
-          <Field id="return-condition" label={t('spine.condition')}>
-            <select
-              id="return-condition"
-              className={inputClass}
-              value={condition}
-              onChange={(event) =>
-                saveDraft({ ...draft, condition: event.target.value as AssetCondition })
-              }
-            >
-              {(['new', 'like_new', 'good', 'fair', 'poor'] as const).map((value) => (
-                <option key={value} value={value}>
-                  {messageFor(locale, 'condition.' + value)}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field
-            id="return-usage"
-            label={
-              t('spine.usage') +
-              ' (' +
-              messageFor(locale, 'spine.unit.' + data.asset.usage.unit) +
-              ')'
-            }
-          >
-            <input
-              id="return-usage"
-              className={inputClass}
-              type="number"
-              min={data.asset.usage.value}
-              max={2_147_483_647}
-              step={1}
-              value={usageText}
-              aria-invalid={usageValue === null || undefined}
-              aria-describedby={usageValue === null ? 'return-usage-error' : undefined}
-              onChange={(event) => saveDraft({ ...draft, usageText: event.target.value })}
-            />
-            {usageValue === null ? (
-              <p id="return-usage-error" className="mt-2 text-sm">
-                {t('spine.invalidUsage', { minimum: data.asset.usage.value })}
-              </p>
-            ) : null}
-          </Field>
+          {inspectionRequired ? (
+            <>
+              <Field id="return-condition" label={t('spine.condition')}>
+                <select
+                  id="return-condition"
+                  className={inputClass}
+                  value={condition}
+                  onChange={(event) =>
+                    saveDraft({ ...draft, condition: event.target.value as AssetCondition })
+                  }
+                >
+                  {(['new', 'like_new', 'good', 'fair', 'poor'] as const).map((value) => (
+                    <option key={value} value={value}>
+                      {messageFor(locale, 'condition.' + value)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field
+                id="return-usage"
+                label={
+                  t('spine.usage') +
+                  ' (' +
+                  messageFor(locale, 'spine.unit.' + data.asset.usage.unit) +
+                  ')'
+                }
+              >
+                <input
+                  id="return-usage"
+                  className={inputClass}
+                  type="number"
+                  min={data.asset.usage.value}
+                  max={2_147_483_647}
+                  step={1}
+                  value={usageText}
+                  aria-invalid={usageValue === null || undefined}
+                  aria-describedby={usageValue === null ? 'return-usage-error' : undefined}
+                  onChange={(event) => saveDraft({ ...draft, usageText: event.target.value })}
+                />
+                {usageValue === null ? (
+                  <p id="return-usage-error" className="mt-2 text-sm">
+                    {t('spine.invalidUsage', { minimum: data.asset.usage.value })}
+                  </p>
+                ) : null}
+              </Field>
+            </>
+          ) : null}
           {choice === 'pass_on' ? (
             <Field id="next-customer" label={t('spine.nextCustomer')}>
               <select
@@ -193,8 +200,8 @@ export function EndPanel({
               contract,
               data,
               choice,
-              condition,
-              usageText,
+              condition: inspectionRequired ? condition : data.asset.condition,
+              usageText: inspectionRequired ? usageText : String(data.asset.usage.value),
               successorId,
             })}
             label={t('spine.endConsent')}
@@ -206,7 +213,7 @@ export function EndPanel({
                 return;
               onEnd({
                 choice,
-                condition,
+                condition: inspectionRequired ? condition : data.asset.condition,
                 usageValue,
                 ...(choice === 'pass_on' ? { nextCustomerId: successorId } : {}),
               });
