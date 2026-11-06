@@ -15,11 +15,19 @@ Identify what the person is deciding, what they pay now, during the lease and at
 its end, and what the next action actually does. Inspect current components,
 translations and data contracts before proposing another layout.
 
+Read `docs/northfina-design.md` when changing appearance preferences or the blue style.
+Keep style (`green` / `northfina`) independent from colour mode (`light` / `dark` /
+`system`), with equivalent information and interactions in every combination.
+
 Use a distinctive visual system, not a generic spreadsheet made of cards.
 In the editorial direction, the body and controls keep the readable system
 sans-serif, while major item and comparison headings may use a local serif
 fallback. Deep evergreen, warm off-white and a restrained lime accent express
-the circular leasing brand. Avoid remote font downloads.
+the circular leasing brand. The Northfina-inspired alternative uses the observed
+blue/cyan surfaces, rounded forms, dark-gradient capsules and Zalando Sans
+SemiExpanded. Next.js self-hosts that font at build time; no browser font-service
+request is permitted. The dark Northfina palette is our adaptation, not an
+official reference. Never let a global blue override leak into the green choice.
 
 Category illustrations are decorative identification cues, not product photos
 or substitutes for asset details. No art, animation or novel control may
@@ -69,7 +77,11 @@ messages near their fields. A collapsed panel must never conceal an error.
 
 ## Verify proportionately
 
-Run the repository quality gate. Test financial meaning and interaction contracts,
+Run the repository quality gate and both browser scripts (`check-ui.mjs`,
+`check-appearance.mjs`). Verify explicit light on a dark OS and the reverse;
+system changes, keyboard controls, storage failures, reload/language persistence
+and cross-tab updates. Switching appearance must never write financial records.
+Test financial meaning and interaction contracts,
 not snapshots of utility classes. Exercise zero/nonzero upfront, a financing-band
 crossing, changed VAT, unavailable terms, a large farm-machine amount and a saved
 offer. Check keyboard, narrow/wide screens, light/dark, all languages and errors.
