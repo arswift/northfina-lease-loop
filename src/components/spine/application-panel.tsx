@@ -3,6 +3,7 @@ import { normaliseAnswers } from '@/domain/question-flow';
 import { answersForSubmission, moneyInputText } from './form-values';
 import { ConsentAction } from './consent-action';
 import { applicationConsentKey } from './consent-context';
+import { ApplicationStatus } from './application-status';
 import { getT } from '@/i18n/get-t';
 import type { Locale } from '@/i18n/locales';
 import type { ApplicationView, QuoteView } from '@/server/spine-views';
@@ -141,16 +142,7 @@ export function ApplicationPanel(props: Props) {
           {busy ? t('spine.pending') : t('spine.submitApplication')}
         </button>
       </form>
-      {application ? (
-        <div className="mt-6" role="status">
-          <h3 className="font-semibold">{messageFor(locale, 'spine.' + application.decision)}</h3>
-          <ul className="mt-2 list-disc pl-5">
-            {application.reasons.map((reason) => (
-              <li key={reason}>{messageFor(locale, 'spine.reason.' + reason)}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      {application ? <ApplicationStatus application={application} locale={locale} /> : null}
       {application?.decision === 'approved' ? (
         <div className="mt-6 space-y-4 border-t border-stone-200 pt-6 dark:border-stone-800">
           <h3 className="text-lg font-semibold">{t('spine.review')}</h3>
