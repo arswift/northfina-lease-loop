@@ -93,9 +93,7 @@ export function PriceGuardian({
                   {label}
                 </th>
                 <td className="border-t p-2 tabular-nums">{money(before)}</td>
-                <td className="border-t p-2 font-semibold tabular-nums">
-                  {money(after)}
-                </td>
+                <td className="border-t p-2 font-semibold tabular-nums">{money(after)}</td>
               </tr>
             ))}
           </tbody>
