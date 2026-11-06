@@ -61,25 +61,32 @@ async function choose(page, design, mode) {
 }
 
 async function theme(page, design, mode, resolved) {
-  await page.waitForFunction(
-    ({ design, mode, resolved }) => {
-      const data = globalThis.document.documentElement.dataset;
-      return data.design === design && data.mode === mode && data.theme === resolved;
-    },
-    { design, mode, resolved }
-  );
-  const actual = await page.evaluate(() => ({
-    scheme: globalThis.getComputedStyle(globalThis.document.documentElement).colorScheme,
-    background: globalThis.getComputedStyle(globalThis.document.body).backgroundColor,
-    font: globalThis.getComputedStyle(globalThis.document.body).fontFamily,
-  }));
-  assert.equal(actual.scheme, resolved);
   const backgrounds = {
     green: { light: 'rgb(247, 248, 241)', dark: 'rgb(14, 32, 26)' },
     northfina: { light: 'rgb(255, 255, 255)', dark: 'rgb(8, 15, 33)' },
   };
-  assert.equal(actual.background, backgrounds[design][resolved]);
-  if (design === 'northfina') assert.match(actual.font, /Zalando/i);
+  // Poll the rendered cascade as well as attributes: inherited custom properties
+  // can settle on the next frame after changing color-scheme. No fixed sleep.
+  await page.waitForFunction(
+    ({ design, mode, resolved, background }) => {
+      const root = globalThis.document.documentElement;
+      const data = root.dataset;
+      return (
+        data.design === design &&
+        data.mode === mode &&
+        data.theme === resolved &&
+        globalThis.getComputedStyle(root).colorScheme === resolved &&
+        globalThis.getComputedStyle(globalThis.document.body).backgroundColor === background
+      );
+    },
+    { design, mode, resolved, background: backgrounds[design][resolved] }
+  );
+  if (design === 'northfina') {
+    const font = await page.evaluate(
+      () => globalThis.getComputedStyle(globalThis.document.body).fontFamily
+    );
+    assert.match(font, /Zalando/i);
+  }
 }
 
 async function reflow(page) {
