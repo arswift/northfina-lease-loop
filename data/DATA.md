@@ -21,8 +21,11 @@ but never a reservation. No database reset or new migration is needed for these 
 
 For a repeatable check, use an unmodified returned `ebike-007` in Dealer mode:
 
-- Set demo date and ready date to `2026-11-06`, age to 24 months and original net
-  price to EUR 2500. Compare: `wait-02` recommends Sanna, fair condition, with EUR 395
+- Set demo date and ready date to `2026-11-06`. Original date and price now default
+  to `2023-01-01` and EUR 5490 from v1, labelled as assumptions; age is 46 months.
+  To repeat the older synthetic example, check **Correct the original date or price**,
+  enter `2024-11-06`, EUR 2500 and a source/reason of at least 10 characters.
+  Age becomes 24 months automatically. Compare: `wait-02` recommends Sanna, fair condition, with EUR 395
   required work. Confirm the work to allocate; a new application is still required.
 - Before publishing any offer, change both dates to `2026-11-11` and compare again.
   `wait-01` should be recommended anonymously, with its repair estimate and rent;
@@ -38,6 +41,14 @@ Enter a reason of at least 10 characters, then use the selected plan. The prepar
 form must show good condition and its required work. After confirmation the offer
 is reserved for Olavi; the audit retains the reason and the original `wait-02`
 recommendation. Anonymous requests and failed constraints cannot be overridden.
+
+Original valuation references are persisted on the asset, separate from later offer
+prices. Real first-lease dates and locked prices are captured when a new item is
+first signed. Existing first-life contracts can supply missing references. Neither
+returns, repairs nor subsequent signatures reset the original reference. Corrections
+are saved only on confirmed publication with the audit entry, never by previewing.
+This feature adds an additive Prisma migration; existing databases need
+`npx prisma migrate deploy` and `npx prisma generate` after pulling the change.
 
 - **Money is integer euro cents.** `389000` means €3,890.00. Prices are **net (VAT excluded)** unless a field says otherwise.
 - **Dates are ISO `YYYY-MM-DD`.** `valid_to: null` means "still valid".
