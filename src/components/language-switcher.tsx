@@ -1,12 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
 import { localeNames, locales, type Locale } from '@/i18n/locales';
 import { LanguageFlag } from './language-flag';
 
-/** A native disclosure of navigation links, not an application-style ARIA menu. */
+/** Native disclosure and document navigation keep language, query and hash together. */
 export function LanguageSwitcher({ current, label }: { current: Locale; label: string }) {
   const pathname = usePathname();
   const rest = pathname.split('/').slice(2).join('/');
@@ -106,14 +105,15 @@ export function LanguageSwitcher({ current, label }: { current: Locale; label: s
             const active = locale === current;
             return (
               <li key={locale}>
-                <Link
+                <a
                   href={(rest ? `/${locale}/${rest}` : `/${locale}`) + suffix}
                   hrefLang={locale}
                   lang={locale}
                   aria-current={active ? 'page' : undefined}
                   className="language-option"
-                  prefetch={false}
-                  onNavigate={() => {
+                  onClick={(event) => {
+                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey)
+                      return;
                     const menu = menuRef.current;
                     if (!menu) return;
                     menu.querySelector('summary')?.focus();
@@ -133,7 +133,7 @@ export function LanguageSwitcher({ current, label }: { current: Locale; label: s
                   >
                     {active ? <path d="m4 10 4 4 8-8" /> : null}
                   </svg>
-                </Link>
+                </a>
               </li>
             );
           })}
