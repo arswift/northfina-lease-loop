@@ -171,9 +171,28 @@ export function ApplicationPanel(props: Props) {
         >
           <h3 className="font-semibold">{messageFor(locale, 'spine.' + application.decision)}</h3>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            {application.reasons.map((reason) => (
-              <li key={reason}>{messageFor(locale, 'spine.reason.' + reason)}</li>
-            ))}
+            {application.reasons
+              // The labelled questions below already say what to fix; the generic
+              // sentences for those groups would only repeat the same words.
+              .filter((reason) => {
+                if (
+                  application.decision !== 'incomplete' &&
+                  application.conflictQuestionIds.length > 0 &&
+                  reason === 'profile_conflict'
+                ) {
+                  return false;
+                }
+                if (
+                  application.decision === 'incomplete' &&
+                  (reason === 'answers_missing' || reason === 'answers_invalid')
+                ) {
+                  return false;
+                }
+                return true;
+              })
+              .map((reason) => (
+                <li key={reason}>{messageFor(locale, 'spine.reason.' + reason)}</li>
+              ))}
           </ul>
           {stateQuestions.length ? (
             <>
