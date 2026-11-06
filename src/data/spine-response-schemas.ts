@@ -5,8 +5,10 @@ import {
   coefficientTableSchema,
   customerSchema,
   isoDateSchema,
+  priceListSchema,
   questionSchema,
   refurbishmentCostsSchema,
+  residualCurvesSchema,
   vatRatesSchema,
 } from './schemas';
 import { priceTermsSchema, storageCentsSchema as cents } from './spine-value-schemas';
@@ -135,6 +137,10 @@ export const bootstrapSchema = z.object({
   offer: offer.nullable(),
   releaseRevision: meter,
   refurbishmentCosts: refurbishmentCostsSchema,
+  residualCurves: residualCurvesSchema,
+  priceLists: z.array(priceListSchema),
+  firstLeasePriceCents: cents.optional(),
+  firstLeaseStartDate: isoDateSchema.optional(),
   maintenance,
   reservedForSelectedCustomer: z.boolean(),
   coefficientTable: coefficientTableSchema,
@@ -170,3 +176,7 @@ export const auditSchema = z.array(
     entityId: z.string(),
   })
 );
+export const auditPageSchema = z.strictObject({
+  rows: auditSchema,
+  cursor: z.string().regex(/^\d+$/).nullable(),
+});
