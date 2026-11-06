@@ -23,7 +23,7 @@ export function DemoControls({
   const t = getT(locale);
   const role = selection.role ?? 'customer';
   return (
-    <aside className={panelClass} aria-label={t('spine.demo')}>
+    <aside className={panelClass + ' demo-panel'} aria-label={t('spine.demo')}>
       <p className="font-medium">{t('spine.demo')}</p>
       <fieldset disabled={busy} className="mt-4 grid gap-4 sm:grid-cols-3">
         <Field id="demo-role" label={t('spine.demoRole')}>

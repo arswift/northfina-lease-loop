@@ -27,6 +27,7 @@ import { EndPanel, type EndForm } from './end-panel';
 import { PricePanel, type Bootstrap } from './price-panel';
 import { HistoryPanel } from './history-panel';
 import { WaitingListPanel } from './waiting-list-panel';
+import { AssetHero } from './asset-hero';
 import { buttonClass, messageFor, panelClass } from './ui';
 
 type ContractList = Awaited<ReturnType<typeof listContracts>>;
@@ -273,13 +274,15 @@ export function CustomerJourney({ assetId, locale }: { assetId: string; locale: 
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 sm:py-14">
-      <Link href={'/' + locale} className="text-emerald-800 underline dark:text-emerald-300">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
+      <Link href={'/' + locale} className="asset-back-link">
         {t('spine.back')}
       </Link>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {data ? data.asset.make + ' ' + data.asset.model : t('spine.title')}
-      </h1>
+      <AssetHero
+        locale={locale}
+        asset={data?.asset}
+        title={data ? data.asset.make + ' ' + data.asset.model : t('spine.title')}
+      />
       <DemoControls
         selection={selection}
         onChange={(next) => {
