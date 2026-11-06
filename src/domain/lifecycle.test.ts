@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { loadAssets, loadRefurbishmentCosts } from '@/data/load';
 import type { Asset, RefurbishmentCosts } from '@/data/schemas';
 import {
+  endLeaseReadiness,
   maintenanceAfterWork,
   mayEndLease,
   missingReadinessTasks,
@@ -25,6 +26,22 @@ const end = {
   previousUsageValue: 1200,
   usageValue: 1500,
 };
+
+describe('endLeaseReadiness', () => {
+  it('allows closure on maturity when all rent invoices are issued', () => {
+    expect(endLeaseReadiness(end)).toEqual({ ok: true });
+  });
+
+  it.each([
+    [{ status: 'returned' }, 'not_active'],
+    [{ onDate: '2029-11-04' }, 'too_early'],
+    [{ latestInvoiceDate: '2029-11-06' }, 'too_early'],
+    [{ rentalInvoiceCount: 35 }, 'invoices_missing'],
+    [{ rentalInvoiceCount: 37 }, 'invoices_missing'],
+  ])('reports the first unmet closure prerequisite for %o', (change, reason) => {
+    expect(endLeaseReadiness({ ...end, ...change })).toEqual({ ok: false, reason });
+  });
+});
 
 describe('mayEndLease', () => {
   it.each(['buy', 'return', 'pass_on'] as const)(
@@ -52,6 +69,10 @@ describe('mayEndLease', () => {
       ok: true,
     });
     expect(mayEndLease({ ...end, onDate: '2029-11-06' })).toEqual({ ok: true });
+  });
+
+  it('does not apply return-inspection meter rules to a buyout', () => {
+    expect(mayEndLease({ ...end, choice: 'buy', usageValue: 0 })).toEqual({ ok: true });
   });
 
   it('does not treat an early return as normal term completion', () => {

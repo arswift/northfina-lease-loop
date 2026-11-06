@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, addMonthsAnchored, ageOn, isIsoDate } from './calendar';
+import { addDays, addMonthsAnchored, ageOn, completedMonthsBetween, isIsoDate } from './calendar';
 
 describe('calendar policy', () => {
   it.each([
@@ -65,6 +65,18 @@ describe('calendar policy', () => {
     ['2008-11-06', '2008-11-06', 0],
   ])('calculates age on the supplied start date', (birth, on, expected) => {
     expect(ageOn(birth, on)).toBe(expected);
+  });
+
+  it.each([
+    ['2026-11-05', '2026-11-05', 0],
+    ['2026-11-05', '2026-12-04', 0],
+    ['2026-11-05', '2026-12-05', 1],
+    ['2026-11-05', '2029-11-05', 36],
+    ['2023-01-01', '2026-11-05', 46],
+    ['2026-12-05', '2026-11-05', 0],
+    ['2026-11-20', '2026-11-05', 0],
+  ])('calculates completed months between %s and %s', (from, on, expected) => {
+    expect(completedMonthsBetween(from, on)).toBe(expected);
   });
 
   it.each([0.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1])(

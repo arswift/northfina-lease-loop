@@ -57,3 +57,12 @@ export function ageOn(birthDate: string, onDate: string): number {
   const birthdayNotReached = onDate.slice(5) < birthDate.slice(5) ? 1 : 0;
   return on.year - birth.year - birthdayNotReached;
 }
+
+/** Full calendar months elapsed between `fromDate` and `onDate`, clamped at zero. */
+export function completedMonthsBetween(fromDate: string, onDate: string): number {
+  const from = parts(fromDate);
+  const on = parts(onDate);
+  if (onDate < fromDate) return 0;
+  const months = (on.year - from.year) * 12 + (on.month - from.month);
+  return Math.max(0, months - (on.day < from.day ? 1 : 0));
+}
