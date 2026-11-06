@@ -8,6 +8,7 @@ import {
   type OwnWaitingRequests,
 } from '@/data/waiting-list-schemas';
 import { parseCents } from '@/domain/money-arithmetic';
+import { moneyInputText } from './form-values';
 import { formatEuro } from '@/domain/money';
 import { getT } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
@@ -35,6 +36,8 @@ export function WaitingListPanel({
   const [records, setRecords] = useState<OwnWaitingRequests | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ id: string; revision: number } | null>(null);
+  const conditionInput = useRef<HTMLSelectElement>(null);
   const retry = useRef<{ key: string; id: string } | null>(null);
   const selection = { customerId: data.customer.id, businessDate: data.businessDate };
   useEffect(() => {
@@ -71,8 +74,8 @@ export function WaitingListPanel({
   );
   async function change(id?: string) {
     if (pending || busy) return;
-    const key = JSON.stringify(preferences);
-    if (!id && (!valid || alreadyPending)) return;
+    const key = JSON.stringify({ preferences, editing });
+    if (!id && (!valid || (alreadyPending && !editing))) return;
     if (!id && retry.current?.key !== key) retry.current = { key, id: crypto.randomUUID() };
     setPending(true);
     setError(null);
@@ -84,6 +87,20 @@ export function WaitingListPanel({
           waitingActionSchema,
           {}
         );
+      else if (editing)
+        await requestJson(
+          'waiting-list/' + encodeURIComponent(editing.id) + '/update',
+          selection,
+          waitingActionSchema,
+          {
+            requestId: retry.current!.id,
+            revision: editing.revision,
+            minCondition: condition,
+            monthlyBudgetCents: money.ok ? money.cents : null,
+            termMonths: term,
+            neededBy,
+          }
+        );
       else
         await requestJson('waiting-list', selection, waitingActionSchema, {
           ...preferences,
@@ -91,6 +108,7 @@ export function WaitingListPanel({
         });
       retry.current = null;
       setRecords(await requestJson('waiting-list', selection, ownWaitingListSchema));
+      setEditing(null);
       onChanged();
     } catch (cause) {
       setError(cause instanceof RequestFailure ? cause.code : 'REQUEST_FAILED');
@@ -101,7 +119,9 @@ export function WaitingListPanel({
   return (
     <section className={panelClass} aria-labelledby="waiting-title">
       <h2 id="waiting-title" className="text-xl font-semibold">
-        {t('wait.titleFor', { category: messageFor(locale, 'category.' + category) })}
+        {t(editing ? 'wait.editTitle' : 'wait.titleFor', {
+          category: messageFor(locale, 'category.' + category),
+        })}
       </h2>
       <p className="mt-2 font-medium">{t('wait.for', { name: data.customer.name })}</p>
       <p className="mt-2 text-sm">{t('wait.help')}</p>
@@ -113,6 +133,7 @@ export function WaitingListPanel({
         <Field id="waiting-condition" label={t('wait.condition')}>
           <select
             id="waiting-condition"
+            ref={conditionInput}
             className={inputClass}
             value={condition}
             onChange={(event) => setCondition(event.target.value as AssetCondition)}
@@ -164,14 +185,33 @@ export function WaitingListPanel({
           <button
             type="button"
             className={buttonClass}
-            disabled={!valid || alreadyPending}
+            disabled={!valid || (alreadyPending && !editing)}
             onClick={() => void change()}
           >
-            {pending ? t('spine.pending') : t('wait.join')}
+            {pending ? t('spine.pending') : t(editing ? 'wait.save' : 'wait.join')}
           </button>
         </div>
       </fieldset>
-      {alreadyPending ? <p className="mt-3 text-sm">{t('wait.alreadyPending')}</p> : null}
+      {editing ? (
+        <button
+          type="button"
+          className="mt-3 underline"
+          disabled={busy || pending}
+          onClick={() => {
+            setEditing(null);
+            retry.current = null;
+            setBudget('');
+            setCondition('good');
+            setTerm(12);
+            setNeededBy(data.businessDate);
+          }}
+        >
+          {t('wait.discardEdit')}
+        </button>
+      ) : null}
+      {alreadyPending && !editing ? (
+        <p className="mt-3 text-sm">{t('wait.alreadyPending')}</p>
+      ) : null}
       {error ? (
         <p className="mt-3" role="alert">
           {messageFor(locale, 'spine.error.' + error)}
@@ -199,6 +239,25 @@ export function WaitingListPanel({
                   })}
                 </p>
                 <p className="font-medium">{messageFor(locale, 'wait.' + row.status)}</p>
+                {row.status === 'pending' && row.category === category ? (
+                  <button
+                    type="button"
+                    className="mt-2 mr-3 rounded-lg border border-stone-400 px-3 py-1.5 text-sm font-medium hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 dark:hover:bg-stone-800"
+                    disabled={busy || pending}
+                    onClick={() => {
+                      setEditing({ id: row.id, revision: row.revision });
+                      setCondition(row.min_condition);
+                      setBudget(moneyInputText(row.max_monthly_net_rent_cents));
+                      setTerm(row.preferred_term_months);
+                      setNeededBy(row.needed_by);
+                      retry.current = null;
+                      setError(null);
+                      conditionInput.current?.focus();
+                    }}
+                  >
+                    {t('wait.edit')}
+                  </button>
+                ) : null}
                 {row.status === 'pending' ? (
                   <button
                     type="button"
