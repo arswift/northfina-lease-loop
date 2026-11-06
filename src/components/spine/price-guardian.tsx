@@ -1,7 +1,4 @@
-import {
-  findPriceGuardianSuggestion,
-  type PriceGuardianInput,
-} from '@/domain/price-guardian';
+import { findPriceGuardianSuggestion, type PriceGuardianInput } from '@/domain/price-guardian';
 import { formatEuro } from '@/domain/money';
 import { formatIsoDate } from '@/i18n/format';
 import { getT } from '@/i18n/get-t';
