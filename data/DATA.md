@@ -6,6 +6,32 @@ Typed loaders and Zod schemas for every file live in `src/data/`. Read those for
 
 ## Conventions
 
+### Team extension: waiting-request identities
+
+`second-life-demand.json` has optional `customer_id` links to existing demo personas.
+These associations were created by the team for demonstration; the original pack
+did not identify the customers. Original budgets, conditions, terms and deadlines
+are unchanged. `wait-02` links to Sanna and `wait-13` to Olavi.
+`wait-01` intentionally has no customer link to exercise anonymous recommendations.
+
+These read-only sample requests are distinct from editable database registrations.
+A linked sample can be reserved once; its allocation is recorded atomically in the
+relisting audit. Missing or unknown customer IDs permit a recommendation preview,
+but never a reservation. No database reset or new migration is needed for these links.
+
+For a repeatable check, use an unmodified returned `ebike-007` in Dealer mode:
+
+- Set demo date and ready date to `2026-11-06`, age to 24 months and original net
+  price to EUR 2500. Compare: `wait-02` recommends Sanna, fair condition, with EUR 395
+  required work. Confirm the work to allocate; a new application is still required.
+- Before publishing any offer, change both dates to `2026-11-11` and compare again.
+  `wait-01` should be recommended anonymously, with its repair estimate and rent;
+  **Use recommended plan** must be disabled. Earlier requests have missed their deadlines.
+
+Existing customer registrations can change the winner. Run these checks before
+allocating the item, or use a separate disposable demo database; do not reset a
+database whose saved work you need to keep.
+
 - **Money is integer euro cents.** `389000` means €3,890.00. Prices are **net (VAT excluded)** unless a field says otherwise.
 - **Dates are ISO `YYYY-MM-DD`.** `valid_to: null` means "still valid".
 - **Percentages are plain numbers.** `25.5` means 25.5 %.
