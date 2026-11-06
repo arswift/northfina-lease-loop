@@ -38,6 +38,9 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
   const [revision, setRevision] = useState(0);
   const activeRequest = useRef(false);
   const data = loaded?.key === key ? loaded.data : null;
+  const heading = data
+    ? `${t('spine.dealerMode')} · ${data.asset.make} ${data.asset.model}`
+    : t('spine.dealerMode');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -93,14 +96,7 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
       <Link href={'/' + locale} className="asset-back-link">
         {t('spine.back')}
       </Link>
-      <AssetHero
-        locale={locale}
-        asset={data?.asset}
-        title={
-          t('spine.dealerMode') +
-          (data ? ' · ' + data.asset.make + ' ' + data.asset.model : '')
-        }
-      />
+      <AssetHero locale={locale} asset={data?.asset} title={heading} />
       <DemoControls
         selection={selection}
         locale={locale}
