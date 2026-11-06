@@ -66,7 +66,8 @@ describe('exact monetary boundaries', () => {
     ['12,34', 1234],
     [' 0.01 ', 1],
     ['0,00', 0],
-    ['90071992547409.91', Number.MAX_SAFE_INTEGER],
+    // The highest amount accepted by the API and Prisma Int storage contract.
+    ['21474836.47', 2_147_483_647],
   ])('parses %s as cents', (text, expected) => {
     expect(parseCents(text)).toEqual({ ok: true, cents: expected });
   });
@@ -84,6 +85,11 @@ describe('exact monetary boundaries', () => {
     '1,2.3',
     '12.',
     '000000000000000000000',
+    // Beyond the signed-32-bit storage cap, one cent and far beyond: field-level
+    // invalid_money, never a mysterious server VALIDATION_ERROR.
+    '21474836.48',
+    '999999999',
+    '90071992547409.91',
   ])('refuses ambiguous or unsafe money: %s', (text) => {
     expect(parseCents(text)).toEqual({ ok: false, reason: 'invalid_money' });
   });
