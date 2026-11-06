@@ -1,4 +1,6 @@
 {
+  "wait.manageTitle": "Hantera förfrågningar: {category}",
+  "wait.availableHelp": "Tillgången är tillgänglig för leasing. Du kan fortfarande redigera eller avbryta dina befintliga förfrågningar nedan.",
   "wait.loadFailed": "Förfrågningarna kunde inte laddas. Försök igen för att fortsätta.",
   "wait.edit": "Redigera förfrågan",
   "wait.editTitle": "Redigera din förfrågan: {category}",

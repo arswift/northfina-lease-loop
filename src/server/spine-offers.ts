@@ -10,6 +10,7 @@ import type { PriceList } from '@/data/schemas';
 import type { AssetRelease } from '@/generated/prisma/client';
 import { listPriceOn } from '@/domain/price-list';
 import { refurbishmentPlan } from '@/domain/lifecycle';
+import { isAvailableForCustomer } from '@/domain/availability';
 import { toAsset } from './assets';
 import { ApiError } from './api-response';
 import type { TransactionClient } from './audit';
@@ -100,6 +101,12 @@ export async function getBootstrap(db: PrismaClient, context: DemoContext, asset
     refurbishmentCosts: costs,
     maintenance,
     reservedForSelectedCustomer: item.release?.reserved_for_customer_id === context.customer.id,
+    availableForSelectedCustomer: isAvailableForCustomer({
+      status: item.asset.status,
+      offerReady: item.offer !== null,
+      reservedForCustomerId: item.release?.reserved_for_customer_id ?? null,
+      customerId: context.customer.id,
+    }),
     coefficientTable,
     vatRates,
     questions: questions.questions,
