@@ -15,6 +15,7 @@ import type { TransactionClient } from './audit';
 import { requireOperator, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { readMaintenance } from './spine-maintenance';
+import { matchingValuationBaseline } from './valuation-baseline';
 
 const auditDetails = z.object({ matching: matchingSelectionSchema.optional() });
 
@@ -43,16 +44,19 @@ export async function previewSecondLife(
       loadCustomers(),
     ]);
   if (!row) throw new ApiError(404, 'ASSET_NOT_FOUND', 'The item was not found');
+  const valuation = await matchingValuationBaseline(db, assetId, input);
   const allocatedRequestIds = audits.flatMap((row) => {
     const parsed = auditDetails.safeParse(row.details_json ? JSON.parse(row.details_json) : {});
     return parsed.success && parsed.data.matching ? [parsed.data.matching.waitingRequestId] : [];
   });
   const identities = new Map(
-    registered.map((request) => [
+    [...requests, ...registered].map((request) => [
       request.id,
       {
-        customerId: request.customer_id,
-        waitingRevision: request.revision,
+        customerId: customers.some((customer) => customer.id === request.customer_id)
+          ? request.customer_id
+          : null,
+        waitingRevision: 'revision' in request ? request.revision : null,
         customerName:
           customers.find((customer) => customer.id === request.customer_id)?.name ?? null,
       },
@@ -60,6 +64,8 @@ export async function previewSecondLife(
   );
   const result = matchSecondLife({
     ...input,
+    ageMonths: valuation.ageMonths,
+    originalPriceCents: valuation.originalPriceCents,
     asset: toAsset(row),
     table,
     costs,
@@ -82,16 +88,15 @@ export async function previewSecondLife(
     onDate: context.businessDate,
     allocatedRequestIds,
     unidentifiedRequestIds: [
-      ...requests.map((request) => request.id),
-      ...registered
+      ...[...requests, ...registered]
         .filter((request) => !identities.get(request.id)?.customerName)
         .map((request) => request.id),
     ],
-    incompatibleReservationIds: registered
+    incompatibleReservationIds: [...requests, ...registered]
       .filter(
         (request) =>
           release?.reserved_for_customer_id &&
-          release.reserved_for_customer_id !== request.customer_id
+          release.reserved_for_customer_id !== identities.get(request.id)?.customerId
       )
       .map((request) => request.id),
   });
@@ -102,10 +107,11 @@ export async function previewSecondLife(
       customerId: identity?.customerId ?? null,
       waitingRevision: identity?.waitingRevision ?? null,
       customerName: identity?.customerName ?? null,
-      imported: !identity,
+      imported: requests.some((request) => request.id === candidate.requestId),
     };
   }
   return {
+    valuationBaseline: valuation.baseline,
     releaseRevision: release?.revision ?? 0,
     candidates: result.candidates.map(identified),
     recommendation: result.recommendation ? identified(result.recommendation) : null,

@@ -1,5 +1,6 @@
 // Validate the actual JSON returned by each endpoint, not only its outer envelope.
 import { z } from 'zod';
+import { valuationBaselineSchema } from './valuation-baseline-schemas';
 import {
   assetSchema,
   coefficientTableSchema,
@@ -154,6 +155,7 @@ export const dealerWorkspaceSchema = bootstrapSchema
   .extend({
     returnedItems: z.array(z.object({ id: z.string(), make: z.string(), model: z.string() })),
     valuationReason: z.string().nullable(),
+    valuationBaseline: valuationBaselineSchema.nullable(),
   });
 export const relistViewSchema = z.object({
   assetId: z.string(),
