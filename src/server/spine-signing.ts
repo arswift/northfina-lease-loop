@@ -13,6 +13,7 @@ import { answersSchema, priceTermsSchema } from './spine-shapes';
 import { getContract } from './spine-views';
 import { requireStorableInvoice } from './spine-invoice-limits';
 import { requireNoPendingSignature } from './spine-signature-state';
+import { readValuationBaseline } from './valuation-baseline';
 
 export async function signContract(db: PrismaClient, context: DemoContext, applicationId: string) {
   requireCustomer(context);
@@ -97,10 +98,17 @@ export async function signContract(db: PrismaClient, context: DemoContext, appli
         ) {
           throw new ApiError(409, 'ASSET_RESERVED', 'The item is reserved for another customer');
         }
+        const baseline = await readValuationBaseline(tx, asset.id, {
+          startDate: quote.start_date,
+          originalPriceCents: terms.listPriceCents,
+        });
         // The conditional write and unique AssetLease key both protect exclusive allocation.
         const claimed = await tx.asset.updateMany({
           where: { id: asset.id, status: 'available' },
-          data: { status: 'reserved' },
+          data: {
+            status: 'reserved',
+            ...(baseline ? { valuation_baseline_json: JSON.stringify(baseline) } : {}),
+          },
         });
         if (claimed.count !== 1)
           throw new ApiError(409, 'ASSET_UNAVAILABLE', 'This item is no longer available');

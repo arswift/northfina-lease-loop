@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { assetConditionSchema, isoDateSchema } from './schemas';
 import { storageCentsSchema } from './spine-value-schemas';
+import { baselineCorrectionSchema, valuationBaselineSchema } from './valuation-baseline-schemas';
 
 const meter = z.number().int().nonnegative().max(2_147_483_647);
 export const matchingPreviewInputSchema = z.strictObject({
@@ -8,6 +9,8 @@ export const matchingPreviewInputSchema = z.strictObject({
   originalPriceCents: storageCentsSchema.positive(),
   readyOn: isoDateSchema,
   lastServiceUsage: meter.optional(),
+  useAutomaticBaseline: z.boolean().optional(),
+  baselineCorrection: baselineCorrectionSchema.optional(),
 });
 export const matchingSelectionSchema = matchingPreviewInputSchema.extend({
   waitingRevision: z.number().int().nonnegative().optional(),
@@ -43,6 +46,7 @@ const candidateSchema = z.object({
   reasons: z.array(z.string()),
 });
 export const matchingPreviewSchema = z.object({
+  valuationBaseline: valuationBaselineSchema,
   releaseRevision: meter,
   candidates: z.array(candidateSchema),
   recommendation: candidateSchema.nullable(),
