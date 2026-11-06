@@ -355,7 +355,7 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
       ) : (
         <>
           <WaitingListPanel
-            key={`${data.customer.id}:${data.businessDate}`}
+            key={`${data.customer.id}:${data.businessDate}:${data.asset.category}`}
             data={data}
             locale={locale}
             busy={busy}
@@ -465,7 +465,7 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
           ) : null}
           {data.asset.status === 'returned' ? (
             <RelistPanel
-              key={`${data.releaseRevision}:${data.businessDate}:${data.customer.id}`}
+              key={`${data.releaseRevision}:${data.businessDate}:${data.customer.id}:${revision}`}
               data={data}
               locale={locale}
               busy={busy}
