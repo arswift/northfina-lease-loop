@@ -77,14 +77,17 @@ messages near their fields. A collapsed panel must never conceal an error.
 
 ## Verify proportionately
 
-Run the repository quality gate and both browser scripts (`check-ui.mjs`,
-`check-appearance.mjs`). Verify explicit light on a dark OS and the reverse;
-system changes, keyboard controls, storage failures, reload/language persistence
-and cross-tab updates. Switching appearance must never write financial records.
-Test financial meaning and interaction contracts,
-not snapshots of utility classes. Exercise zero/nonzero upfront, a financing-band
-crossing, changed VAT, unavailable terms, a large farm-machine amount and a saved
-offer. Check keyboard, narrow/wide screens, light/dark, all languages and errors.
+Keep the original CI and `npm run check:all` as the required quality gate. Run
+the optional `UI smoke` workflow only when UI behaviour changes or before a
+final review. It uses `scripts/check-ui-smoke.mjs`: a few representative cases,
+not a Cartesian product of themes, locales and viewport sizes. Do not run a
+second `check:all` within that workflow.
+
+Test calculation rules with focused domain tests, and interactions with a small
+browser smoke. Verify locale navigation, saved drafts, visible focus, contrasting
+styles and an open menu. Expand checks only for a concrete regression or risk;
+do not add snapshots, duplicated coverage or large browser matrices by default.
+Switching appearance or language must never write financial records.
 
 Automated accessibility scans complement, not replace, keyboard, zoom, screen-reader
 and user testing. Record commands, revision and observed results. Never describe
