@@ -16,6 +16,8 @@ const northfinaFont = Zalando_Sans_SemiExpanded({
   variable: '--font-northfina',
   display: 'swap',
   preload: false,
+  // This family has no Next.js fallback metrics; retain the explicit CSS fallback.
+  adjustFontFallback: false,
 });
 
 export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Promise<Metadata> {
