@@ -132,6 +132,15 @@ try {
     await page.keyboard.press('ArrowDown');
     assert.equal(await page.locator('a[lang="fi"]').evaluate((el) => el.matches(':focus')), true);
     await page.emulateMedia({ forcedColors: 'active' });
+    // Wait for the media change to reach computed styles before measuring the focus ring.
+    await page.waitForFunction(() => {
+      const link = globalThis.document.querySelector('.language-menu a[lang="fi"]');
+      return (
+        globalThis.matchMedia('(forced-colors: active)').matches &&
+        link?.matches(':focus-visible') &&
+        globalThis.getComputedStyle(link).outlineWidth === '3px'
+      );
+    });
     const focus = await page.locator('a[lang="fi"]').evaluate((el) => {
       const style = globalThis.getComputedStyle(el);
       return [el.matches(':focus-visible'), style.outlineWidth];
