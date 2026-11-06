@@ -52,6 +52,7 @@ export async function previewSecondLife(
       request.id,
       {
         customerId: request.customer_id,
+        waitingRevision: request.revision,
         customerName:
           customers.find((customer) => customer.id === request.customer_id)?.name ?? null,
       },
@@ -99,6 +100,7 @@ export async function previewSecondLife(
     return {
       ...candidate,
       customerId: identity?.customerId ?? null,
+      waitingRevision: identity?.waitingRevision ?? null,
       customerName: identity?.customerName ?? null,
       imported: !identity,
     };

@@ -171,6 +171,7 @@ export function MatchingPanel({
                           {
                             ...input.data,
                             waitingRequestId: recommendation.requestId,
+                            waitingRevision: recommendation.waitingRevision ?? undefined,
                             nextCustomerId: recommendation.customerId,
                           },
                           recommendation

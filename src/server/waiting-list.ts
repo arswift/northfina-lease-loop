@@ -13,6 +13,7 @@ export async function listOwnWaitingRequests(db: PrismaClient, context: DemoCont
     orderBy: [{ submitted_on: 'desc' }, { id: 'asc' }],
     select: {
       id: true,
+      revision: true,
       category: true,
       min_condition: true,
       max_monthly_net_rent_cents: true,
@@ -64,7 +65,7 @@ export async function joinWaitingList(
           throw new ApiError(
             409,
             'WAITING_REQUEST_EXISTS',
-            'Cancel the current pending request before joining again'
+            'Edit the current pending request instead of joining again'
           );
         await tx.waitingRequest.create({
           data: {
