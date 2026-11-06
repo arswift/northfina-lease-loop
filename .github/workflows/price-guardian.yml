@@ -82,5 +82,5 @@ jobs:
         if: failure()
         run: |
           git diff --name-only --diff-filter=ACM -z "$FEATURE_BASE" HEAD \
-            | xargs -0 -r npx prettier --write
+            | xargs -0 -r npx prettier --ignore-unknown --write
           git diff --exit-code
