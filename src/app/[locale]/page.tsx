@@ -27,12 +27,12 @@ export default async function CataloguePage({ params }: PageProps<'/[locale]'>) 
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <div className="max-w-2xl">
+      <div className="catalogue-intro">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           {t('catalogue.title')}
         </h1>
-        <p className="mt-3 text-lg text-stone-700 dark:text-stone-300">{t('catalogue.intro')}</p>
-        <p className="mt-5 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200 ring-inset dark:bg-emerald-950 dark:text-emerald-200 dark:ring-emerald-800">
+        <p className="catalogue-description">{t('catalogue.intro')}</p>
+        <p className="catalogue-date">
           <time dateTime={today}>
             {t('catalogue.pricesOn', { date: formatIsoDate(today, locale) })}
           </time>
