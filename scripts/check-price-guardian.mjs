@@ -91,7 +91,8 @@ try {
   for (const locale of ['en', 'fi', 'sv', 'et']) {
     for (const mode of ['light', 'dark']) {
       const name = locale + '-' + mode;
-      const viewport = mode === 'light' ? { width: 1280, height: 900 } : { width: 390, height: 850 };
+      const viewport =
+        mode === 'light' ? { width: 1280, height: 900 } : { width: 390, height: 850 };
       await scenario(name, { viewport, colorScheme: mode }, async (page) => {
         const writes = collectWrites(page);
         await openTrap(page, locale);
@@ -112,59 +113,67 @@ try {
     }
   }
 
-  await scenario('keyboard-draft-save', { viewport: { width: 1280, height: 900 } }, async (page) => {
-    const writes = collectWrites(page);
-    await openTrap(page);
-    await page.locator('#guardian-choose').focus();
-    await page.locator('#guardian-choose').press('Enter');
-    await page.waitForFunction(() => globalThis.document.activeElement?.id === 'down');
-    assert.match(await page.locator('#down').inputValue(), /^0(?:[.,]00)?$/);
-    assert.equal(await page.locator('#term-select').inputValue(), '36');
-    assert.equal(await page.locator('#start').inputValue(), '2026-11-05');
-    await page.locator('#price-guardian').waitFor({ state: 'detached' });
-    await page.reload();
-    await page.locator('#down').waitFor();
-    assert.match(await page.locator('#down').inputValue(), /^0(?:[.,]00)?$/);
-    for (const locale of ['fi', 'sv', 'et', 'en']) {
-      await page.goto(base + '/' + locale + '/lease/laptop-003');
-      await page.locator('#down').waitFor();
+  await scenario(
+    'keyboard-draft-save',
+    { viewport: { width: 1280, height: 900 } },
+    async (page) => {
+      const writes = collectWrites(page);
+      await openTrap(page);
+      await page.locator('#guardian-choose').focus();
+      await page.locator('#guardian-choose').press('Enter');
+      await page.waitForFunction(() => globalThis.document.activeElement?.id === 'down');
       assert.match(await page.locator('#down').inputValue(), /^0(?:[.,]00)?$/);
       assert.equal(await page.locator('#term-select').inputValue(), '36');
+      assert.equal(await page.locator('#start').inputValue(), '2026-11-05');
+      await page.locator('#price-guardian').waitFor({ state: 'detached' });
+      await page.reload();
+      await page.locator('#down').waitFor();
+      assert.match(await page.locator('#down').inputValue(), /^0(?:[.,]00)?$/);
+      for (const locale of ['fi', 'sv', 'et', 'en']) {
+        await page.goto(base + '/' + locale + '/lease/laptop-003');
+        await page.locator('#down').waitFor();
+        assert.match(await page.locator('#down').inputValue(), /^0(?:[.,]00)?$/);
+        assert.equal(await page.locator('#term-select').inputValue(), '36');
+      }
+      assert.deepEqual(writes, [], 'Selection, reload and locale changes only edit the draft');
+      const responsePromise = page.waitForResponse(
+        (response) =>
+          response.url().endsWith('/api/spine/quotes') && response.request().method() === 'POST'
+      );
+      await page.locator('#save-quote').click();
+      const response = await responsePromise;
+      assert.equal(response.status(), 200);
+      const saved = await response.json();
+      assert.equal(saved.success, true);
+      assert.equal(saved.data.terms.downPaymentCents, 0);
+      assert.equal(saved.data.terms.monthlyNetCents, 5517);
+      assert.equal(saved.data.priceSource, 'list:1');
+      await page.locator('#application-heading').waitFor();
+      await page.reload();
+      await page.locator('#application-heading').waitFor();
+      assert.equal(await page.locator('#price-guardian').count(), 0);
+      assert.equal(writes.length, 1, 'Only explicit save creates a quote');
     }
-    assert.deepEqual(writes, [], 'Selection, reload and locale changes only edit the draft');
-    const responsePromise = page.waitForResponse(
-      (response) =>
-        response.url().endsWith('/api/spine/quotes') && response.request().method() === 'POST'
-    );
-    await page.locator('#save-quote').click();
-    const response = await responsePromise;
-    assert.equal(response.status(), 200);
-    const saved = await response.json();
-    assert.equal(saved.success, true);
-    assert.equal(saved.data.terms.downPaymentCents, 0);
-    assert.equal(saved.data.terms.monthlyNetCents, 5517);
-    assert.equal(saved.data.priceSource, 'list:1');
-    await page.locator('#application-heading').waitFor();
-    await page.reload();
-    await page.locator('#application-heading').waitFor();
-    assert.equal(await page.locator('#price-guardian').count(), 0);
-    assert.equal(writes.length, 1, 'Only explicit save creates a quote');
-  });
+  );
 
-  await scenario('invalid-and-changed-offer', { viewport: { width: 390, height: 850 } }, async (page) => {
-    const writes = collectWrites(page);
-    await openTrap(page);
-    await page.locator('#down').fill('-1');
-    await page.locator('#price-guardian').waitFor({ state: 'detached' });
-    await page.locator('#down').fill('0.01');
-    await page.locator('#guardian-choose').waitFor();
-    await page.locator('#down').fill('50');
-    await page.locator('#demo-date').fill('2026-11-06');
-    await page.locator('#start').fill('2026-11-06');
-    await page.locator('#price-guardian').waitFor({ state: 'detached' });
-    assert.equal(await page.locator('#save-quote').isEnabled(), true);
-    assert.deepEqual(writes, [], 'Changing inputs or dates must not save a quote');
-  });
+  await scenario(
+    'invalid-and-changed-offer',
+    { viewport: { width: 390, height: 850 } },
+    async (page) => {
+      const writes = collectWrites(page);
+      await openTrap(page);
+      await page.locator('#down').fill('-1');
+      await page.locator('#price-guardian').waitFor({ state: 'detached' });
+      await page.locator('#down').fill('0.01');
+      await page.locator('#guardian-choose').waitFor();
+      await page.locator('#down').fill('50');
+      await page.locator('#demo-date').fill('2026-11-06');
+      await page.locator('#start').fill('2026-11-06');
+      await page.locator('#price-guardian').waitFor({ state: 'detached' });
+      assert.equal(await page.locator('#save-quote').isEnabled(), true);
+      assert.deepEqual(writes, [], 'Changing inputs or dates must not save a quote');
+    }
+  );
 } finally {
   await browser.close();
   await writeFile(resolve(output, 'summary.json'), JSON.stringify(results, null, 2));
