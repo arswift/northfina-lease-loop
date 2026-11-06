@@ -38,8 +38,7 @@ export function ApplicationPanel(props: Props) {
     answersForSubmission(data.questions, answers)
   );
   const waiting =
-    application?.decision === 'manual_review' &&
-    application.reasons.includes('signatory_required');
+    application?.decision === 'manual_review' && application.reasons.includes('signatory_required');
   function change(id: string, value: Answer) {
     const next = { ...answers, [id]: value };
     const activeIds = new Set(

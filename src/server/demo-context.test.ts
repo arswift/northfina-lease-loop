@@ -3,7 +3,12 @@ import { ZodError } from 'zod';
 import { NextRequest } from 'next/server';
 import { loadCustomers } from '@/data/load';
 import { handleRoute, ok } from './api-response';
-import { checkRequestOrigin, readDemoContext, requireCustomer, requireOperator } from './demo-context';
+import {
+  checkRequestOrigin,
+  readDemoContext,
+  requireCustomer,
+  requireOperator,
+} from './demo-context';
 
 afterEach(() => vi.useRealTimers());
 
