@@ -11,7 +11,7 @@ import { formatEuro } from '@/domain/money';
 import { getT } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
 import { requestJson } from './api';
-import type { Bootstrap } from './price-panel';
+import type { DealerWorkspace } from '@/server/spine-dealer';
 import { buttonClass, Field, inputClass, messageFor } from './ui';
 
 export function MatchingPanel({
@@ -22,7 +22,7 @@ export function MatchingPanel({
   onClear,
   onSelect,
 }: {
-  data: Bootstrap;
+  data: DealerWorkspace;
   locale: Locale;
   busy: boolean;
   service: string;
@@ -48,7 +48,7 @@ export function MatchingPanel({
     original,
     readyOn,
     service,
-    customer: data.customer.id,
+    role: 'operator',
     date: data.businessDate,
     asset: data.asset,
     revision: data.releaseRevision,
@@ -66,7 +66,7 @@ export function MatchingPanel({
     try {
       const result = await requestJson(
         'assets/' + encodeURIComponent(data.asset.id) + '/matches',
-        { customerId: data.customer.id, businessDate: data.businessDate },
+        { customerId: '', businessDate: data.businessDate, role: 'operator' },
         matchingPreviewSchema,
         input.data,
         true

@@ -6,7 +6,7 @@ import { parseCents } from '@/domain/money-arithmetic';
 import { formatEuro } from '@/domain/money';
 import { getT } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
-import type { Bootstrap } from './price-panel';
+import type { DealerWorkspace } from '@/server/spine-dealer';
 import { buttonClass, Field, inputClass, messageFor, panelClass } from './ui';
 import { MatchingPanel } from './matching-panel';
 import { moneyInputText } from './form-values';
@@ -27,7 +27,7 @@ export function RelistPanel({
   busy,
   onRelist,
 }: {
-  data: Bootstrap;
+  data: DealerWorkspace;
   locale: Locale;
   busy: boolean;
   onRelist: (input: RelistForm) => void;

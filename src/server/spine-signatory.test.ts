@@ -60,7 +60,6 @@ async function norviOffer() {
     requestId: randomUUID(),
     assetId: 'ebike-004',
     termMonths: 36,
-    // A premature signature would issue an upfront invoice as well as allocating the item.
     downPaymentCents: 50000,
     startDate: context.businessDate,
   });
@@ -90,7 +89,6 @@ it('persists the named signatory handoff without signing, invoicing or allocatin
     answers: { q_can_sign: 'no', q_signatory_email: 'director@example.com' },
   });
   expect(await submitApplication(state.db, context, input)).toEqual(application);
-  // On reload useDraft decodes this snapshot; Journey then re-reads the saved application ID.
   const restored = decodeDraft(
     '0:' + JSON.stringify({ ...emptyDraft, quote, application, answers: input.answers }),
     emptyDraft,
@@ -117,7 +115,7 @@ it('persists the named signatory handoff without signing, invoicing or allocatin
   expect((await signing.json()).error.code).toBe('APPLICATION_NOT_APPROVED');
   await expect(
     signContract(state.db, { ...context, operator: true }, application.id)
-  ).rejects.toMatchObject({ code: 'APPLICATION_NOT_APPROVED' });
+  ).rejects.toMatchObject({ status: 403, code: 'CUSTOMER_MODE_REQUIRED' });
   expect(await state.db.application.count()).toBe(1);
   expect(await state.db.contract.count()).toBe(0);
   expect(await state.db.invoice.count()).toBe(0);
@@ -130,7 +128,7 @@ it('persists the named signatory handoff without signing, invoicing or allocatin
   expect(JSON.stringify(await state.db.auditLog.findMany())).not.toContain('director@example.com');
 });
 
-it('requires a valid signatory email and cannot grant authority by changing the applicant answer', async () => {
+it('requires a valid email and cannot bypass a saved handoff using changed or older answers', async () => {
   const { context, input } = await norviOffer();
   const { q_signatory_email: _email, ...answers } = input.answers;
   const missing = await submitApplication(state.db, context, { ...input, answers });
@@ -143,30 +141,44 @@ it('requires a valid signatory email and cannot grant authority by changing the 
   });
   expect(invalid.decision).toBe('incomplete');
   expect(invalid.invalidQuestionIds).toContain('q_signatory_email');
-  const claimedAuthority = await submitApplication(state.db, context, {
+
+  // A persona is not hidden evidence: before handoff, visible answers determine the result.
+  const earlierApproval = await submitApplication(state.db, context, {
     ...input,
     requestId: randomUUID(),
     answers: { ...input.answers, q_can_sign: 'yes' },
   });
-  expect(claimedAuthority.decision).toBe('manual_review');
-  expect(claimedAuthority.reasons).toEqual(['signatory_required', 'profile_conflict']);
-  expect(claimedAuthority.answers).not.toHaveProperty('q_signatory_email');
-
-  for (const application of [missing, invalid, claimedAuthority]) {
+  expect(earlierApproval.decision).toBe('approved');
+  expect(earlierApproval.answers).not.toHaveProperty('q_signatory_email');
+  const waiting = await submitApplication(state.db, context, {
+    ...input,
+    requestId: randomUUID(),
+  });
+  expect(waiting.reasons).toEqual(['signatory_required']);
+  const count = await state.db.application.count();
+  await expect(
+    submitApplication(state.db, context, {
+      ...input,
+      requestId: randomUUID(),
+      answers: { ...input.answers, q_can_sign: 'yes' },
+    })
+  ).rejects.toMatchObject({ code: 'SIGNATURE_HANDOFF_PENDING' });
+  await expect(signContract(state.db, context, earlierApproval.id)).rejects.toMatchObject({
+    code: 'SIGNATURE_HANDOFF_PENDING',
+  });
+  for (const application of [missing, invalid, waiting]) {
     await expect(signContract(state.db, context, application.id)).rejects.toMatchObject({
       code: 'APPLICATION_NOT_APPROVED',
     });
-    const status = renderToStaticMarkup(
-      createElement(ApplicationStatus, { application, locale: 'en' })
-    );
-    expect(status).not.toContain('Waiting for the company’s signer');
   }
+  expect(await state.db.application.count()).toBe(count);
   expect(await state.db.contract.count()).toBe(0);
   expect(await state.db.invoice.count()).toBe(0);
   expect(await state.db.assetLease.count()).toBe(0);
+  expect(await state.db.auditLog.count({ where: { action: 'contract.signed' } })).toBe(0);
 });
 
-it('shows the saved recipient and next step in four locales without hiding other review reasons', async () => {
+it('shows saved recipient, validity and next step in four locales without hiding review reasons', async () => {
   const { context, input, quote } = await norviOffer();
   const application = await submitApplication(state.db, context, input);
   const data = await getBootstrap(state.db, context, 'ebike-004');
@@ -191,6 +203,7 @@ it('shows the saved recipient and next step in four locales without hiding other
     expect(markup).toContain(t('spine.signatory.state'));
     expect(markup).toContain(t('spine.signatory.next'));
     expect(markup).toContain(t('spine.signatory.demoLimit'));
+    expect(markup).toContain(t('spine.signatory.pricePolicy', { date: quote.validThrough }));
     expect(markup).not.toContain(t('spine.sign'));
     const needsReview = renderToStaticMarkup(
       createElement(ApplicationStatus, {

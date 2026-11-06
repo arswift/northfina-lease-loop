@@ -32,13 +32,19 @@ export async function readDemoContext(request: Request): Promise<DemoContext> {
     businessDate,
     simulated: dateHeader !== null,
     operator: role === 'operator',
-    actor: `demo:${role}:${customer.id}`,
+    actor: role === 'operator' ? 'demo:operator:dealer' : `demo:customer:${customer.id}`,
   };
 }
 
 export function requireOperator(context: DemoContext): void {
   if (!context.operator) {
     throw new ApiError(403, 'OPERATOR_MODE_REQUIRED', 'Select the demonstration operator mode');
+  }
+}
+
+export function requireCustomer(context: DemoContext): void {
+  if (context.operator) {
+    throw new ApiError(403, 'CUSTOMER_MODE_REQUIRED', 'Select the demonstration customer mode');
   }
 }
 

@@ -1,5 +1,5 @@
 import type { Answer, Answers } from '@/domain/question-flow';
-import { normaliseAnswers } from '@/domain/question-flow';
+import { customerTypeFromAnswers, normaliseAnswers } from '@/domain/question-flow';
 import { answersForSubmission, moneyInputText } from './form-values';
 import { ConsentAction } from './consent-action';
 import { applicationConsentKey } from './consent-context';
@@ -25,8 +25,9 @@ type Props = {
 export function ApplicationPanel(props: Props) {
   const { data, quote, application, answers, locale, busy } = props;
   const t = getT(locale);
+  const customerType = customerTypeFromAnswers(answers);
   const context = {
-    customer_type: data.customer.type,
+    customer_type: customerType,
     category: data.asset.category,
     financed_amount_cents: quote.terms.financedCents,
     term_months: quote.terms.termMonths,
@@ -36,12 +37,14 @@ export function ApplicationPanel(props: Props) {
     context,
     answersForSubmission(data.questions, answers)
   );
+  const waiting =
+    application?.decision === 'manual_review' && application.reasons.includes('signatory_required');
   function change(id: string, value: Answer) {
     const next = { ...answers, [id]: value };
     const activeIds = new Set(
       normaliseAnswers(
         data.questions,
-        context,
+        { ...context, customer_type: customerTypeFromAnswers(next) },
         answersForSubmission(data.questions, next)
       ).activeQuestions.map((question) => question.id)
     );
@@ -54,14 +57,22 @@ export function ApplicationPanel(props: Props) {
       <h2 id="application-heading" className="mb-4 text-xl font-semibold">
         {t('spine.application')}
       </h2>
+      <div className="mb-5 space-y-2 text-sm">
+        <p>{t('spine.answerSource')}</p>
+        {customerType === 'consumer' && quote.terms.financedCents < 200000 ? (
+          <p>{t('spine.incomeSkipped')}</p>
+        ) : null}
+        {quote.terms.financedCents < 1000000 ? <p>{t('spine.pepSkipped')}</p> : null}
+        {customerType === 'company' ? <p>{t('spine.companyResidence')}</p> : null}
+      </div>
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          props.onSubmit();
+          if (!waiting) props.onSubmit();
         }}
         noValidate
       >
-        <fieldset disabled={busy} className="grid gap-5 md:grid-cols-2">
+        <fieldset disabled={busy || waiting} className="grid gap-5 md:grid-cols-2">
           {flow.activeQuestions.map((question) => {
             const id = question.id;
             const answer = answers[id];
@@ -81,7 +92,6 @@ export function ApplicationPanel(props: Props) {
                     <select
                       {...shared}
                       value={typeof answer === 'string' ? answer : ''}
-                      disabled={id === 'q_customer_type'}
                       onChange={(event) => change(id, event.target.value)}
                     >
                       <option value="">{t('spine.select')}</option>
@@ -138,11 +148,16 @@ export function ApplicationPanel(props: Props) {
             );
           })}
         </fieldset>
-        <button className={buttonClass + ' mt-6'} disabled={busy}>
+        <button className={buttonClass + ' mt-6'} disabled={busy || waiting}>
           {busy ? t('spine.pending') : t('spine.submitApplication')}
         </button>
       </form>
       {application ? <ApplicationStatus application={application} locale={locale} /> : null}
+      {waiting ? (
+        <p className="mt-3 text-sm">
+          {t('spine.signatory.pricePolicy', { date: quote.validThrough })}
+        </p>
+      ) : null}
       {application?.decision === 'approved' ? (
         <div className="mt-6 space-y-4 border-t border-stone-200 pt-6 dark:border-stone-800">
           <h3 className="text-lg font-semibold">{t('spine.review')}</h3>

@@ -103,6 +103,9 @@ export async function relistAsset(
         details: {
           businessDate: context.businessDate,
           revision: input.releaseRevision,
+          netPriceCents: input.netPriceCents,
+          valuationReason: input.valuationReason,
+          condition: input.condition,
           taskIds: plan.tasks.map((task) => task.id),
           ...(input.matching ? { matching: input.matching } : {}),
         },

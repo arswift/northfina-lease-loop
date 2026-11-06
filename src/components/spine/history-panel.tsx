@@ -21,15 +21,15 @@ export function HistoryPanel({
   revision: number;
 }) {
   const t = getT(locale);
-  const { customerId, businessDate } = selection;
-  const key = assetId + '|' + customerId + '|' + businessDate;
+  const { customerId, businessDate, role = 'customer' } = selection;
+  const key = assetId + '|' + customerId + '|' + businessDate + '|' + role;
   const [loaded, setLoaded] = useState<{ key: string; passport: Passport; audit: Audit } | null>(
     null
   );
   const [failedKey, setFailedKey] = useState('');
   useEffect(() => {
     const controller = new AbortController();
-    const context = { customerId, businessDate };
+    const context = { customerId, businessDate, role };
     Promise.all([
       requestJson(
         'assets/' + encodeURIComponent(assetId) + '/passport',
@@ -43,14 +43,18 @@ export function HistoryPanel({
     ])
       .then(([passport, audit]) => {
         if (!controller.signal.aborted)
-          setLoaded({ key: assetId + '|' + customerId + '|' + businessDate, passport, audit });
+          setLoaded({
+            key: assetId + '|' + customerId + '|' + businessDate + '|' + role,
+            passport,
+            audit,
+          });
       })
       .catch(() => {
         if (!controller.signal.aborted)
-          setFailedKey(assetId + '|' + customerId + '|' + businessDate);
+          setFailedKey(assetId + '|' + customerId + '|' + businessDate + '|' + role);
       });
     return () => controller.abort();
-  }, [assetId, customerId, businessDate, revision]);
+  }, [assetId, customerId, businessDate, role, revision]);
   const state = loaded?.key === key ? loaded : null;
   const auditTime = new Intl.DateTimeFormat(intlLocale[locale], {
     dateStyle: 'short',

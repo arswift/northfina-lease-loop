@@ -142,6 +142,19 @@ export const bootstrapSchema = z.object({
   questions: z.array(questionSchema),
   readiness: readiness.nullable(),
 });
+export const dealerWorkspaceSchema = bootstrapSchema
+  .pick({
+    businessDate: true,
+    asset: true,
+    offer: true,
+    releaseRevision: true,
+    refurbishmentCosts: true,
+    maintenance: true,
+  })
+  .extend({
+    returnedItems: z.array(z.object({ id: z.string(), make: z.string(), model: z.string() })),
+    valuationReason: z.string().nullable(),
+  });
 export const relistViewSchema = z.object({
   assetId: z.string(),
   readyOn: isoDateSchema,
