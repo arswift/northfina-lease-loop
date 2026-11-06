@@ -33,6 +33,9 @@ it('prefers the largest use saving among valid candidates, independent of band o
   });
   expect(suggestion.alternative.useGrossCents).toBeLessThan(boundary.explanation.useGrossCents);
   expect(
-    findPriceGuardianSuggestion({ ...input, table: { ...table, bands: [...table.bands].reverse() } })
+    findPriceGuardianSuggestion({
+      ...input,
+      table: { ...table, bands: [...table.bands].reverse() },
+    })
   ).toEqual(suggestion);
 });
