@@ -53,6 +53,7 @@ export function CustomerJourney({ assetId, locale }: { assetId: string; locale: 
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
   const activeRequest = useRef(false);
+  const reviewRequest = useRef<AbortController | null>(null);
   const { customerId, businessDate } = selection;
   const signature = assetId + '|' + customerId + '|' + businessDate;
   const contractId = draft.contractId;
@@ -114,6 +115,7 @@ export function CustomerJourney({ assetId, locale }: { assetId: string; locale: 
   useEffect(() => {
     if (!quoteId || contractId) return;
     const controller = new AbortController();
+    reviewRequest.current = controller;
     const context = { customerId, businessDate };
     Promise.all([
       requestJson(
@@ -224,6 +226,10 @@ export function CustomerJourney({ assetId, locale }: { assetId: string; locale: 
         requestId: request.id,
         ...payload,
       });
+      // The validated POST result is already canonical; do not wait for a second request.
+      // An older review fetch must not overwrite this newly saved decision.
+      reviewRequest.current?.abort();
+      setReview({ signature, quote, application });
       // Keep raw editing values, including invalid input; the saved decision stays canonical.
       saveDraft({ ...request.next, application });
     });
