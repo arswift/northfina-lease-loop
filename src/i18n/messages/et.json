@@ -31,7 +31,7 @@
   "wait.cancelled": "Päring tühistatud",
   "wait.cancel": "Tühista päring",
   "wait.openItem": "Ava oma broneeritud vara",
-  "wait.importedHelp": "Kliendiga seotud päringu loomiseks liitu ülal ootenimekirjaga. Algsed näidispäringud on anonüümsed ja mõeldud vaid võrdlemiseks; neid ei saa määrata suvalisele inimesele.",
+  "wait.importedHelp": "Näidissoovidel on meeskonna loodud demokliendi seosed, välja arvatud anonüümne wait-01. Anonüümset soovi saab soovitada, kuid selle jaoks ei saa eset broneerida. Kliendirežiimis loodud soovid kuuluvad valitud demokliendile.",
   "wait.requestRef": "Päring: {id}",
   "wait.autoLinked": "See klient liitus ise ootenimekirjaga. Avaldamine broneerib vara talle; uus taotlus ja heakskiit on endiselt vajalikud.",
   "wait.anonymous": "Anonüümne näidispäring",

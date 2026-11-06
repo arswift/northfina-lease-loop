@@ -31,7 +31,7 @@
   "wait.cancelled": "Request cancelled",
   "wait.cancel": "Cancel request",
   "wait.openItem": "Open your reserved item",
-  "wait.importedHelp": "Join the waiting list above to create a request linked to a customer. Original sample requests are anonymous and appear for comparison only; they cannot be reserved for an arbitrary person.",
+  "wait.importedHelp": "Sample requests use team-created demo customer links, except wait-01, which remains anonymous. Anonymous requests can be recommended but cannot reserve an item. Requests created in Customer mode belong to the selected demo customer.",
   "wait.requestRef": "Request: {id}",
   "wait.autoLinked": "This customer joined the waiting list themselves. Publishing reserves the item for them; they still need a new application and approval.",
   "wait.anonymous": "Anonymous sample request",

@@ -31,7 +31,7 @@
   "wait.cancelled": "Pyyntö peruttu",
   "wait.cancel": "Peruuta pyyntö",
   "wait.openItem": "Avaa varattu tuote",
-  "wait.importedHelp": "Liity yllä jonoon luodaksesi asiakkaaseen yhdistetyn pyynnön. Alkuperäiset esimerkkipyynnöt ovat nimettömiä ja vain vertailua varten; niitä ei voi varata satunnaiselle henkilölle.",
+  "wait.importedHelp": "Esimerkkipyynnöillä on tiimin luomat demoasiakaslinkit, paitsi nimettömäksi jätetyllä wait-01-pyynnöllä. Nimetön pyyntö voi saada suosituksen, mutta ei varausta. Asiakastilassa luodut pyynnöt kuuluvat valitulle demoasiakkaalle.",
   "wait.requestRef": "Pyyntö: {id}",
   "wait.autoLinked": "Tämä asiakas liittyi jonoon itse. Julkaisu varaa tuotteen hänelle; uusi hakemus ja hyväksyntä vaaditaan edelleen.",
   "wait.anonymous": "Nimetön esimerkkipyyntö",

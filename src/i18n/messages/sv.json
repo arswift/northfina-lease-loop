@@ -31,7 +31,7 @@
   "wait.cancelled": "Förfrågan avbruten",
   "wait.cancel": "Avbryt förfrågan",
   "wait.openItem": "Öppna din reserverade tillgång",
-  "wait.importedHelp": "Gå med i väntelistan ovan för att skapa en kundkopplad förfrågan. Ursprungliga exempelförfrågningar är anonyma och visas endast för jämförelse; de kan inte reserveras åt en godtycklig person.",
+  "wait.importedHelp": "Exempelförfrågningar har demokundkopplingar skapade av teamet, förutom wait-01 som är anonym. Anonyma förfrågningar kan rekommenderas men inte reservera ett objekt. Förfrågningar skapade i kundläget tillhör den valda demokunden.",
   "wait.requestRef": "Förfrågan: {id}",
   "wait.autoLinked": "Kunden gick själv med i väntelistan. Publicering reserverar tillgången åt kunden; ny ansökan och godkännande krävs fortfarande.",
   "wait.anonymous": "Anonym exempelförfrågan",
