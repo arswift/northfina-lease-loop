@@ -163,6 +163,7 @@ try {
     await page.locator('.comparison-option').nth(1).locator('button').click();
     assert.equal(await page.locator('#term-select').inputValue(), '36');
     assert.equal(quoteWrites, 0, 'Changing comparison must not create an offer.');
+    await page.locator('.language-trigger').click();
     await page.locator('header nav a[lang="fi"]').click();
     await page.locator('#down').waitFor();
     assert.equal(await page.locator('#down').inputValue(), '100');

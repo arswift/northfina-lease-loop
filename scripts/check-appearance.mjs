@@ -239,6 +239,7 @@ try {
       await theme(page, 'northfina', 'dark', 'dark');
       assert.equal(await page.locator('#down').inputValue(), '100');
       for (const locale of ['fi', 'sv', 'et', 'en']) {
+        await page.locator('.language-trigger').click();
         await page.locator(`header nav a[lang="${locale}"]`).click();
         await page.waitForURL(`**/${locale}/lease/ebike-003`);
         await page.waitForFunction(
