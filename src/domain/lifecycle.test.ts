@@ -89,6 +89,29 @@ describe('mayEndLease', () => {
     expect(mayEndLease({ ...end, onDate: '2029-11-06' })).toEqual({ ok: true });
   });
 
+  it('does not require a new inspection reading to buy the item', () => {
+    expect(mayEndLease({ ...end, choice: 'buy', usageValue: 0 })).toEqual({ ok: true });
+  });
+
+  it.each(['return', 'pass_on'] as const)('still rejects a lower reading for %s', (choice) => {
+    expect(mayEndLease({ ...end, choice, usageValue: 0, nextCustomerId: 'b' })).toEqual({
+      ok: false,
+      reason: 'usage_decreased',
+    });
+  });
+
+  it.each([
+    [{ status: 'bought' }, 'not_active'],
+    [{ onDate: '2029-11-04' }, 'too_early'],
+    [{ latestInvoiceDate: '2029-11-06' }, 'too_early'],
+    [{ rentalInvoiceCount: 35 }, 'invoices_missing'],
+  ])('keeps readiness requirements for a buyout with %o', (change, reason) => {
+    expect(mayEndLease({ ...end, ...change, choice: 'buy', usageValue: 0 })).toEqual({
+      ok: false,
+      reason,
+    });
+  });
+
   it('does not treat an early return as normal term completion', () => {
     expect(mayEndLease({ ...end, onDate: '2027-06-05', rentalInvoiceCount: 7 })).toEqual({
       ok: false,
