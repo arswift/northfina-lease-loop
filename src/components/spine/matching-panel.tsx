@@ -14,6 +14,9 @@ import { requestJson } from './api';
 import type { DealerWorkspace } from '@/server/spine-dealer';
 import { buttonClass, Field, inputClass, messageFor } from './ui';
 import { MatchingOverride } from './matching-override';
+import { wholeMonthsSince } from '@/domain/valuation-baseline';
+import { isIsoDate } from '@/domain/calendar';
+import { moneyInputText } from './form-values';
 
 export function MatchingPanel({
   data,
@@ -31,17 +34,41 @@ export function MatchingPanel({
   onSelect: (selection: MatchingSelection, candidate: MatchCandidate) => void;
 }) {
   const t = getT(locale);
-  const [age, setAge] = useState('');
-  const [original, setOriginal] = useState('');
+  const [correcting, setCorrecting] = useState(false);
+  const [firstUsedOn, setFirstUsedOn] = useState(data.valuationBaseline?.firstUsedOn ?? '');
+  const [correctionPrice, setCorrectionPrice] = useState(
+    data.valuationBaseline ? moneyInputText(data.valuationBaseline.originalPriceCents) : ''
+  );
+  const [baselineReason, setBaselineReason] = useState('');
   const [readyOn, setReadyOn] = useState(data.businessDate);
   const [pending, setPending] = useState(false);
   const [failedKey, setFailedKey] = useState<string | null>(null);
   const [loaded, setLoaded] = useState<{ key: string; result: MatchingPreview } | null>(null);
+  const baselineDate = correcting ? firstUsedOn : (data.valuationBaseline?.firstUsedOn ?? '');
+  const original = correcting
+    ? correctionPrice
+    : data.valuationBaseline
+      ? moneyInputText(data.valuationBaseline.originalPriceCents)
+      : '';
+  const age =
+    isIsoDate(baselineDate) && isIsoDate(readyOn) && baselineDate <= readyOn
+      ? wholeMonthsSince(baselineDate, readyOn)
+      : null;
   const money = parseCents(original);
   const input = matchingPreviewInputSchema.safeParse({
-    ageMonths: age.trim() === '' ? null : Number(age),
+    ageMonths: age,
     originalPriceCents: money.ok ? money.cents : null,
     readyOn,
+    useAutomaticBaseline: true,
+    ...(correcting
+      ? {
+          baselineCorrection: {
+            firstUsedOn,
+            originalPriceCents: money.ok ? money.cents : null,
+            reason: baselineReason,
+          },
+        }
+      : {}),
     ...(service === '' ? {} : { lastServiceUsage: Number(service) }),
   });
   const key = JSON.stringify({
@@ -53,6 +80,10 @@ export function MatchingPanel({
     date: data.businessDate,
     asset: data.asset,
     revision: data.releaseRevision,
+    correcting,
+    firstUsedOn,
+    baselineReason,
+    baseline: data.valuationBaseline,
   });
   const result = loaded?.key === key ? loaded.result : null;
   const recommendation = result?.recommendation;
@@ -87,8 +118,43 @@ export function MatchingPanel({
     <div className="space-y-4 rounded-xl border border-emerald-300 p-4">
       <h3 className="text-lg font-semibold">{t('match.title')}</h3>
       <p className="text-sm">{t('match.assumptions')}</p>
+      <p className="text-sm">
+        {data.valuationBaseline
+          ? messageFor(locale, 'match.baseline.' + data.valuationBaseline.source)
+          : t('match.baselineMissing')}
+      </p>
+      {data.valuationBaseline?.reason ? (
+        <p className="text-sm">
+          {t('match.baselineSavedReason', { reason: data.valuationBaseline.reason })}
+        </p>
+      ) : null}
       <p className="text-sm">{t('wait.importedHelp')}</p>
       <fieldset disabled={busy || pending} className="grid gap-4 sm:grid-cols-3">
+        <label className="flex items-center gap-2 sm:col-span-3">
+          <input
+            type="checkbox"
+            checked={correcting}
+            onChange={(event) => {
+              setCorrecting(event.target.checked);
+              changed();
+            }}
+          />
+          {t('match.correctBaseline')}
+        </label>
+        <Field id="match-first-used" label={t('match.firstUsedOn')}>
+          <input
+            id="match-first-used"
+            className={inputClass}
+            type="date"
+            value={baselineDate}
+            max={readyOn}
+            disabled={!correcting}
+            onChange={(event) => {
+              setFirstUsedOn(event.target.value);
+              changed();
+            }}
+          />
+        </Field>
         <Field id="match-age" label={t('match.age')}>
           <input
             id="match-age"
@@ -97,11 +163,8 @@ export function MatchingPanel({
             min={0}
             max={12000}
             step={1}
-            value={age}
-            onChange={(event) => {
-              setAge(event.target.value);
-              changed();
-            }}
+            value={age ?? ''}
+            readOnly
           />
         </Field>
         <Field id="match-original" label={t('match.originalPrice')}>
@@ -110,8 +173,9 @@ export function MatchingPanel({
             className={inputClass}
             inputMode="decimal"
             value={original}
+            disabled={!correcting}
             onChange={(event) => {
-              setOriginal(event.target.value);
+              setCorrectionPrice(event.target.value);
               changed();
             }}
           />
@@ -129,14 +193,34 @@ export function MatchingPanel({
             }}
           />
         </Field>
-        <button
-          type="button"
-          className={buttonClass}
-          disabled={!valid}
-          onClick={() => void preview()}
-        >
-          {pending ? t('spine.pending') : t('match.preview')}
-        </button>
+        {correcting ? (
+          <div className="sm:col-span-3">
+            <Field id="match-baseline-reason" label={t('match.baselineReason')}>
+              <p className="text-sm">{t('match.baselineCorrectionHelp')}</p>
+              <textarea
+                id="match-baseline-reason"
+                className={inputClass}
+                minLength={10}
+                maxLength={500}
+                value={baselineReason}
+                onChange={(event) => {
+                  setBaselineReason(event.target.value);
+                  changed();
+                }}
+              />
+            </Field>
+          </div>
+        ) : null}
+        <div className="sm:col-span-3">
+          <button
+            type="button"
+            className={`${buttonClass} inline-flex min-h-11 max-w-full items-center justify-center transition-colors enabled:hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed`}
+            disabled={!valid}
+            onClick={() => void preview()}
+          >
+            {pending ? t('spine.pending') : t('match.preview')}
+          </button>
+        </div>
       </fieldset>
       <div aria-live="polite">
         {failedKey === key ? <p role="alert">{t('match.error')}</p> : null}
