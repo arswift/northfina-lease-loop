@@ -1,0 +1,33 @@
+name: Branch verification workspace
+
+on:
+  push:
+    branches: [fix/eligibility-dealer-demo]
+    paths: [.github/workflows/branch-workspace.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Export source and installed verification tools only
+        run: |
+          mkdir -p /tmp/lease-loop-verification
+          git archive --format=tar HEAD > /tmp/lease-loop-verification/source.tar
+          tar -czf /tmp/lease-loop-verification/dependencies.tar.gz node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: branch-verification-workspace
+          path: /tmp/lease-loop-verification/
+          retention-days: 1
+          compression-level: 0
