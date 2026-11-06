@@ -12,6 +12,7 @@ import type { RelistInput } from './spine-shapes';
 import { readMaintenance } from './spine-maintenance';
 import { previewSecondLife } from './second-life-matching';
 import { selectSecondLifeCandidate } from '@/domain/second-life-selection';
+import { readValuationBaseline } from './valuation-baseline';
 
 function releaseView(release: AssetRelease) {
   return {
@@ -94,6 +95,7 @@ export async function relistAsset(
     });
 
   const matchingDecision: Record<string, unknown> = {};
+  const baselineAudit: Record<string, unknown> = {};
   try {
     const release = await withAudit(
       db,
@@ -108,6 +110,7 @@ export async function relistAsset(
           netPriceCents: input.netPriceCents,
           valuationReason: input.valuationReason,
           condition: input.condition,
+          valuationBaseline: baselineAudit,
           taskIds: plan.tasks.map((task) => task.id),
           ...(input.matching ? { matching: input.matching } : {}),
           ...(input.matching ? { matchingDecision } : {}),
@@ -117,11 +120,13 @@ export async function relistAsset(
         const latest = await tx.assetRelease.findUnique({ where: { asset_id: assetId } });
         if ((latest?.revision ?? 0) !== input.releaseRevision)
           throw new ApiError(409, 'RELIST_NOT_ALLOWED', 'The return cycle changed');
+        let baseline = await readValuationBaseline(tx, assetId);
         if (input.matching) {
           const preview = await previewSecondLife(tx, context, assetId, {
             ...input.matching,
             lastServiceUsage: input.lastServiceUsage,
           });
+          if (input.matching.useAutomaticBaseline) baseline = preview.valuationBaseline;
           const selection = selectSecondLifeCandidate(preview, {
             requestId: input.matching.waitingRequestId,
             condition: input.condition,
@@ -171,6 +176,7 @@ export async function relistAsset(
               throw new ApiError(409, 'MATCH_CHANGED', 'The waiting request has changed');
           }
         }
+        if (baseline) Object.assign(baselineAudit, baseline);
         const updated = await tx.asset.updateMany({
           where: {
             id: assetId,
@@ -178,7 +184,11 @@ export async function relistAsset(
             condition: row.condition,
             usage_value: row.usage_value,
           },
-          data: { condition: input.condition, status: 'available' },
+          data: {
+            condition: input.condition,
+            status: 'available',
+            ...(baseline ? { valuation_baseline_json: JSON.stringify(baseline) } : {}),
+          },
         });
         if (updated.count !== 1)
           throw new ApiError(409, 'RELIST_NOT_ALLOWED', 'The item is no longer awaiting relisting');
