@@ -1,4 +1,8 @@
 import { randomUUID } from 'node:crypto';
+import demand from '../../data/second-life-demand.json';
+import { secondLifeDemandFileSchema } from '@/data/schemas';
+import { loadSecondLifeDemand } from '@/data/load';
+import type * as DataLoad from '@/data/load';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDb } from '../../tests/helpers/test-db';
 import { createLease, demoContext, resetSpine } from '../../tests/helpers/spine';
@@ -10,6 +14,11 @@ import { relistAsset } from './spine-relist';
 import { readMaintenance } from './spine-maintenance';
 import { createQuote } from './spine-quotes';
 import { joinWaitingList, cancelWaitingRequest } from './waiting-list';
+
+vi.mock('@/data/load', async (importOriginal) => {
+  const original = await importOriginal<typeof DataLoad>();
+  return { ...original, loadSecondLifeDemand: vi.fn(async () => []) };
+});
 
 const state = vi.hoisted(() => ({ db: null as unknown as PrismaClient }));
 vi.mock('@/server/db', () => ({
@@ -29,6 +38,7 @@ afterAll(async () => {
   await cleanup();
 });
 beforeEach(async () => {
+  vi.mocked(loadSecondLifeDemand).mockResolvedValue([]);
   await resetSpine(state.db);
   const joined = await joinWaitingList(state.db, await demoContext('cust-aino', '2026-11-06'), {
     requestId: randomUUID(),
@@ -267,16 +277,12 @@ describe('matching preview and allocation', () => {
     }
   });
 
-  it('keeps anonymous imported entries as comparison only after the known customer cancels', async () => {
+  it('has no recommendation after the only registered request is cancelled', async () => {
     const context = await demoContext('cust-aino', '2026-11-06', true);
     await cancelWaitingRequest(state.db, context, waitingId);
     const preview = await previewSecondLife(state.db, context, 'ebike-007', previewInput);
     expect(preview.recommendation).toBeNull();
-    expect(
-      preview.candidates.every(
-        (row) => row.customerId === null && row.reasons.includes('identity_unknown')
-      )
-    ).toBe(true);
+    expect(preview.candidates).toEqual([]);
   });
 
   it('rejects confirmation after the customer cancels the previewed request', async () => {
@@ -312,7 +318,7 @@ describe('matching preview and allocation', () => {
       'ebike-007',
       previewInput
     );
-    expect(preview.recommendation).toBeNull();
+    expect(preview.recommendation).toMatchObject({ requestId: waitingId, customerId: null });
     expect(
       preview.candidates
         .filter((row) => row.requestId === waitingId)
@@ -336,5 +342,190 @@ describe('matching preview and allocation', () => {
         .filter((row) => row.requestId === waitingId)
         .every((row) => row.reasons.includes('reserved_for_other'))
     ).toBe(true);
+  });
+});
+
+describe('team-linked data-pack requests', () => {
+  beforeEach(async () => {
+    await cancelWaitingRequest(state.db, await demoContext('cust-aino', '2026-11-06'), waitingId);
+    vi.mocked(loadSecondLifeDemand).mockResolvedValue(secondLifeDemandFileSchema.parse(demand));
+  });
+
+  it('keeps exactly one anonymous request and validates optional customer links', () => {
+    const requests = secondLifeDemandFileSchema.parse(demand);
+    expect(requests.filter((request) => !request.customer_id).map((request) => request.id)).toEqual(
+      ['wait-01']
+    );
+    expect(
+      secondLifeDemandFileSchema.safeParse([{ ...requests[0], customer_id: '' }]).success
+    ).toBe(false);
+  });
+
+  it('shows wait-02 with its demo customer, costs and rent ahead of wait-13', async () => {
+    const preview = await previewSecondLife(
+      state.db,
+      await demoContext('cust-aino', '2026-11-06', true),
+      'ebike-007',
+      previewInput
+    );
+    expect(preview.recommendation).toMatchObject({
+      requestId: 'wait-02',
+      customerId: 'cust-sanna',
+      customerName: 'Sanna Mäkelä',
+      imported: true,
+      condition: 'fair',
+      workNetCents: 39500,
+      netPriceCents: 67600,
+      reasons: [],
+      waitingRevision: null,
+    });
+    expect(preview.recommendation!.monthlyNetCents).toBeGreaterThan(0);
+    expect(
+      preview.candidates.some((row) => row.requestId === 'wait-13' && row.reasons.length === 0)
+    ).toBe(true);
+    expect(await state.db.assetRelease.count()).toBe(0);
+  });
+
+  async function importedPreparation() {
+    const input = await preparation();
+    return { ...input, matching: { ...input.matching!, nextCustomerId: 'cust-sanna' } };
+  }
+
+  it('allocates a linked sample atomically and never recommends it again', async () => {
+    const context = await demoContext('cust-aino', '2026-11-06', true);
+    const input = await importedPreparation();
+    const result = await relistAsset(state.db, context, 'ebike-007', input);
+    expect(await relistAsset(state.db, context, 'ebike-007', input)).toEqual(result);
+    expect(
+      (await state.db.assetRelease.findUniqueOrThrow({ where: { asset_id: 'ebike-007' } }))
+        .reserved_for_customer_id
+    ).toBe('cust-sanna');
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(1);
+    expect(await state.db.waitingRequest.findUnique({ where: { id: 'wait-02' } })).toBeNull();
+    await state.db.asset.update({
+      where: { id: 'ebike-008' },
+      data: { status: 'returned', condition: 'fair', usage_value: 18400 },
+    });
+    const next = await previewSecondLife(state.db, context, 'ebike-008', previewInput);
+    expect(next.recommendation?.requestId).not.toBe('wait-02');
+    expect(
+      next.candidates
+        .filter((row) => row.requestId === 'wait-02')
+        .every((row) => row.reasons.includes('allocated'))
+    ).toBe(true);
+    const quote = await createQuote(state.db, await demoContext('cust-sanna', '2026-11-06'), {
+      requestId: randomUUID(),
+      assetId: 'ebike-007',
+      termMonths: 12,
+      downPaymentCents: 0,
+      startDate: '2026-11-06',
+    });
+    expect(quote.terms.listPriceCents).toBe(67600);
+  });
+
+  it('does not allocate one linked sample to two items in competing confirmations', async () => {
+    await state.db.asset.update({
+      where: { id: 'ebike-008' },
+      data: { status: 'returned', condition: 'fair', usage_value: 18400 },
+    });
+    const context = await demoContext('cust-aino', '2026-11-06', true);
+    const first = await importedPreparation();
+    const second = {
+      ...(await preparation('ebike-008')),
+      matching: { ...first.matching! },
+      requestId: randomUUID(),
+    };
+    const results = await Promise.allSettled([
+      relistAsset(state.db, context, 'ebike-007', first),
+      relistAsset(state.db, context, 'ebike-008', second),
+    ]);
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(await state.db.assetRelease.count()).toBe(1);
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(1);
+  });
+
+  it('rolls back a sample allocation when audit creation fails', async () => {
+    const context = await demoContext('cust-aino', '2026-11-06', true);
+    const input = await importedPreparation();
+    await expect(
+      relistAsset(
+        state.db,
+        { ...context, actor: undefined as unknown as string },
+        'ebike-007',
+        input
+      )
+    ).rejects.toThrow();
+    expect(await state.db.assetRelease.count()).toBe(0);
+    expect(
+      (await previewSecondLife(state.db, context, 'ebike-007', previewInput)).recommendation
+        ?.requestId
+    ).toBe('wait-02');
+  });
+
+  it('recommends anonymous wait-01 after earlier deadlines but rejects a forged reservation', async () => {
+    const context = await demoContext('cust-aino', '2026-11-11', true);
+    const input = { ...previewInput, readyOn: '2026-11-11' };
+    const preview = await previewSecondLife(state.db, context, 'ebike-007', input);
+    const candidate = preview.recommendation!;
+    expect(candidate).toMatchObject({
+      requestId: 'wait-01',
+      customerId: null,
+      customerName: null,
+      condition: 'good',
+      reasons: ['identity_unknown'],
+    });
+    expect(candidate.monthlyNetCents).toBeGreaterThan(0);
+    await expect(
+      relistAsset(state.db, context, 'ebike-007', {
+        requestId: randomUUID(),
+        releaseRevision: preview.releaseRevision,
+        netPriceCents: candidate.netPriceCents!,
+        condition: candidate.condition,
+        completedTaskIds: candidate.tasks.map((task) => task.id),
+        valuationReason: 'Attempt to allocate an anonymous request to an arbitrary customer.',
+        matching: { ...input, waitingRequestId: 'wait-01', nextCustomerId: 'cust-aino' },
+      })
+    ).rejects.toMatchObject({ code: 'MATCH_CHANGED' });
+    expect(await state.db.assetRelease.count()).toBe(0);
+    expect(await state.db.auditLog.count({ where: { action: 'asset.relisted' } })).toBe(0);
+  });
+
+  it('treats an invalid sample customer link as anonymous rather than accepting it', async () => {
+    vi.mocked(loadSecondLifeDemand).mockResolvedValue([
+      { ...secondLifeDemandFileSchema.parse(demand)[1]!, customer_id: 'missing-customer' },
+    ]);
+    const preview = await previewSecondLife(
+      state.db,
+      await demoContext('cust-aino', '2026-11-06', true),
+      'ebike-007',
+      previewInput
+    );
+    expect(preview.recommendation).toMatchObject({
+      requestId: 'wait-02',
+      customerId: null,
+      reasons: ['identity_unknown'],
+    });
+  });
+
+  it('respects an existing reservation for linked and anonymous sample requests', async () => {
+    await state.db.assetRelease.create({
+      data: {
+        asset_id: 'ebike-007',
+        revision: 0,
+        reserved_for_customer_id: 'cust-lena',
+      },
+    });
+    const preview = await previewSecondLife(
+      state.db,
+      await demoContext('cust-aino', '2026-11-06', true),
+      'ebike-007',
+      previewInput
+    );
+    expect(
+      preview.candidates
+        .filter((row) => ['wait-01', 'wait-02'].includes(row.requestId))
+        .every((row) => row.reasons.includes('reserved_for_other'))
+    ).toBe(true);
+    expect(preview.recommendation?.customerId).toBe('cust-lena');
   });
 });

@@ -3,6 +3,7 @@ import { requireOperator, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { readMaintenance } from './spine-maintenance';
 import { readAssetOffer } from './spine-offers';
+import { readValuationBaseline } from './valuation-baseline';
 
 /** The dealer works with physical items, not a customer's application or agreement. */
 export async function getDealerWorkspace(db: PrismaClient, context: DemoContext, assetId: string) {
@@ -25,6 +26,7 @@ export async function getDealerWorkspace(db: PrismaClient, context: DemoContext,
     maintenance: readMaintenance(item.release),
     returnedItems,
     valuationReason: item.release?.valuation_reason ?? null,
+    valuationBaseline: await readValuationBaseline(db, assetId),
   };
 }
 export type DealerWorkspace = Awaited<ReturnType<typeof getDealerWorkspace>>;

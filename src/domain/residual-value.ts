@@ -3,9 +3,9 @@ import { decimalToScaled } from './money-arithmetic';
 
 export type ResidualValueInput = {
   asset: Pick<Asset, 'category' | 'condition' | 'usage'>;
-  /** Actual age since first lease, never inferred from model year or previous lives. */
+  /** Whole months from the original reference; imported assumptions must be labelled by callers. */
   ageMonths: number | null;
-  /** Net list price at first lease, not today's catalogue price. */
+  /** Original net reference price (recorded or labelled v1 assumption), not today's resale price. */
   originalPriceCents: number | null;
   rules: ResidualCurves;
 };
