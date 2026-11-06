@@ -8,7 +8,7 @@
   "wait.discardEdit": "Loobu muudatustest",
   "spine.action.waiting.updated": "Ootenimekirja soovid uuendatud",
   "wait.titleFor": "Liitu ootenimekirjaga: {category}",
-  "wait.categoryScope": "Kategooria tuleneb vaadatavast varast. Sinu päring võib sobida mis tahes sobiva varaga selles kategoorias.",
+  "wait.categoryScope": "Ootel päringud kehtivad mis tahes sobiva vara kohta selles kategoorias, mitte ainult sellel lehel oleva vara kohta. Kui sulle broneeritakse vara, kuvatakse selle link allpool.",
   "wait.for": "Kliendi {name} ootenimekirja soovid",
   "wait.help": "Vali oma vajadused ja maksimaalne käibemaksuta kuurent. Päring kuulub valitud demokliendile. Liitumine ei broneeri vara ega kinnita liisingut.",
   "wait.condition": "Minimaalne sobiv seisukord",
