@@ -8,7 +8,7 @@
   "wait.discardEdit": "Kasta ändringar",
   "spine.action.waiting.updated": "Önskemål i väntelistan uppdaterade",
   "wait.titleFor": "Gå med i väntelistan: {category}",
-  "wait.categoryScope": "Kategorin hämtas från tillgången du tittar på. Din förfrågan kan matchas med valfri lämplig tillgång i kategorin.",
+  "wait.categoryScope": "Väntande förfrågningar gäller valfri lämplig tillgång i denna kategori, snarare än just tillgången på sidan. Om en tillgång reserveras åt dig visas dess länk nedan.",
   "wait.for": "Väntelisteönskemål för {name}",
   "wait.help": "Välj vad du behöver och din högsta månadshyra exkl. moms. Förfrågan tillhör vald demokund. Att gå med reserverar ingen tillgång och godkänner ingen leasing.",
   "wait.condition": "Lägsta godtagbara skick",

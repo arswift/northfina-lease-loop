@@ -8,7 +8,7 @@
   "wait.discardEdit": "Discard edits",
   "spine.action.waiting.updated": "Waiting preferences updated",
   "wait.titleFor": "Join the waiting list: {category}",
-  "wait.categoryScope": "The category comes from the item you are viewing. Your request can match any suitable item in this category.",
+  "wait.categoryScope": "Pending requests are for any suitable item in this category, rather than the specific item on this page. If an item is reserved for you, its link appears below.",
   "wait.for": "Waiting preferences for {name}",
   "wait.help": "Choose what you need and your maximum monthly rent before VAT. This request belongs to the selected demo customer. Joining does not reserve an item or approve a lease.",
   "wait.condition": "Minimum acceptable condition",

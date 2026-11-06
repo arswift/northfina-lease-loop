@@ -73,6 +73,7 @@ export function WaitingListPanel({
     return () => controller.abort();
   }, [data.customer.id, data.businessDate, category, loadRevision]);
   const money = parseCents(budget);
+  const categoryRecords = records?.filter((row) => row.category === category) ?? null;
   const preferences = {
     category,
     minCondition: condition,
@@ -83,9 +84,7 @@ export function WaitingListPanel({
   const valid =
     joinWaitingInputSchema.omit({ requestId: true }).safeParse(preferences).success &&
     neededBy >= data.businessDate;
-  const alreadyPending = records?.some(
-    (row) => row.category === category && row.status === 'pending'
-  );
+  const alreadyPending = categoryRecords?.some((row) => row.status === 'pending');
   async function change(id?: string) {
     if (pending || busy) return;
     if (!id && !editing && !canJoin) return;
@@ -132,7 +131,7 @@ export function WaitingListPanel({
       setPending(false);
     }
   }
-  if (!canJoin && !error && (records === null || records.length === 0)) return null;
+  if (!canJoin && !error && (categoryRecords === null || categoryRecords.length === 0)) return null;
   const showForm = canJoin || editing !== null;
   return (
     <details
@@ -154,11 +153,11 @@ export function WaitingListPanel({
         </h2>
       </summary>
       <p className="mt-2 font-medium">{t('wait.for', { name: data.customer.name })}</p>
+      <p className="mt-2 text-sm">{t('wait.categoryScope')}</p>
       {!canJoin && !editing ? <p className="mt-2 text-sm">{t('wait.availableHelp')}</p> : null}
       {showForm ? (
         <>
           <p className="mt-2 text-sm">{t('wait.help')}</p>
-          <p className="mt-2 text-sm">{t('wait.categoryScope')}</p>
           <fieldset
             disabled={busy || pending || records === null}
             className="mt-4 grid gap-4 sm:grid-cols-2"
@@ -273,11 +272,11 @@ export function WaitingListPanel({
           error ? null : (
             <p>{t('spine.loading')}</p>
           )
-        ) : records.length === 0 ? (
+        ) : categoryRecords?.length === 0 ? (
           <p>{t('wait.empty')}</p>
         ) : (
           <ul className="mt-2 space-y-3">
-            {records.map((row) => (
+            {categoryRecords?.map((row) => (
               <li key={row.id} className="rounded-lg border border-stone-300 p-3">
                 <p>
                   {messageFor(locale, 'category.' + row.category)} ·{' '}
@@ -324,7 +323,7 @@ export function WaitingListPanel({
                     className="mt-2 block underline"
                     href={'/' + locale + '/lease/' + encodeURIComponent(row.allocated_asset_id)}
                   >
-                    {t('wait.openItem')}
+                    {t('wait.openItem')}: {row.allocated_asset_id}
                   </Link>
                 ) : null}
               </li>

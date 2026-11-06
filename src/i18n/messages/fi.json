@@ -8,7 +8,7 @@
   "wait.discardEdit": "Hylkää muutokset",
   "spine.action.waiting.updated": "Jonotustoiveet päivitetty",
   "wait.titleFor": "Liity jonotuslistalle: {category}",
-  "wait.categoryScope": "Tuoteluokka määräytyy tarkastelemasi tuotteen perusteella. Pyyntösi voi sopia mihin tahansa sopivaan tuotteeseen tässä luokassa.",
+  "wait.categoryScope": "Avoimet pyynnöt koskevat mitä tahansa sopivaa tuotetta tässä luokassa, eivät vain tämän sivun tuotetta. Jos sinulle varataan tuote, sen linkki näkyy alla.",
   "wait.for": "Asiakkaan {name} jonotustoiveet",
   "wait.help": "Valitse tarpeesi ja veroton enimmäiskuukausivuokra. Pyyntö kuuluu valitulle demoasiakkaalle. Jonottaminen ei varaa tuotetta eikä hyväksy vuokrasopimusta.",
   "wait.condition": "Huonoin hyväksyttävä kunto",
