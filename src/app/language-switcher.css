@@ -92,6 +92,7 @@
   }
 
   .language-option:focus-visible {
+    outline: 3px solid var(--ui-focus);
     outline-offset: -3px;
   }
 
@@ -165,9 +166,10 @@
   }
 
   .language-trigger:focus-visible,
+  .language-option:focus-visible,
   :root[data-design='northfina'] .language-trigger:focus-visible,
   :root[data-design='northfina'] .site-header .language-option:focus-visible {
-    outline-color: Highlight;
+    outline: 3px solid Highlight;
     box-shadow: none;
   }
 }
