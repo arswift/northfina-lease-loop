@@ -9,7 +9,7 @@ forecast already used by Explain My Price. It never edits saved offers or contra
 Keep the same physical item, offer price/source, term, start date and tax assumptions.
 Search zero down payment and the down payments corresponding to the minimum and maximum
 financed amounts of each coefficient band. Deduplicate these candidates and keep only
-nonnegative amounts no greater than the customer's current down payment.
+nonnegative amounts below the customer's current down payment, reaching a different band.
 
 Price every candidate through the existing calculator and full payment explanation.
 Recommend only when:
@@ -46,17 +46,38 @@ starter components; do not introduce another theme, API or persistence model.
 
 On 5 November 2026, laptop-003 costs EUR 2,000 net. At 36 months:
 
-| Amount, integer net cents              | EUR 50 upfront | Zero upfront |
-| -------------------------------------- | -------------: | -----------: |
-| Financed amount                        |         195000 |       200000 |
-| Monthly rent                           |           5582 |         5517 |
+| Amount, integer net cents               | EUR 50 upfront | Zero upfront |
+| --------------------------------------- | -------------: | -----------: |
+| Financed amount                         |         195000 |       200000 |
+| Monthly rent                            |           5582 |         5517 |
 | Upfront plus full-term rent             |         205952 |       198612 |
-| Optional purchase                      |          29250 |        30000 |
+| Optional purchase                       |          29250 |        30000 |
 | Upfront plus rent and optional purchase |         235202 |       228612 |
 
 Zero upfront saves 7340 net cents to use or 6590 net cents including purchase, despite
-its larger optional buyout. These are independent test expectations, not asset-specific
-branches in the product.
+its larger optional buyout. With the supplied dated VAT forecast, savings are 9225 and
+8280 gross cents respectively. The optional purchase rises from 36855 to 37800 gross
+cents. These are independent test expectations, not asset-specific product branches.
+
+## Demo
+
+1. Open `/en/lease/laptop-003`, select Aino and business date **5 November 2026**.
+2. Select **36 months**, start **5 November 2026**, and enter **50** upfront.
+3. Compare the Guardian's suggestion: EUR 0 upfront, EUR 55.17 monthly net instead of
+   EUR 55.82. The estimated gross saving is EUR 92.25 to return or EUR 82.80 to buy.
+4. Read the higher-buyout warning. Select the suggestion with the keyboard. Only the
+   upfront draft changes; focus returns to its field. No quote is saved yet.
+5. Use the ordinary save button. The saved quote must match the newly displayed terms.
+6. In a separate unsaved draft, try **0.01** upfront. Try an invalid amount, then change
+   the business/start date to **6 November**: the changed catalogue price must not retain
+   yesterday's recommendation. No suggestion is a guarantee of the best possible price.
+
+## Code map
+
+- `src/domain/price-guardian.ts`: bounded candidate search using the shared price engine.
+- `src/components/spine/price-guardian.tsx`: comparison, assumptions and explicit choice.
+- `src/components/spine/price-panel.tsx`: integration with the existing draft/save flow.
+- `src/i18n/messages/guardian/`: EN/FI/SV/ET copy, covered by existing parity tests.
 
 ## Verification scope
 
