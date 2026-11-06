@@ -36,6 +36,7 @@ export function WaitingListPanel({
   const [records, setRecords] = useState<OwnWaitingRequests | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadRevision, setLoadRevision] = useState(0);
   const [editing, setEditing] = useState<{ id: string; revision: number } | null>(null);
   const [expanded, setExpanded] = useState(false);
   const manuallyToggled = useRef(false);
@@ -66,7 +67,7 @@ export function WaitingListPanel({
         }
       });
     return () => controller.abort();
-  }, [data.customer.id, data.businessDate, category]);
+  }, [data.customer.id, data.businessDate, category, loadRevision]);
   const money = parseCents(budget);
   const preferences = {
     category,
@@ -235,14 +236,31 @@ export function WaitingListPanel({
         <p className="mt-3 text-sm">{t('wait.alreadyPending')}</p>
       ) : null}
       {error ? (
-        <p className="mt-3" role="alert">
-          {messageFor(locale, 'spine.error.' + error)}
-        </p>
+        <div className="mt-3" role="alert">
+          <p>
+            {records === null ? t('wait.loadFailed') : messageFor(locale, 'spine.error.' + error)}
+          </p>
+          {records === null ? (
+            <button
+              type="button"
+              className={buttonClass + ' mt-2'}
+              disabled={busy || pending}
+              onClick={() => {
+                setError(null);
+                setLoadRevision((value) => value + 1);
+              }}
+            >
+              {t('spine.retry')}
+            </button>
+          ) : null}
+        </div>
       ) : null}
       <div className="mt-4" aria-live="polite">
         <h3 className="font-semibold">{t('wait.yours')}</h3>
         {records === null ? (
-          <p>{t('spine.loading')}</p>
+          error ? null : (
+            <p>{t('spine.loading')}</p>
+          )
         ) : records.length === 0 ? (
           <p>{t('wait.empty')}</p>
         ) : (
