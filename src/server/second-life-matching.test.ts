@@ -56,6 +56,7 @@ async function preparation(assetId = 'ebike-007'): Promise<RelistInput> {
     matching: {
       ...previewInput,
       waitingRequestId: candidate.requestId,
+      waitingRevision: candidate.waitingRevision ?? undefined,
       nextCustomerId: 'cust-aino',
     },
   });

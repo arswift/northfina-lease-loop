@@ -159,6 +159,9 @@ model AssetRelease {
 
 // Customer identity comes from the selected demo context, never a submitted customer ID.
 model WaitingRequest {
+  revision                   Int     @default(0)
+  update_request_id          String? @unique
+  update_request_hash        String?
   id                         String  @id
   customer_id                String
   submitted_on               String

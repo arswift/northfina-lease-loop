@@ -120,6 +120,7 @@ export async function relistAsset(
           if (
             !selected ||
             selected.customerId !== input.matching.nextCustomerId ||
+            selected.waitingRevision !== input.matching.waitingRevision ||
             selected.requestId !== input.matching.waitingRequestId ||
             selected.condition !== input.condition ||
             selected.netPriceCents !== input.netPriceCents ||
@@ -133,7 +134,12 @@ export async function relistAsset(
             );
           }
           const allocated = await tx.waitingRequest.updateMany({
-            where: { id: selected.requestId, customer_id: selected.customerId!, status: 'pending' },
+            where: {
+              id: selected.requestId,
+              customer_id: selected.customerId!,
+              status: 'pending',
+              revision: selected.waitingRevision!,
+            },
             data: { status: 'allocated', pending_key: null, allocated_asset_id: assetId },
           });
           if (allocated.count !== 1)

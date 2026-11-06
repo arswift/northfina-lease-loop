@@ -10,6 +10,7 @@ export const matchingPreviewInputSchema = z.strictObject({
   lastServiceUsage: meter.optional(),
 });
 export const matchingSelectionSchema = matchingPreviewInputSchema.extend({
+  waitingRevision: z.number().int().nonnegative().optional(),
   waitingRequestId: z.string().min(1).max(100),
   nextCustomerId: z.string().min(1).max(100),
 });
@@ -17,6 +18,7 @@ export type MatchingPreviewInput = z.infer<typeof matchingPreviewInputSchema>;
 export type MatchingSelection = z.infer<typeof matchingSelectionSchema>;
 
 const candidateSchema = z.object({
+  waitingRevision: z.number().int().nonnegative().nullable(),
   customerId: z.string().nullable(),
   customerName: z.string().nullable(),
   imported: z.boolean(),
