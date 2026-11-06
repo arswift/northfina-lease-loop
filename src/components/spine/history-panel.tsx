@@ -84,8 +84,15 @@ export function HistoryPanel({
             ))}
           </ol>
           {!state.passport.lives.length ? <p className="mt-3">{t('spine.noHistory')}</p> : null}
-          <h3 className="mt-6 text-lg font-semibold">{t('spine.audit')}</h3>
-          <div className="mt-3 overflow-x-auto">
+          <h3 id="audit-heading" className="mt-6 text-lg font-semibold">
+            {t('spine.audit')}
+          </h3>
+          <div
+            className="mt-3 overflow-x-auto"
+            role="region"
+            aria-labelledby="audit-heading"
+            tabIndex={0}
+          >
             <table className="w-full text-left text-sm">
               <thead>
                 <tr>
