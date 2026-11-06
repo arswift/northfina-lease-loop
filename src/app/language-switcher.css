@@ -133,6 +133,19 @@
   }
 
   @media (max-width: 40rem) {
+    .header-actions {
+      gap: 0.5rem;
+    }
+
+    .language-trigger {
+      gap: 0.375rem;
+      padding-inline: 0.625rem;
+    }
+
+    .header-actions .appearance-trigger {
+      padding-inline: 0.625rem;
+    }
+
     .language-menu {
       inset-inline-start: 0;
       inset-inline-end: auto;
