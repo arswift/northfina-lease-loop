@@ -8,6 +8,7 @@ import { intlLocale, type Locale } from '@/i18n/locales';
 import type { DealerWorkspace } from '@/server/spine-dealer';
 import { requestJson, RequestFailure, type DemoSelection } from './api';
 import { DemoControls } from './demo-controls';
+import { AssetHero } from './asset-hero';
 import { emptySelection, selectionSchema } from './draft';
 import { HistoryPanel } from './history-panel';
 import { RelistPanel, type RelistForm } from './relist-panel';
@@ -88,14 +89,18 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 sm:py-14">
-      <Link href={'/' + locale} className="text-emerald-800 underline dark:text-emerald-300">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
+      <Link href={'/' + locale} className="asset-back-link">
         {t('spine.back')}
       </Link>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {t('spine.dealerMode')}
-        {data ? ' · ' + data.asset.make + ' ' + data.asset.model : ''}
-      </h1>
+      <AssetHero
+        locale={locale}
+        asset={data?.asset}
+        title={
+          t('spine.dealerMode') +
+          (data ? ' · ' + data.asset.make + ' ' + data.asset.model : '')
+        }
+      />
       <DemoControls
         selection={selection}
         locale={locale}
