@@ -11,5 +11,8 @@
   "spine.companyResidence": "I den här demon tillämpas inte kontrollen av privatpersoners bosättningsland på företag.",
   "spine.signatory.pricePolicy": "De sparade villkoren exklusive moms gäller till och med {date}. Därefter måste ett nytt erbjudande granskas. Momsen följer fortfarande varje fakturadatum.",
   "spine.error.CUSTOMER_MODE_REQUIRED": "Byt till Kund för att hantera en ansökan eller ett avtal. Återförsäljaren kan inte underteckna åt kunden.",
-  "spine.error.SIGNATURE_HANDOFF_PENDING": "Erbjudandet väntar redan på den angivna firmatecknaren. Sökanden kan inte aktivera det genom att skicka andra svar."
+  "spine.error.SIGNATURE_HANDOFF_PENDING": "Erbjudandet väntar redan på den angivna firmatecknaren. Sökanden kan inte aktivera det genom att skicka andra svar.",
+  "spine.dealerReturned": "Returnerade produkter ({count})",
+  "spine.dealerEmpty": "Inga produkter väntar på förberedelse just nu.",
+  "spine.dealerPublished": "Produkten är tillgänglig igen för {price} exklusive moms. Byt till Kund och välj nästa hyrestagare för att starta ett nytt avtal."
 }

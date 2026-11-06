@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { DemoSelection } from './api';
 import { priceTermsSchema } from '@/data/spine-value-schemas';
 
 const cents = z.number().int().nonnegative().max(2147483647);
@@ -25,7 +26,9 @@ const application = z.object({
   answers,
 });
 
+export const emptySelection: DemoSelection = { customerId: '', businessDate: '', role: 'customer' };
 export const selectionSchema = z.object({
+  role: z.enum(['customer', 'operator']).optional(),
   customerId: z.string(),
   businessDate: z.union([z.literal(''), z.iso.date()]),
 });
