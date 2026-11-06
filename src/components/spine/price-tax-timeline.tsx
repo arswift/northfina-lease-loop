@@ -13,38 +13,33 @@ export function PriceTaxTimeline({
 }) {
   const t = getT(locale);
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <h4 className="font-semibold">{t('explain.timelineTitle')}</h4>
-      <p className="text-sm text-stone-600 dark:text-stone-300">{t('spine.taxHelp')}</p>
-      <ul className="space-y-3">
+      <p className="ui-note">{t('spine.taxHelp')}</p>
+      <ol className="price-timeline">
         {periods.map((period) => (
-          <li
-            key={period.firstDate}
-            className="rounded-xl border border-stone-200 p-3 dark:border-stone-700"
-          >
-            <p className="text-sm">
+          <li key={period.firstDate}>
+            <p className="font-semibold tabular-nums">
+              {t('explain.monthlyAmount', {
+                amount: formatEuro(period.grossCents, intlLocale[locale]),
+              })}
+            </p>
+            <p className="ui-note">
               {t('explain.vatPeriod', {
                 count: formatNumber(period.count, locale),
                 first: formatIsoDate(period.firstDate, locale),
                 last: formatIsoDate(period.lastDate, locale),
               })}
             </p>
-            <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-sm">
-                {t('explain.vatRate', { rate: formatNumber(period.vatBasisPoints / 100, locale) })}
-              </span>
-              <span className="font-semibold tabular-nums">
-                {t('explain.monthlyAmount', {
-                  amount: formatEuro(period.grossCents, intlLocale[locale]),
-                })}
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+            <p className="ui-note">
+              {t('explain.vatRate', { rate: formatNumber(period.vatBasisPoints / 100, locale) })}
+            </p>
+            <p className="ui-note">
               {t('explain.vatAmount', { amount: formatEuro(period.vatCents, intlLocale[locale]) })}
             </p>
           </li>
         ))}
-      </ul>
+      </ol>
     </div>
   );
 }
