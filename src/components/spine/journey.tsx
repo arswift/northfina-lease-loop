@@ -173,12 +173,23 @@ export function Journey({ assetId, locale }: { assetId: string; locale: Locale }
     review.quote.customerId === data?.customer.id
       ? review.quote
       : null;
-  const application =
+  const reviewApplication =
     review?.signature === signature &&
     review.application?.id === applicationId &&
     review.application?.quoteId === quote?.id
       ? review.application
       : null;
+  // The freshly POSTed decision lives in the draft; the refetch only confirms it.
+  // Prefer the draft so a re-check with edited answers shows its new decision at once
+  // instead of waiting for the applications/{id} refetch.
+  const draftApplication = draft.application;
+  const application =
+    reviewApplication ??
+    (draftApplication &&
+    draftApplication.id === applicationId &&
+    draftApplication.quoteId === quote?.id
+      ? draftApplication
+      : null);
 
   async function run(work: () => Promise<void>) {
     if (activeRequest.current) return;
