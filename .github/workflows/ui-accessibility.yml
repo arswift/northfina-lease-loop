@@ -1,0 +1,60 @@
+# Optional on-demand UI smoke. The regular CI already runs on every push and PR.
+name: UI smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      CI: true
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Set test paths
+        run: |
+          echo "UI_QA_TOOLS=$RUNNER_TEMP/lease-ui-tools" >> "$GITHUB_ENV"
+          echo "UI_OUTPUT_DIR=$RUNNER_TEMP/lease-ui-results" >> "$GITHUB_ENV"
+
+      - name: Build isolated demo
+        run: |
+          npm ci
+          npm run db:setup
+          npm run build
+
+      - name: Install browser tooling
+        run: |
+          npm install --prefix "$UI_QA_TOOLS" --no-save --package-lock=false playwright@1.57.0 axe-core@4.11.0
+          node "$UI_QA_TOOLS/node_modules/playwright/cli.js" install chromium --only-shell
+
+      - name: Run short UI smoke
+        shell: bash
+        run: |
+          mkdir -p "$UI_OUTPUT_DIR"
+          npm start -- --hostname 127.0.0.1 > "$UI_OUTPUT_DIR/server.log" 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          node scripts/check-ui-smoke.mjs
+
+      - name: Save failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: ui-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/lease-ui-results
+          if-no-files-found: ignore
+          retention-days: 3
