@@ -20,6 +20,8 @@ export type EligibilityReason =
 export type EligibilityDecision = {
   status: 'approved' | 'declined' | 'manual_review' | 'incomplete';
   reasons: EligibilityReason[];
+  /** Question ids whose answers differ from the customer's stored profile, asked first. */
+  conflictQuestionIds: string[];
   answers: Answers;
   missingQuestionIds: string[];
   invalidQuestionIds: string[];
@@ -89,13 +91,21 @@ export function evaluateEligibility(input: EligibilityInput): EligibilityDecisio
   }
 
   // A changed form answer is a request to resolve evidence, not authority to overwrite it.
+  // The conflicting ids let the UI name the exact questions that need human resolution.
   const profileAnswers = answersFromCustomer(customer);
+  const conflicts = new Set<string>();
   for (const [id, answer] of Object.entries(flow.answers)) {
     const profileAnswer = profileAnswers[id];
     if (profileAnswer !== undefined && JSON.stringify(answer) !== JSON.stringify(profileAnswer)) {
-      review.add('profile_conflict');
+      conflicts.add(id);
     }
   }
+  if (conflicts.size) review.add('profile_conflict');
+  const askedIds = new Set(flow.activeQuestions.map((question) => question.id));
+  const conflictQuestionIds = [
+    ...flow.activeQuestions.filter((question) => conflicts.has(question.id)).map((q) => q.id),
+    ...[...conflicts].filter((id) => !askedIds.has(id)),
+  ];
 
   for (const question of flow.activeQuestions) {
     const answer = flow.answers[question.id];
@@ -128,6 +138,7 @@ export function evaluateEligibility(input: EligibilityInput): EligibilityDecisio
   return {
     status,
     reasons,
+    conflictQuestionIds,
     answers: flow.answers,
     missingQuestionIds: flow.missingIds,
     invalidQuestionIds: flow.invalidIds,

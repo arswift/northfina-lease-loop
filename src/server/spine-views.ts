@@ -23,6 +23,7 @@ export type QuoteView = ReturnType<typeof quoteView>;
 
 const reasonsSchema = z.strictObject({
   reasons: z.array(z.string()),
+  conflictQuestionIds: z.array(z.string()).default([]),
   missingQuestionIds: z.array(z.string()),
   invalidQuestionIds: z.array(z.string()),
 });

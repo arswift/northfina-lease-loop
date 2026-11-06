@@ -72,6 +72,7 @@ export async function submitApplication(
             decision: decision.status,
             reasons_json: JSON.stringify({
               reasons: decision.reasons,
+              conflictQuestionIds: decision.conflictQuestionIds,
               missingQuestionIds: decision.missingQuestionIds,
               invalidQuestionIds: decision.invalidQuestionIds,
             }),

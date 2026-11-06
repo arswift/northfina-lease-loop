@@ -65,6 +65,7 @@ export const applicationViewSchema = z.object({
   quoteId: id,
   decision,
   reasons: z.array(z.string()),
+  conflictQuestionIds: z.array(z.string()).default([]),
   missingQuestionIds: z.array(z.string()),
   invalidQuestionIds: z.array(z.string()),
   answers,

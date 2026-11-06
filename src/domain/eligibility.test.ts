@@ -229,10 +229,31 @@ describe('decision priorities and evidence', () => {
     const result = evaluate(customer, {}, 5000000, 13466, { answers });
     expect(result.status).toBe('manual_review');
     expect(result.reasons).toEqual(['profile_conflict']);
+    expect(result.conflictQuestionIds).toEqual(['q_beneficial_owners']);
     expect(result.answers.q_beneficial_owners).toEqual(['Owner B']);
     expect(customer.beneficial_owners).toEqual(['Owner A']);
     expect(answers.q_beneficial_owners).toEqual([' Owner B ']);
     expect(evaluate(customer, {}, 5000000, 13466, { answers })).toEqual(result);
+  });
+
+  it('names the exact profile question whose answer the applicant changed', () => {
+    const result = evaluate(persona('cust-lena'), { q_monthly_income: 150000 });
+    expect(result.status).toBe('manual_review');
+    expect(result.reasons).toEqual(['profile_conflict']);
+    expect(result.conflictQuestionIds).toEqual(['q_monthly_income']);
+    expect(result.answers.q_monthly_income).toBe(150000);
+  });
+
+  it('lists unasked profile conflicts after the questions that were asked', () => {
+    // q_pep is answered only when the profile differs; a mismatched stored profile still
+    // surfaces as evidence, listed behind the questions the flow actually asked about.
+    const pep = { ...persona('cust-aino'), is_pep: true } as Customer;
+    const result = evaluate(persona('cust-aino'), { q_monthly_income: 9999994 }, 389000, 13466, {
+      customer: pep,
+    });
+    expect(result.status).toBe('manual_review');
+    expect(result.conflictQuestionIds).toEqual(['q_monthly_income']);
+    expect(result.reasons).toEqual(['pep', 'profile_conflict']);
   });
 });
 

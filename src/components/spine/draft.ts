@@ -20,6 +20,8 @@ const application = z.object({
   quoteId: z.uuid(),
   decision: z.enum(['approved', 'declined', 'manual_review', 'incomplete']),
   reasons: z.array(z.string()),
+  // Older persisted drafts predate this field; accept them and default to no conflicts.
+  conflictQuestionIds: z.array(z.string()).default([]),
   missingQuestionIds: z.array(z.string()),
   invalidQuestionIds: z.array(z.string()),
   answers,

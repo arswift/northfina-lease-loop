@@ -35,6 +35,13 @@ export function ApplicationPanel(props: Props) {
     context,
     answersForSubmission(data.questions, answers)
   );
+  const questionLabel = (questionId: string) =>
+    data.questions.find((question) => question.id === questionId)?.text[locale] ?? questionId;
+  const stateQuestions =
+    application?.decision === 'incomplete'
+      ? [...application.invalidQuestionIds, ...application.missingQuestionIds]
+      : (application?.conflictQuestionIds ?? []);
+
   function change(id: string, value: Answer) {
     const next = { ...answers, [id]: value };
     const activeIds = new Set(
@@ -168,6 +175,36 @@ export function ApplicationPanel(props: Props) {
               <li key={reason}>{messageFor(locale, 'spine.reason.' + reason)}</li>
             ))}
           </ul>
+          {stateQuestions.length ? (
+            <>
+              <p className="mt-3 text-xs font-semibold tracking-wide uppercase opacity-80">
+                {application.decision === 'incomplete'
+                  ? t('spine.fixHeading')
+                  : t('spine.conflictHeading')}
+              </p>
+              <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                {stateQuestions.map((questionId) => (
+                  <li
+                    key={questionId}
+                    className="rounded-md bg-white/70 px-2 py-0.5 text-xs font-medium dark:bg-white/10"
+                  >
+                    {questionLabel(questionId)}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          <p className="mt-3 font-medium">
+            {messageFor(
+              locale,
+              {
+                approved: 'spine.nextApproved',
+                declined: 'spine.nextDeclined',
+                manual_review: 'spine.nextManual',
+                incomplete: 'spine.nextIncomplete',
+              }[application.decision]
+            )}
+          </p>
         </div>
       ) : null}
       {application?.decision === 'approved' ? (
