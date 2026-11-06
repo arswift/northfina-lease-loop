@@ -32,6 +32,9 @@ Record the team's accepted choices in its decision board before changing these d
 - Assess affordability against gross rent at the agreed start date. This is not an
   affordability stress test against every future tax rate.
 - Manual review does not become approval without a separate authorised review workflow.
+- A company application awaiting another signer retains the signer's email and stays
+  unsigned and inactive. Show the recipient and next step; this demo does not send email
+  or implement delegated signing.
 - Repeating the same command returns its original result; reusing its key with a different
   payload is a conflict. A deliberate new offer receives a new key.
 
@@ -45,6 +48,9 @@ Record the team's accepted choices in its decision board before changing these d
 - Pass-on nominates a successor and reserves the next offer for that synthetic customer.
 - Relisting requires all tasks derived from the supplied refurbishment data.
 - The operator records a net valuation and its reason. This is not a matching optimiser.
+- For imported history, the organiser's approved valuation reference is price list v1
+  and 1 January of the model year. Label assumptions; retain real dates and prices for
+  subsequent app-generated leases without resetting the original valuation baseline.
 - Preserve cumulative physical usage. Record replacement/service baselines separately.
 - A release revision prevents an old command from reopening a later lifecycle.
 - Preserve imported previous-life counts, but do not invent their missing records.
