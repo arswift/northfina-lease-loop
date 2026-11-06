@@ -1,4 +1,6 @@
 {
+  "wait.manageTitle": "Halda ootenimekirja päringuid: {category}",
+  "wait.availableHelp": "Seda vara saab liisida. Allpool saad endiselt muuta või tühistada oma olemasolevaid ootenimekirja päringuid.",
   "wait.loadFailed": "Ootenimekirja päringuid ei saanud laadida. Jätkamiseks proovi uuesti.",
   "wait.edit": "Muuda päringut",
   "wait.editTitle": "Muuda ootenimekirja päringut: {category}",
