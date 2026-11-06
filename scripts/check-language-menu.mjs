@@ -177,12 +177,16 @@ try {
         await audit(page, `language-enlarged-${design}`);
         await page.emulateMedia({ forcedColors: 'active' });
         await fits(page);
+        // Use actual keyboard navigation: programmatic .focus() alone does not
+        // guarantee :focus-visible after a pointer interaction in Chromium.
         await page.locator('a[lang="en"]').focus();
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Shift+Tab');
         const outline = await page.locator('a[lang="en"]').evaluate((el) => {
           const style = globalThis.getComputedStyle(el);
-          return [style.outlineStyle, style.outlineWidth];
+          return [el.matches(':focus-visible'), style.outlineStyle, style.outlineWidth];
         });
-        assert.deepEqual(outline, ['solid', '3px']);
+        assert.deepEqual(outline, [true, 'solid', '3px']);
       }
     );
   }
