@@ -11,7 +11,7 @@ import { endLease } from './spine-end';
 import { getPassport, getScopedAudit } from './spine-history';
 import { issueInvoices } from './spine-invoices';
 import { cataloguePrices } from './spine-offers';
-import { getBootstrap } from './spine-offers';
+import { getDealerWorkspace } from './spine-dealer';
 import { createQuote } from './spine-quotes';
 import { relistAsset } from './spine-relist';
 import { getContract } from './spine-views';
@@ -116,9 +116,16 @@ describe('the complete loop', () => {
       usageValue: 18500,
     });
     const nextOperator = { ...secondEnd, operator: true, actor: 'demo:operator:cust-lena' };
-    const boot = await getBootstrap(db, nextOperator, contract.assetId);
+    const boot = await getDealerWorkspace(db, nextOperator, contract.assetId);
     expect(boot.maintenance).toEqual({ batteryReplacementAtUsage: 18400 });
-    expect(boot.readiness).toMatchObject({ ok: true, tasks: [{ id: 'safety_inspection' }] });
+    expect(
+      refurbishmentPlan({
+        asset: boot.asset,
+        targetCondition: 'good',
+        costs: boot.refurbishmentCosts,
+        maintenance: boot.maintenance,
+      })
+    ).toMatchObject({ ok: true, tasks: [{ id: 'safety_inspection' }] });
     await expect(
       relistAsset(db, nextOperator, contract.assetId, preparation)
     ).rejects.toMatchObject({ code: 'RELIST_NOT_ALLOWED' });

@@ -3,7 +3,7 @@ import type { Application, Contract, Invoice, Quote } from '@/generated/prisma/c
 import { loadVatRates } from '@/data/load';
 import { invoiceSchedule } from '@/domain/invoicing';
 import { ApiError } from './api-response';
-import type { DemoContext } from './demo-context';
+import { requireCustomer, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { answersSchema, priceTermsSchema } from './spine-shapes';
 
@@ -55,6 +55,7 @@ export function invoiceView(row: Invoice) {
 }
 
 export async function ownedContract(db: PrismaClient, context: DemoContext, id: string) {
+  requireCustomer(context);
   const contract = await db.contract.findFirst({
     where: { id, customer_id: context.customer.id },
     include: { quote: { select: { price_source: true, priced_on: true, valid_through: true } } },
@@ -109,6 +110,7 @@ export async function getContract(db: PrismaClient, context: DemoContext, id: st
 export type ContractView = Awaited<ReturnType<typeof getContract>>;
 
 export async function listContracts(db: PrismaClient, context: DemoContext) {
+  requireCustomer(context);
   return db.contract.findMany({
     where: { customer_id: context.customer.id },
     orderBy: [{ signed_on: 'desc' }, { id: 'asc' }],

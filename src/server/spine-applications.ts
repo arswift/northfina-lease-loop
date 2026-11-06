@@ -3,13 +3,14 @@ import { evaluateEligibility } from '@/domain/eligibility';
 import { taxOn } from '@/domain/vat';
 import { ApiError } from './api-response';
 import { withAudit } from './audit';
-import type { DemoContext } from './demo-context';
+import { requireCustomer, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { rethrowDatabaseConflict, requestHash, requireSameRequest } from './request-integrity';
 import { readAssetOffer } from './spine-offers';
 import { ownedQuote, requireValidQuote } from './spine-quotes';
 import type { ApplicationInput } from './spine-shapes';
 import { priceTermsSchema } from './spine-shapes';
+import { requireNoPendingSignature } from './spine-signature-state';
 import { applicationView } from './spine-views';
 
 export async function submitApplication(
@@ -17,6 +18,7 @@ export async function submitApplication(
   context: DemoContext,
   input: ApplicationInput
 ) {
+  requireCustomer(context);
   const fingerprint = requestHash({
     customerId: context.customer.id,
     quoteId: input.quoteId,
@@ -60,8 +62,9 @@ export async function submitApplication(
         entityId: input.requestId,
         details: { quoteId: quote.id, decision: decision.status },
       },
-      (tx) =>
-        tx.application.create({
+      async (tx) => {
+        await requireNoPendingSignature(tx, quote.id);
+        return tx.application.create({
           data: {
             id: input.requestId,
             quote_id: quote.id,
@@ -76,7 +79,8 @@ export async function submitApplication(
               invalidQuestionIds: decision.invalidQuestionIds,
             }),
           },
-        })
+        });
+      }
     );
     return applicationView(application);
   } catch (error) {

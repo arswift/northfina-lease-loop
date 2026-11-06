@@ -14,7 +14,7 @@ import { isAvailableForCustomer } from '@/domain/availability';
 import { toAsset } from './assets';
 import { ApiError } from './api-response';
 import type { TransactionClient } from './audit';
-import type { DemoContext } from './demo-context';
+import { requireCustomer, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { readMaintenance } from './spine-maintenance';
 
@@ -81,6 +81,7 @@ export async function readAssetOffer(
 }
 
 export async function getBootstrap(db: PrismaClient, context: DemoContext, assetId: string) {
+  requireCustomer(context);
   const [item, customers, coefficientTable, vatRates, questions, costs] = await Promise.all([
     readAssetOffer(db, assetId, context.businessDate),
     loadCustomers(),

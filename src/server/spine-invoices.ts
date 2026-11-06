@@ -3,7 +3,7 @@ import { invoiceSchedule } from '@/domain/invoicing';
 import { taxOn } from '@/domain/vat';
 import { ApiError } from './api-response';
 import { withAudit } from './audit';
-import type { DemoContext } from './demo-context';
+import { requireCustomer, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { rethrowDatabaseConflict } from './request-integrity';
 import { contractTerms, getContract, ownedContract } from './spine-views';
@@ -11,6 +11,7 @@ import { requireStorableInvoice } from './spine-invoice-limits';
 
 /** Issue only due, unissued periods. Forecast rows have never been persisted as invoices. */
 export async function issueInvoices(db: PrismaClient, context: DemoContext, contractId: string) {
+  requireCustomer(context);
   const contract = await ownedContract(db, context, contractId);
   if (contract.status !== 'active') return getContract(db, context, contractId);
   const terms = contractTerms(contract);

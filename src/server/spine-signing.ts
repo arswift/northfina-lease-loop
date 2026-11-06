@@ -5,15 +5,17 @@ import { taxOn } from '@/domain/vat';
 import { toAsset } from './assets';
 import { ApiError } from './api-response';
 import { withAudit } from './audit';
-import type { DemoContext } from './demo-context';
+import { requireCustomer, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { rethrowDatabaseConflict } from './request-integrity';
 import { requireValidQuote } from './spine-quotes';
 import { answersSchema, priceTermsSchema } from './spine-shapes';
 import { getContract } from './spine-views';
 import { requireStorableInvoice } from './spine-invoice-limits';
+import { requireNoPendingSignature } from './spine-signature-state';
 
 export async function signContract(db: PrismaClient, context: DemoContext, applicationId: string) {
+  requireCustomer(context);
   const application = await db.application.findFirst({
     where: { id: applicationId, customer_id: context.customer.id },
     include: { quote: true },
@@ -79,6 +81,7 @@ export async function signContract(db: PrismaClient, context: DemoContext, appli
         details: { assetId: quote.asset_id, quoteId: quote.id },
       },
       async (tx) => {
+        await requireNoPendingSignature(tx, quote.id);
         const asset = await tx.asset.findUniqueOrThrow({ where: { id: quote.asset_id } });
         const release = await tx.assetRelease.findUnique({ where: { asset_id: asset.id } });
         if ((release?.revision ?? 0) !== quote.release_revision) {
