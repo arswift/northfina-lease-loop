@@ -5,7 +5,7 @@ import { calculatePrice } from '@/domain/pricing';
 import type { Quote } from '@/generated/prisma/client';
 import { ApiError } from './api-response';
 import { withAudit } from './audit';
-import type { DemoContext } from './demo-context';
+import { requireCustomer, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { rethrowDatabaseConflict } from './request-integrity';
 import { readAssetOffer } from './spine-offers';
@@ -59,6 +59,7 @@ export function requireValidQuote(quote: Quote, businessDate: string): void {
 }
 
 export async function createQuote(db: PrismaClient, context: DemoContext, input: QuoteInput) {
+  requireCustomer(context);
   const existing = await db.quote.findUnique({ where: { id: input.requestId } });
   if (existing) return reuseQuote(existing, context, input);
   requireSchedulableLease(input.startDate, input.termMonths);

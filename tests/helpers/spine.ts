@@ -32,7 +32,7 @@ export async function demoContext(
     businessDate,
     operator,
     simulated: true,
-    actor: `demo:${operator ? 'operator' : 'customer'}:${customerId}`,
+    actor: operator ? 'demo:operator:dealer' : `demo:customer:${customerId}`,
   };
 }
 

@@ -210,6 +210,6 @@ it('validates demo context and distinguishes an explicit simulated date from tod
   expect(await readDemoContext(operator)).toMatchObject({
     operator: true,
     simulated: true,
-    actor: 'demo:operator:cust-aino',
+    actor: 'demo:operator:dealer',
   });
 });

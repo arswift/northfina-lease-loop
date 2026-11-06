@@ -3,7 +3,7 @@ import { mayEndLease } from '@/domain/lifecycle';
 import { taxOn } from '@/domain/vat';
 import { ApiError } from './api-response';
 import { withAudit } from './audit';
-import type { DemoContext } from './demo-context';
+import { requireCustomer, type DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { rethrowDatabaseConflict, requestHash, requireSameRequest } from './request-integrity';
 import type { EndInput } from './spine-shapes';
@@ -16,6 +16,7 @@ export async function endLease(
   contractId: string,
   input: EndInput
 ) {
+  requireCustomer(context);
   const contract = await ownedContract(db, context, contractId);
   const fingerprint = requestHash({ customerId: context.customer.id, contractId, input });
   if (contract.close_request_id === input.requestId) {
