@@ -99,7 +99,9 @@ export function ContractPanel({
         />
       </div>
       <p className="mt-4 text-sm">{t('spine.taxHelp')}</p>
-      <h3 className="mt-8 text-lg font-semibold">{t('spine.invoices')}</h3>
+      <h3 id="invoices-heading" tabIndex={-1} className="mt-8 scroll-mt-24 text-lg font-semibold">
+        {t('spine.invoices')}
+      </h3>
       <p className="mt-2 text-sm">{t('spine.issuedHelp')}</p>
       {contract.invoices.length ? (
         <InvoiceTable rows={contract.invoices} locale={locale} />

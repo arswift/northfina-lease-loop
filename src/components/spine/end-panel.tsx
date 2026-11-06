@@ -1,6 +1,7 @@
 import type { AssetCondition } from '@/data/schemas';
-import type { EndChoice } from '@/domain/lifecycle';
+import { endLeaseReadiness, type EndChoice } from '@/domain/lifecycle';
 import type { ContractView } from '@/server/spine-views';
+import { formatIsoDate, formatNumber } from '@/i18n/format';
 import { getT } from '@/i18n/get-t';
 import type { Locale } from '@/i18n/locales';
 import type { Bootstrap } from './price-panel';
@@ -47,11 +48,28 @@ export function EndPanel({
   const { choice, condition, usageText, successorId } = draft;
   const usageValue = wholeInput(usageText, data.asset.usage.value);
   const invalid = usageValue === null || (choice === 'pass_on' && !successorId);
+  const rentalInvoiceCount = contract.invoices.filter((invoice) => invoice.kind === 'rent').length;
+  const latestInvoiceDate = contract.invoices.reduce<string | undefined>(
+    (latest, invoice) => (!latest || invoice.invoiceDate > latest ? invoice.invoiceDate : latest),
+    undefined
+  );
+  const readiness = endLeaseReadiness({
+    status: contract.status,
+    endDate: contract.endDate,
+    onDate: data.businessDate,
+    termMonths: contract.terms.termMonths,
+    rentalInvoiceCount,
+    latestInvoiceDate,
+  });
+  const dateToAdvance =
+    latestInvoiceDate && latestInvoiceDate > contract.endDate
+      ? latestInvoiceDate
+      : contract.endDate;
   if (contract.status !== 'active') return <p className={panelClass}>{t('spine.closed')}</p>;
   return (
     <section className={panelClass} aria-labelledby="end-heading">
       <h2 id="end-heading" className="text-xl font-semibold">
-        {t('spine.end')}
+        {readiness.ok ? t('spine.end') : t('spine.endProgressTitle')}
       </h2>
       <p className="mt-3">{t('spine.endHelp')}</p>
       {volatile ? (
@@ -59,117 +77,143 @@ export function EndPanel({
           {t('spine.storageWarning')}
         </p>
       ) : null}
-      <button
-        type="button"
-        className={buttonClass + ' mt-4'}
-        disabled={busy}
-        onClick={() => onDate(contract.endDate)}
-      >
-        {t('spine.maturity')}
-      </button>
-      <fieldset disabled={busy} className="mt-5 space-y-4">
-        <legend className="sr-only">{t('spine.end')}</legend>
-        <div className="flex flex-wrap gap-4">
-          {(['buy', 'return', 'pass_on'] as const).map((value) => (
-            <label key={value} className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="end-choice"
-                value={value}
-                checked={choice === value}
-                onChange={() => saveDraft({ ...draft, choice: value })}
-              />
-              {messageFor(locale, 'spine.' + value)}
-            </label>
-          ))}
-        </div>
-        <Field id="return-condition" label={t('spine.condition')}>
-          <select
-            id="return-condition"
-            className={inputClass}
-            value={condition}
-            onChange={(event) =>
-              saveDraft({ ...draft, condition: event.target.value as AssetCondition })
-            }
-          >
-            {(['new', 'like_new', 'good', 'fair', 'poor'] as const).map((value) => (
-              <option key={value} value={value}>
-                {messageFor(locale, 'condition.' + value)}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field
-          id="return-usage"
-          label={
-            t('spine.usage') +
-            ' (' +
-            messageFor(locale, 'spine.unit.' + data.asset.usage.unit) +
-            ')'
-          }
-        >
-          <input
-            id="return-usage"
-            className={inputClass}
-            type="number"
-            min={data.asset.usage.value}
-            max={2_147_483_647}
-            step={1}
-            value={usageText}
-            aria-invalid={usageValue === null || undefined}
-            aria-describedby={usageValue === null ? 'return-usage-error' : undefined}
-            onChange={(event) => saveDraft({ ...draft, usageText: event.target.value })}
-          />
-          {usageValue === null ? (
-            <p id="return-usage-error" className="mt-2 text-sm">
-              {t('spine.invalidUsage', { minimum: data.asset.usage.value })}
-            </p>
+      {!readiness.ok ? (
+        <div className="mt-4 space-y-3 text-sm">
+          {readiness.reason === 'too_early' ? (
+            <>
+              <p role="status">
+                {t('spine.endNotReadyDate', { date: formatIsoDate(dateToAdvance, locale) })}
+              </p>
+              <button
+                type="button"
+                className={buttonClass}
+                disabled={busy}
+                onClick={() => onDate(dateToAdvance)}
+              >
+                {t('spine.advanceEndDate', { date: formatIsoDate(dateToAdvance, locale) })}
+              </button>
+            </>
           ) : null}
-        </Field>
-        {choice === 'pass_on' ? (
-          <Field id="next-customer" label={t('spine.nextCustomer')}>
+          <p role={readiness.reason === 'invoices_missing' ? 'status' : undefined}>
+            {t('spine.endInvoiceProgress', {
+              issued: formatNumber(rentalInvoiceCount, locale),
+              total: formatNumber(contract.terms.termMonths, locale),
+            })}
+          </p>
+          <a
+            href="#invoices-heading"
+            className="inline-flex min-h-11 items-center rounded-md font-semibold underline underline-offset-2"
+          >
+            {t('spine.endInvoiceLink')}
+          </a>
+        </div>
+      ) : null}
+      {readiness.ok ? (
+        <fieldset disabled={busy} className="mt-5 space-y-4">
+          <legend className="sr-only">{t('spine.end')}</legend>
+          <div className="flex flex-wrap gap-4">
+            {(['buy', 'return', 'pass_on'] as const).map((value) => (
+              <label key={value} className="flex min-h-11 items-center gap-2">
+                <input
+                  type="radio"
+                  name="end-choice"
+                  value={value}
+                  checked={choice === value}
+                  onChange={() => saveDraft({ ...draft, choice: value })}
+                />
+                {messageFor(locale, 'spine.' + value)}
+              </label>
+            ))}
+          </div>
+          <Field id="return-condition" label={t('spine.condition')}>
             <select
-              id="next-customer"
+              id="return-condition"
               className={inputClass}
-              value={successorId}
-              onChange={(event) => saveDraft({ ...draft, successorId: event.target.value })}
+              value={condition}
+              onChange={(event) =>
+                saveDraft({ ...draft, condition: event.target.value as AssetCondition })
+              }
             >
-              <option value="">{t('spine.select')}</option>
-              {data.customers
-                .filter((customer) => customer.id !== data.customer.id)
-                .map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.name}
-                  </option>
-                ))}
+              {(['new', 'like_new', 'good', 'fair', 'poor'] as const).map((value) => (
+                <option key={value} value={value}>
+                  {messageFor(locale, 'condition.' + value)}
+                </option>
+              ))}
             </select>
           </Field>
-        ) : null}
-        <ConsentAction
-          key={endConsentKey({
-            locale,
-            contract,
-            data,
-            choice,
-            condition,
-            usageText,
-            successorId,
-          })}
-          label={t('spine.endConsent')}
-          actionLabel={busy ? t('spine.pending') : t('spine.confirmEnd')}
-          busy={busy}
-          disabled={invalid}
-          onConfirm={() => {
-            if (usageValue === null || (choice === 'pass_on' && !successorId)) return;
-            onEnd({
+          <Field
+            id="return-usage"
+            label={
+              t('spine.usage') +
+              ' (' +
+              messageFor(locale, 'spine.unit.' + data.asset.usage.unit) +
+              ')'
+            }
+          >
+            <input
+              id="return-usage"
+              className={inputClass}
+              type="number"
+              min={data.asset.usage.value}
+              max={2_147_483_647}
+              step={1}
+              value={usageText}
+              aria-invalid={usageValue === null || undefined}
+              aria-describedby={usageValue === null ? 'return-usage-error' : undefined}
+              onChange={(event) => saveDraft({ ...draft, usageText: event.target.value })}
+            />
+            {usageValue === null ? (
+              <p id="return-usage-error" className="mt-2 text-sm">
+                {t('spine.invalidUsage', { minimum: data.asset.usage.value })}
+              </p>
+            ) : null}
+          </Field>
+          {choice === 'pass_on' ? (
+            <Field id="next-customer" label={t('spine.nextCustomer')}>
+              <select
+                id="next-customer"
+                className={inputClass}
+                value={successorId}
+                onChange={(event) => saveDraft({ ...draft, successorId: event.target.value })}
+              >
+                <option value="">{t('spine.select')}</option>
+                {data.customers
+                  .filter((customer) => customer.id !== data.customer.id)
+                  .map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </option>
+                  ))}
+              </select>
+            </Field>
+          ) : null}
+          <ConsentAction
+            key={endConsentKey({
+              locale,
+              contract,
+              data,
               choice,
               condition,
-              usageValue,
-              ...(choice === 'pass_on' ? { nextCustomerId: successorId } : {}),
-            });
-          }}
-        />
-      </fieldset>
+              usageText,
+              successorId,
+            })}
+            label={t('spine.endConsent')}
+            actionLabel={busy ? t('spine.pending') : t('spine.confirmEnd')}
+            busy={busy}
+            disabled={invalid}
+            onConfirm={() => {
+              if (!readiness.ok || usageValue === null || (choice === 'pass_on' && !successorId))
+                return;
+              onEnd({
+                choice,
+                condition,
+                usageValue,
+                ...(choice === 'pass_on' ? { nextCustomerId: successorId } : {}),
+              });
+            }}
+          />
+        </fieldset>
+      ) : null}
     </section>
   );
 }
