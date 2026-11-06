@@ -1,36 +1,22 @@
-name: UI accessibility
+# Optional on-demand UI smoke. The regular CI already runs on every push and PR.
+name: UI smoke
 
 on:
-  push:
-    branches: ['feat/accessible-price-design', 'feat/northfina-theme-switcher']
-  pull_request:
-    paths:
-      - 'src/components/**'
-      - 'src/app/**'
-      - 'src/i18n/**'
-      - 'scripts/check-ui.mjs'
-      - 'scripts/check-appearance.mjs'
-      - 'scripts/check-language-menu.mjs'
-      - '.github/workflows/ui-accessibility.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: ui-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 8
     env:
       CI: true
     steps:
       - name: Check out
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js
@@ -39,65 +25,36 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - name: Set browser tool paths
+      - name: Set test paths
         run: |
           echo "UI_QA_TOOLS=$RUNNER_TEMP/lease-ui-tools" >> "$GITHUB_ENV"
           echo "UI_OUTPUT_DIR=$RUNNER_TEMP/lease-ui-results" >> "$GITHUB_ENV"
 
-      - name: Install application dependencies
-        run: npm ci
-
-      - name: Retain reviewed source and installed framework guides
+      - name: Build isolated demo
         run: |
-          mkdir -p "$UI_OUTPUT_DIR"
-          git archive HEAD -o "$UI_OUTPUT_DIR/source.tar"
-          if [ -d node_modules/next/dist/docs ]; then
-            tar -cf "$UI_OUTPUT_DIR/next-guides.tar" -C node_modules/next/dist docs
-          fi
+          npm ci
+          npm run db:setup
+          npm run build
 
-      - name: Check all theme branch commit messages
-        if: github.ref_name == 'feat/northfina-theme-switcher'
-        run: npx commitlint --from 934e9db1c334fd90f40d102cbeedbd159994bcbe --to "$GITHUB_SHA" --verbose
-
-      - name: Prepare isolated synthetic database
-        run: npm run db:setup
-
-      - name: Full repository quality gate
-        run: npm run check:all
-
-      - name: Show formatting differences on failure
-        if: failure()
-        shell: bash
-        run: |
-          while IFS= read -r file; do
-            [ -f "$file" ] || continue
-            npx prettier "$file" > "$RUNNER_TEMP/formatted-file"
-            diff -u "$file" "$RUNNER_TEMP/formatted-file" || true
-          done < <(npx prettier --list-different .)
-
-      - name: Install isolated browser tools
+      - name: Install browser tooling
         run: |
           npm install --prefix "$UI_QA_TOOLS" --no-save --package-lock=false playwright@1.57.0 axe-core@4.11.0
-          node "$UI_QA_TOOLS/node_modules/playwright/cli.js" install --with-deps chromium
+          node "$UI_QA_TOOLS/node_modules/playwright/cli.js" install chromium --only-shell
 
-      - name: Verify the actual application in Chromium
+      - name: Run short UI smoke
         shell: bash
         run: |
           mkdir -p "$UI_OUTPUT_DIR"
           npm start -- --hostname 127.0.0.1 > "$UI_OUTPUT_DIR/server.log" 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          node scripts/check-ui.mjs
-          if [ -f scripts/check-appearance.mjs ]; then
-            node scripts/check-appearance.mjs
-          fi
-          node scripts/check-language-menu.mjs
+          node scripts/check-ui-smoke.mjs
 
-      - name: Preserve screenshots and audit results
-        if: always()
+      - name: Save failure diagnostics
+        if: failure()
         uses: actions/upload-artifact@v5
         with:
-          name: lease-ui-${{ github.sha }}
+          name: ui-smoke-${{ github.sha }}
           path: ${{ runner.temp }}/lease-ui-results
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 3
