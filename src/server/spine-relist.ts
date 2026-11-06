@@ -11,6 +11,7 @@ import { rethrowDatabaseConflict, requestHash, requireSameRequest } from './requ
 import type { RelistInput } from './spine-shapes';
 import { readMaintenance } from './spine-maintenance';
 import { previewSecondLife } from './second-life-matching';
+import { selectSecondLifeCandidate } from '@/domain/second-life-selection';
 
 function releaseView(release: AssetRelease) {
   return {
@@ -92,6 +93,7 @@ export async function relistAsset(
       taskIds: missing,
     });
 
+  const matchingDecision: Record<string, unknown> = {};
   try {
     const release = await withAudit(
       db,
@@ -108,6 +110,7 @@ export async function relistAsset(
           condition: input.condition,
           taskIds: plan.tasks.map((task) => task.id),
           ...(input.matching ? { matching: input.matching } : {}),
+          ...(input.matching ? { matchingDecision } : {}),
         },
       },
       async (tx) => {
@@ -119,7 +122,12 @@ export async function relistAsset(
             ...input.matching,
             lastServiceUsage: input.lastServiceUsage,
           });
-          const selected = preview.recommendation;
+          const selection = selectSecondLifeCandidate(preview, {
+            requestId: input.matching.waitingRequestId,
+            condition: input.condition,
+            overrideReason: input.matching.overrideReason,
+          });
+          const selected = selection.ok ? selection.candidate : null;
           if (
             !selected ||
             selected.customerId !== input.matching.nextCustomerId ||
@@ -133,9 +141,20 @@ export async function relistAsset(
             throw new ApiError(
               409,
               'MATCH_CHANGED',
-              'The recommended match changed; review it again'
+              'The selected match changed or requires an override reason; review it again'
             );
           }
+          Object.assign(matchingDecision, {
+            override: selection.ok && selection.override,
+            recommended: preview.recommendation
+              ? {
+                  requestId: preview.recommendation.requestId,
+                  condition: preview.recommendation.condition,
+                  monthlyNetCents: preview.recommendation.monthlyNetCents,
+                  workNetCents: preview.recommendation.workNetCents,
+                }
+              : null,
+          });
           // Imported requests are consumed by the matching audit in this transaction.
           // Registered requests additionally change their customer-managed status.
           if (!selected.imported) {

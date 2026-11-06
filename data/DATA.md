@@ -32,6 +32,13 @@ Existing customer registrations can change the winner. Run these checks before
 allocating the item, or use a separate disposable demo database; do not reset a
 database whose saved work you need to keep.
 
+To test an operator override, compare on `2026-11-06` before publishing. Under
+**Choose another eligible plan**, select Olavi's `wait-13` in good condition.
+Enter a reason of at least 10 characters, then use the selected plan. The preparation
+form must show good condition and its required work. After confirmation the offer
+is reserved for Olavi; the audit retains the reason and the original `wait-02`
+recommendation. Anonymous requests and failed constraints cannot be overridden.
+
 - **Money is integer euro cents.** `389000` means €3,890.00. Prices are **net (VAT excluded)** unless a field says otherwise.
 - **Dates are ISO `YYYY-MM-DD`.** `valid_to: null` means "still valid".
 - **Percentages are plain numbers.** `25.5` means 25.5 %.

@@ -1,4 +1,12 @@
 {
+  "match.overrideTitle": "Välj en annan lämplig plan",
+  "match.overrideHelp": "Rekommendationen prioriterar behovsdatum och reparationskostnad. Du kan välja en annan lämplig kund eller ett annat skick med en motivering som sparas i händelseloggen. Behörighetskraven gäller fortfarande.",
+  "match.alternative": "Lämplig kund och reparationsplan",
+  "match.chooseAlternative": "Välj ett alternativ",
+  "match.alternativeOption": "{customer} · {request} · {condition} · {term} månader · Hyra {rent}/månad · Reparationer {cost}",
+  "match.overrideReason": "Varför väljer du denna plan? (10–500 tecken)",
+  "match.useAlternative": "Använd vald plan",
+  "match.savedOverride": "Operatörens avvikelse: {reason}",
   "wait.manageTitle": "Hantera förfrågningar: {category}",
   "wait.availableHelp": "Tillgången är tillgänglig för leasing. Du kan fortfarande redigera eller avbryta dina befintliga förfrågningar nedan.",
   "wait.loadFailed": "Förfrågningarna kunde inte laddas. Försök igen för att fortsätta.",

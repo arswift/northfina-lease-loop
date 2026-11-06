@@ -88,6 +88,11 @@ export function RelistPanel({
           </button>
         </p>
       ) : null}
+      {matching?.overrideReason ? (
+        <p className="mt-2 text-sm">
+          {t('match.savedOverride', { reason: matching.overrideReason })}
+        </p>
+      ) : null}
       <fieldset disabled={busy} className="mt-5 space-y-4">
         <Field id="relist-price" label={t('spine.newPrice')}>
           <input

@@ -1,4 +1,12 @@
 {
+  "match.overrideTitle": "Choose another eligible plan",
+  "match.overrideHelp": "The recommendation follows deadline and repair-cost priority. You may choose another eligible customer or condition, with a reason saved in the audit trail. Eligibility checks still apply.",
+  "match.alternative": "Eligible customer and repair plan",
+  "match.chooseAlternative": "Choose an alternative",
+  "match.alternativeOption": "{customer} · {request} · {condition} · {term} months · Rent {rent}/month · Repairs {cost}",
+  "match.overrideReason": "Why choose this plan instead? (10–500 characters)",
+  "match.useAlternative": "Use selected plan",
+  "match.savedOverride": "Operator override: {reason}",
   "wait.manageTitle": "Manage waiting requests: {category}",
   "wait.availableHelp": "This item is available to lease. You can still edit or cancel your existing waiting requests below.",
   "wait.loadFailed": "Waiting requests could not be loaded. Retry to continue.",
