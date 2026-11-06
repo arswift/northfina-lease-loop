@@ -139,7 +139,7 @@ describe('strict command inputs', () => {
     expect(relistInputSchema.safeParse({ ...relist, ...change }).success).toBe(false);
   });
 
-  it('trims the valuation reason and accepts a zero service baseline', () => {
+  it('trims the valuation reason and accepts a zero service baseline or omitted auto-valuation fields', () => {
     expect(
       relistInputSchema.parse({
         ...relist,
@@ -147,6 +147,19 @@ describe('strict command inputs', () => {
         lastServiceUsage: 0,
       })
     ).toEqual({ ...relist, lastServiceUsage: 0 });
+    expect(
+      relistInputSchema.parse({
+        requestId,
+        releaseRevision: 0,
+        condition: 'good',
+        completedTaskIds: ['safety_inspection'],
+      })
+    ).toEqual({
+      requestId,
+      releaseRevision: 0,
+      condition: 'good',
+      completedTaskIds: ['safety_inspection'],
+    });
   });
 });
 

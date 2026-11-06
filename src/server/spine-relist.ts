@@ -1,5 +1,6 @@
-import { loadRefurbishmentCosts } from '@/data/load';
+import { loadPriceLists, loadRefurbishmentCosts, loadResidualCurves } from '@/data/load';
 import { maintenanceAfterWork, missingReadinessTasks, refurbishmentPlan } from '@/domain/lifecycle';
+import { calculateUsedAssetValuation } from '@/domain/residual';
 import type { AssetRelease } from '@/generated/prisma/client';
 import { ApiError } from './api-response';
 import { toAsset } from './assets';
@@ -8,7 +9,7 @@ import type { DemoContext } from './demo-context';
 import { requireOperator } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { rethrowDatabaseConflict, requestHash, requireSameRequest } from './request-integrity';
-import type { RelistInput } from './spine-shapes';
+import { priceTermsSchema, type RelistInput } from './spine-shapes';
 import { readMaintenance } from './spine-maintenance';
 
 function releaseView(release: AssetRelease) {
@@ -31,12 +32,16 @@ export async function relistAsset(
 ) {
   requireOperator(context);
   const fingerprint = requestHash({ actor: context.actor, assetId, input });
-  const [row, previous, lastContract, costs] = await Promise.all([
-    db.asset.findUnique({ where: { id: assetId } }),
-    db.assetRelease.findUnique({ where: { asset_id: assetId } }),
-    db.contract.findFirst({ where: { asset_id: assetId }, orderBy: { life_number: 'desc' } }),
-    loadRefurbishmentCosts(),
-  ]);
+  const [row, previous, lastContract, firstContract, costs, residualCurves, priceLists] =
+    await Promise.all([
+      db.asset.findUnique({ where: { id: assetId } }),
+      db.assetRelease.findUnique({ where: { asset_id: assetId } }),
+      db.contract.findFirst({ where: { asset_id: assetId }, orderBy: { life_number: 'desc' } }),
+      db.contract.findFirst({ where: { asset_id: assetId }, orderBy: { life_number: 'asc' } }),
+      loadRefurbishmentCosts(),
+      loadResidualCurves(),
+      loadPriceLists(),
+    ]);
   if (!row) throw new ApiError(404, 'ASSET_NOT_FOUND', 'The item was not found');
   if ((previous?.revision ?? 0) !== input.releaseRevision) {
     throw new ApiError(
@@ -76,6 +81,31 @@ export async function relistAsset(
     throw new ApiError(422, 'READINESS_INCOMPLETE', 'Complete all required work before relisting', {
       taskIds: missing,
     });
+  const firstLeasePriceCents = firstContract
+    ? priceTermsSchema.parse(JSON.parse(firstContract.terms_json)).listPriceCents
+    : undefined;
+  const autoValuation = calculateUsedAssetValuation({
+    asset: toAsset(row),
+    targetCondition: input.condition,
+    onDate: context.businessDate,
+    residualCurves,
+    priceLists,
+    firstLeasePriceCents,
+    firstLeaseStartDate: firstContract?.start_date,
+    resetsUsage: plan.tasks.some((task) => task.resetsUsage),
+  });
+  if (!autoValuation.ok) {
+    throw new ApiError(
+      422,
+      'READINESS_UNAVAILABLE',
+      'The used-item valuation cannot be determined',
+      {
+        reason: autoValuation.reason,
+      }
+    );
+  }
+  const netPriceCents = input.netPriceCents ?? autoValuation.valuation.netPriceCents;
+  const valuationReason = input.valuationReason ?? autoValuation.valuation.valuationReason;
 
   try {
     const release = await withAudit(
@@ -102,7 +132,7 @@ export async function relistAsset(
         if (updated.count !== 1)
           throw new ApiError(409, 'RELIST_NOT_ALLOWED', 'The item is no longer awaiting relisting');
         const values = {
-          net_price_cents: input.netPriceCents,
+          net_price_cents: netPriceCents,
           ready_on: context.businessDate,
           readiness_json: JSON.stringify({
             tasks: plan.tasks,
@@ -115,7 +145,7 @@ export async function relistAsset(
               lastServiceUsage: input.lastServiceUsage,
             }),
           }),
-          valuation_reason: input.valuationReason,
+          valuation_reason: valuationReason,
           relist_request_id: input.requestId,
           relist_request_hash: fingerprint,
         };

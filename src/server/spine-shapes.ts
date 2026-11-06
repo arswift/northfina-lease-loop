@@ -43,8 +43,8 @@ export type EndInput = z.infer<typeof endInputSchema>;
 export const relistInputSchema = z.strictObject({
   releaseRevision: z.number().int().nonnegative(),
   requestId: requestIdSchema,
-  netPriceCents: cents.positive(),
-  valuationReason: z.string().trim().min(10).max(500),
+  netPriceCents: cents.positive().optional(),
+  valuationReason: z.string().trim().min(10).max(500).optional(),
   condition: assetConditionSchema,
   completedTaskIds: z.array(z.string().min(1).max(100)).max(20),
   lastServiceUsage: z.number().int().nonnegative().max(2_147_483_647).optional(),

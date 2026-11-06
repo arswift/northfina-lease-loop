@@ -4,6 +4,7 @@ import {
   loadPriceLists,
   loadQuestions,
   loadRefurbishmentCosts,
+  loadResidualCurves,
   loadVatRates,
 } from '@/data/load';
 import type { PriceList } from '@/data/schemas';
@@ -16,6 +17,7 @@ import type { TransactionClient } from './audit';
 import type { DemoContext } from './demo-context';
 import type { PrismaClient } from './prisma-client';
 import { readMaintenance } from './spine-maintenance';
+import { priceTermsSchema } from './spine-shapes';
 
 export type CatalogueOffer = { priceCents: number; source: string; releaseRevision: number };
 
@@ -80,15 +82,31 @@ export async function readAssetOffer(
 }
 
 export async function getBootstrap(db: PrismaClient, context: DemoContext, assetId: string) {
-  const [item, customers, coefficientTable, vatRates, questions, costs] = await Promise.all([
+  const [
+    item,
+    customers,
+    coefficientTable,
+    vatRates,
+    questions,
+    costs,
+    residualCurves,
+    priceLists,
+    firstContract,
+  ] = await Promise.all([
     readAssetOffer(db, assetId, context.businessDate),
     loadCustomers(),
     loadCoefficientTable(),
     loadVatRates(),
     loadQuestions(),
     loadRefurbishmentCosts(),
+    loadResidualCurves(),
+    loadPriceLists(),
+    db.contract.findFirst({ where: { asset_id: assetId }, orderBy: { life_number: 'asc' } }),
   ]);
   const maintenance = readMaintenance(item.release);
+  const firstLeasePriceCents = firstContract
+    ? priceTermsSchema.parse(JSON.parse(firstContract.terms_json)).listPriceCents
+    : undefined;
   return {
     businessDate: context.businessDate,
     simulated: context.simulated,
@@ -98,6 +116,10 @@ export async function getBootstrap(db: PrismaClient, context: DemoContext, asset
     offer: item.offer,
     releaseRevision: item.release?.revision ?? 0,
     refurbishmentCosts: costs,
+    residualCurves,
+    priceLists,
+    ...(firstLeasePriceCents === undefined ? {} : { firstLeasePriceCents }),
+    ...(firstContract?.start_date ? { firstLeaseStartDate: firstContract.start_date } : {}),
     maintenance,
     reservedForSelectedCustomer: item.release?.reserved_for_customer_id === context.customer.id,
     coefficientTable,

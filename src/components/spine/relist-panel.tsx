@@ -3,14 +3,16 @@ import type { AssetCondition } from '@/data/schemas';
 import { refurbishmentPlan } from '@/domain/lifecycle';
 import { parseCents } from '@/domain/money-arithmetic';
 import { formatEuro } from '@/domain/money';
+import { calculateUsedAssetValuation } from '@/domain/residual';
+import { formatNumber } from '@/i18n/format';
 import { getT } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
 import type { Bootstrap } from './price-panel';
 import { buttonClass, Field, inputClass, messageFor, panelClass } from './ui';
 
 export type RelistForm = {
-  netPriceCents: number;
-  valuationReason: string;
+  netPriceCents?: number;
+  valuationReason?: string;
   condition: AssetCondition;
   completedTaskIds: string[];
   lastServiceUsage?: number;
@@ -42,34 +44,32 @@ export function RelistPanel({
     lastServiceUsage,
     maintenance: data.maintenance,
   });
+  const autoValuation = calculateUsedAssetValuation({
+    asset: data.asset,
+    targetCondition: condition,
+    onDate: data.businessDate,
+    residualCurves: data.residualCurves,
+    priceLists: data.priceLists,
+    firstLeasePriceCents: data.firstLeasePriceCents,
+    firstLeaseStartDate: data.firstLeaseStartDate,
+    resetsUsage: plan.ok && plan.tasks.some((task) => task.resetsUsage),
+  });
+  const customPriceEntered = price.trim().length > 0;
+  const customReasonEntered = reason.trim().length > 0;
   const money = parseCents(price);
+  const priceValid = !customPriceEntered || (money.ok && money.cents > 0);
+  const reasonValid = !customReasonEntered || reason.trim().length >= 10;
+  const formatBpPercent = (bp: number) =>
+    new Intl.NumberFormat(intlLocale[locale], { maximumFractionDigits: 2 }).format(bp / 100);
+
   return (
     <section className={panelClass} aria-labelledby="relist-heading">
-      <h2 id="relist-heading" className="text-xl font-semibold">
+      <h2 id="relist-heading" className="text-xl font-semibold text-navy dark:text-stone-100">
         {t('spine.relist')}
       </h2>
-      <p className="mt-3 font-medium">{t('spine.operator')}</p>
-      <p className="mt-2 text-sm">{t('spine.operatorHelp')}</p>
+      <p className="mt-3 font-medium text-navy dark:text-stone-200">{t('spine.operator')}</p>
+      <p className="mt-2 text-sm text-ink-muted dark:text-stone-300">{t('spine.operatorHelp')}</p>
       <fieldset disabled={busy} className="mt-5 space-y-4">
-        <Field id="relist-price" label={t('spine.newPrice')}>
-          <input
-            id="relist-price"
-            className={inputClass}
-            inputMode="decimal"
-            value={price}
-            onChange={(event) => setPrice(event.target.value)}
-          />
-        </Field>
-        <Field id="relist-reason" label={t('spine.valuationReason')}>
-          <textarea
-            id="relist-reason"
-            className={inputClass}
-            minLength={10}
-            maxLength={500}
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </Field>
         <Field id="relist-condition" label={t('spine.targetCondition')}>
           <select
             id="relist-condition"
@@ -103,6 +103,35 @@ export function RelistPanel({
               }}
             />
           </Field>
+        ) : null}
+        {autoValuation.ok ? (
+          <div className="rounded-lg border border-ocean/25 bg-ice/60 p-4 text-navy dark:border-cyan-800 dark:bg-cyan-950/50 dark:text-stone-100">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-ocean uppercase dark:text-cyan-300">
+                  {t('spine.autoValuation')}
+                </p>
+                <p className="mt-1 text-xs text-ink-muted dark:text-stone-300">
+                  {t('spine.autoValuationPrice')}
+                </p>
+              </div>
+              <p className="text-2xl font-semibold text-ocean tabular-nums dark:text-cyan-200">
+                {formatEuro(autoValuation.valuation.netPriceCents, intlLocale[locale])}
+              </p>
+            </div>
+            <p className="mt-2 text-xs text-ink-muted tabular-nums dark:text-stone-300">
+              {t('spine.autoValuationFormula', {
+                base: formatEuro(autoValuation.valuation.basePriceCents, intlLocale[locale]),
+                age: formatNumber(autoValuation.valuation.ageMonths, locale),
+                ageFactor: formatBpPercent(autoValuation.valuation.ageBasisPoints),
+                conditionFactor: formatBpPercent(autoValuation.valuation.conditionBasisPoints),
+                usage: t(`usage.${data.asset.usage.unit}`, {
+                  value: formatNumber(autoValuation.valuation.effectiveUsageValue, locale),
+                }),
+                usageFactor: formatBpPercent(autoValuation.valuation.usageFactorBasisPoints),
+              })}
+            </p>
+          </div>
         ) : null}
         {plan.ok ? (
           <div className="rounded-lg border border-hairline bg-mist/45 p-4 dark:border-stone-800 dark:bg-stone-800/40">
@@ -140,24 +169,51 @@ export function RelistPanel({
         ) : (
           <p role="status">{messageFor(locale, 'spine.reason.' + plan.reason)}</p>
         )}
+        <details className="rounded-lg border border-hairline bg-mist/30 p-4 dark:border-stone-800 dark:bg-stone-800/30">
+          <summary className="cursor-pointer text-sm font-medium text-navy dark:text-stone-200">
+            {t('spine.autoValuationOverride')}
+          </summary>
+          <div className="mt-4 space-y-4">
+            <Field id="relist-price" label={t('spine.newPrice')}>
+              <input
+                id="relist-price"
+                className={inputClass}
+                inputMode="decimal"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+              />
+            </Field>
+            <Field id="relist-reason" label={t('spine.valuationReason')}>
+              <textarea
+                id="relist-reason"
+                className={inputClass}
+                minLength={10}
+                maxLength={500}
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+              />
+            </Field>
+          </div>
+        </details>
         <button
           className={buttonClass}
           disabled={
-            !money.ok ||
-            reason.trim().length < 10 ||
+            !autoValuation.ok ||
+            !priceValid ||
+            !reasonValid ||
             !plan.ok ||
             (plan.ok && plan.tasks.some((task) => !completed.includes(task.id)))
           }
           onClick={() => {
-            if (money.ok)
-              onRelist({
-                netPriceCents: money.cents,
-                valuationReason: reason,
-                condition,
-                completedTaskIds: completed,
-                releaseRevision: data.releaseRevision,
-                ...(lastServiceUsage === undefined ? {} : { lastServiceUsage }),
-              });
+            if (!autoValuation.ok || !priceValid || !reasonValid) return;
+            onRelist({
+              ...(customPriceEntered && money.ok ? { netPriceCents: money.cents } : {}),
+              ...(customReasonEntered ? { valuationReason: reason.trim() } : {}),
+              condition,
+              completedTaskIds: completed,
+              releaseRevision: data.releaseRevision,
+              ...(lastServiceUsage === undefined ? {} : { lastServiceUsage }),
+            });
           }}
         >
           {t('spine.publish')}
