@@ -152,7 +152,13 @@ export function ApplicationPanel(props: Props) {
           {busy ? t('spine.pending') : t('spine.submitApplication')}
         </button>
       </form>
-      {application ? <ApplicationStatus application={application} locale={locale} /> : null}
+      {application ? (
+        <ApplicationStatus
+          application={application}
+          questions={flow.activeQuestions}
+          locale={locale}
+        />
+      ) : null}
       {waiting ? (
         <p className="mt-3 text-sm">
           {t('spine.signatory.pricePolicy', { date: quote.validThrough })}

@@ -163,35 +163,75 @@ describe('the complete loop', () => {
     expect(second.id).not.toBe(contract.id);
   });
 
-  it('buys the asset at the locked net buyout, taxes it on the buyout date and prevents relisting', async () => {
-    const contract = await createLease(db, aino, { termMonths: 12 });
+  it('buys at the locked price without replacing inspection data and prevents relisting', async () => {
+    const contract = await createLease(db, aino, { assetId: 'ebike-005', termMonths: 12 });
+    const assetBefore = await db.asset.findUniqueOrThrow({ where: { id: contract.assetId } });
     const endContext = { ...aino, businessDate: contract.endDate };
     await issueInvoices(db, endContext, contract.id);
     const input = {
       requestId: randomUUID(),
       choice: 'buy' as const,
-      condition: 'good' as const,
-      usageValue: 1000,
+      condition: 'poor' as const,
+      usageValue: 0,
     };
     const bought = await endLease(db, endContext, contract.id, input);
     expect(bought.status).toBe('bought');
     expect(bought.invoices.find((invoice) => invoice.kind === 'buyout')).toMatchObject({
-      netCents: 155600,
-      vatCents: 40456,
-      grossCents: 196056,
+      netCents: 63600,
+      vatCents: 16536,
+      grossCents: 80136,
+    });
+    expect(await db.asset.findUniqueOrThrow({ where: { id: contract.assetId } })).toMatchObject({
+      condition: assetBefore.condition,
+      usage_value: assetBefore.usage_value,
+      previous_lives: assetBefore.previous_lives + 1,
+      status: 'reserved',
     });
     expect(await endLease(db, endContext, contract.id, input)).toEqual(bought);
+    expect(await db.invoice.count({ where: { contract_id: contract.id, kind: 'buyout' } })).toBe(1);
+    expect(await db.auditLog.count({ where: { action: 'contract.bought' } })).toBe(1);
     await expect(
       endLease(db, endContext, contract.id, { ...input, choice: 'return' })
     ).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
     expect(await db.assetLease.count()).toBe(0);
     await expect(
-      relistAsset(db, { ...endContext, operator: true }, contract.assetId, await relistInput())
+      relistAsset(
+        db,
+        { ...endContext, operator: true },
+        contract.assetId,
+        await relistInput(contract.assetId)
+      )
     ).rejects.toMatchObject({ code: 'RELIST_NOT_ALLOWED' });
   });
 });
 
 describe('lifecycle guards and evidence', () => {
+  it.each(['return', 'pass_on'] as const)(
+    'rejects a lower inspection reading for %s without changing records',
+    async (choice) => {
+      const contract = await createLease(db, aino, { assetId: 'ebike-005', termMonths: 12 });
+      const endContext = { ...aino, businessDate: contract.endDate };
+      await issueInvoices(db, endContext, contract.id);
+      const assetBefore = await db.asset.findUniqueOrThrow({ where: { id: contract.assetId } });
+      const auditsBefore = await db.auditLog.count();
+      await expect(
+        endLease(db, endContext, contract.id, {
+          requestId: randomUUID(),
+          choice,
+          condition: 'poor',
+          usageValue: 0,
+          ...(choice === 'pass_on' ? { nextCustomerId: 'cust-lena' } : {}),
+        })
+      ).rejects.toMatchObject({ code: 'END_NOT_ALLOWED', details: { reason: 'usage_decreased' } });
+      expect(await db.asset.findUniqueOrThrow({ where: { id: contract.assetId } })).toEqual(
+        assetBefore
+      );
+      expect((await getContract(db, endContext, contract.id)).status).toBe('active');
+      expect(await db.auditLog.count()).toBe(auditsBefore);
+      expect(await db.assetLease.count()).toBe(1);
+    }
+  );
+
   it('blocks an early end and does not change money, status or audit', async () => {
     const contract = await createLease(db, aino);
     const auditsBefore = await db.auditLog.count();

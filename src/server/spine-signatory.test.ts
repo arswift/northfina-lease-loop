@@ -205,9 +205,12 @@ it('shows saved recipient, validity and next step in four locales without hiding
     expect(markup).toContain(t('spine.signatory.demoLimit'));
     expect(markup).toContain(t('spine.signatory.pricePolicy', { date: quote.validThrough }));
     expect(markup).not.toContain(t('spine.sign'));
+    expect(markup).not.toContain(t('spine.nextManual'));
+    expect(markup).not.toContain(t('spine.nextApproved'));
     const needsReview = renderToStaticMarkup(
       createElement(ApplicationStatus, {
         application: { ...application, reasons: [...application.reasons, 'pep'] },
+        questions: data.questions,
         locale,
       })
     );
@@ -216,5 +219,6 @@ it('shows saved recipient, validity and next step in four locales without hiding
     expect(needsReview).toContain(
       t('spine.signatory.recipient', { email: 'director@example.com' })
     );
+    expect(needsReview).not.toContain(t('spine.nextManual'));
   }
 });
