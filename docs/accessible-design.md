@@ -67,27 +67,20 @@ and locale-aware formatting remain authoritative in en, fi, sv and et.
 - `src/components/spine/price-tax-timeline.tsx`: explicit dated payment changes.
 - `src/components/spine/price-comparison.tsx`: responsive, comparable term options.
 - `src/components/asset-card.tsx`: catalogue continuity and readable item facts.
-- `scripts/check-ui.mjs`: browser regression and automated accessibility checks.
+- `scripts/check-ui-smoke.mjs`: small, optional browser smoke for key UI behaviours.
 
 ## Verification boundaries
 
-The existing CI is unchanged. The additional UI workflow runs `npm run check:all`,
-then checks the production build in Chromium using an isolated synthetic database.
-Playwright and axe-core are installed into the runner's temporary directory, not
-the application's dependencies or lockfile. Results and screenshots are artifacts.
+The unchanged core CI is the required quality gate and runs automatically.
+The extra `UI smoke` workflow is manual-only: it builds an isolated synthetic
+demo and checks a few meaningful browser interactions without repeating the entire
+quality gate. Playwright and axe-core stay outside application dependencies.
 
-The browser matrix covers four locales, light/dark schemes and 320/1280-pixel widths.
-Additional cases cover keyboard controls, invalid input, comparison without a write,
-language-switch draft persistence, a one-cent financing-band crossing, large amounts,
-200% root text size, forced colors and saving/reopening an offer. Scenario amounts
-are test expectations, never asset-specific branches in application code.
-
-A 320-pixel viewport tests reflow; 200% root text size tests enlargement. Neither is
-represented as a manual 400% browser-zoom test. Automated scans, static contrast
-calculations and a green build do not establish full WCAG conformance, screen-reader
-usability or comprehension by real 17- or 70-year-old users. Manual assistive and
-user testing remain necessary. Consult the actual run results rather than treating
-the intended coverage described here as a passed verification record.
+The old large browser matrix was retired after the original accessible-first
+iteration. It is neither required for each push nor evidence for the current
+revision. Automated scans and a green build do not establish WCAG conformance,
+screen-reader usability or comprehension by real users; review those manually
+when needed.
 
 Commits were created through the GitHub connector. Its contents API does not execute
 local Git hooks; no hook or CI check was disabled. The editing environment could not
