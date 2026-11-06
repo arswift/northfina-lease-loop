@@ -32,6 +32,7 @@ function reuseQuote(row: Quote, context: DemoContext, input: QuoteInput) {
 }
 
 export async function ownedQuote(db: PrismaClient, context: DemoContext, id: string) {
+  requireCustomer(context);
   const quote = await db.quote.findFirst({ where: { id, customer_id: context.customer.id } });
   if (!quote) throw new ApiError(404, 'QUOTE_NOT_FOUND', 'The offer was not found');
   return quote;
