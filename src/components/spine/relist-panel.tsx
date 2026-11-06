@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { MatchingSelection } from '@/data/second-life-schemas';
 import type { AssetCondition } from '@/data/schemas';
 import { refurbishmentPlan } from '@/domain/lifecycle';
 import { parseCents } from '@/domain/money-arithmetic';
@@ -7,8 +8,11 @@ import { getT } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
 import type { DealerWorkspace } from '@/server/spine-dealer';
 import { buttonClass, Field, inputClass, messageFor, panelClass } from './ui';
+import { MatchingPanel } from './matching-panel';
+import { moneyInputText } from './form-values';
 
 export type RelistForm = {
+  matching?: MatchingSelection;
   netPriceCents: number;
   valuationReason: string;
   condition: AssetCondition;
@@ -23,7 +27,7 @@ export function RelistPanel({
   busy,
   onRelist,
 }: {
-  data: Pick<DealerWorkspace, 'asset' | 'refurbishmentCosts' | 'maintenance' | 'releaseRevision'>;
+  data: DealerWorkspace;
   locale: Locale;
   busy: boolean;
   onRelist: (input: RelistForm) => void;
@@ -34,6 +38,14 @@ export function RelistPanel({
   const [condition, setCondition] = useState<AssetCondition>('good');
   const [service, setService] = useState('');
   const [completed, setCompleted] = useState<string[]>([]);
+  const [matching, setMatching] = useState<MatchingSelection | null>(null);
+  function clearMatch() {
+    setMatching(null);
+    setCondition('good');
+    setPrice('');
+    setReason('');
+    setCompleted([]);
+  }
   const lastServiceUsage = service === '' ? undefined : Number(service);
   const plan = refurbishmentPlan({
     asset: data.asset,
@@ -41,6 +53,7 @@ export function RelistPanel({
     costs: data.refurbishmentCosts,
     lastServiceUsage,
     maintenance: data.maintenance,
+    acceptsFairCondition: matching !== null,
   });
   const money = parseCents(price);
   return (
@@ -50,10 +63,36 @@ export function RelistPanel({
       </h2>
       <p className="mt-3 font-medium">{t('spine.operator')}</p>
       <p className="mt-2 text-sm">{t('spine.operatorHelp')}</p>
+      <MatchingPanel
+        data={data}
+        locale={locale}
+        busy={busy}
+        service={service}
+        onClear={clearMatch}
+        onSelect={(selection, candidate) => {
+          if (candidate.netPriceCents === null) return;
+          setMatching(selection);
+          setCondition(candidate.condition);
+          setPrice(moneyInputText(candidate.netPriceCents));
+          setReason(
+            t('match.valuationReason', { request: candidate.requestId, age: selection.ageMonths })
+          );
+          setCompleted([]);
+        }}
+      />
+      {matching ? (
+        <p role="status" className="mt-4">
+          {t('match.selected', { request: matching.waitingRequestId })}{' '}
+          <button type="button" className="underline" disabled={busy} onClick={clearMatch}>
+            {t('match.clear')}
+          </button>
+        </p>
+      ) : null}
       <fieldset disabled={busy} className="mt-5 space-y-4">
         <Field id="relist-price" label={t('spine.newPrice')}>
           <input
             id="relist-price"
+            disabled={matching !== null}
             className={inputClass}
             inputMode="decimal"
             value={price}
@@ -73,6 +112,7 @@ export function RelistPanel({
         <Field id="relist-condition" label={t('spine.targetCondition')}>
           <select
             id="relist-condition"
+            disabled={matching !== null}
             className={inputClass}
             value={condition}
             onChange={(event) => {
@@ -80,7 +120,7 @@ export function RelistPanel({
               setCompleted([]);
             }}
           >
-            {(['good', 'like_new'] as const).map((value) => (
+            {(matching ? [condition] : ['good', 'like_new']).map((value) => (
               <option key={value} value={value}>
                 {messageFor(locale, 'condition.' + value)}
               </option>
@@ -98,6 +138,7 @@ export function RelistPanel({
               className={inputClass}
               value={service}
               onChange={(event) => {
+                clearMatch();
                 setService(event.target.value);
                 setCompleted([]);
               }}
@@ -142,6 +183,7 @@ export function RelistPanel({
           onClick={() => {
             if (money.ok)
               onRelist({
+                ...(matching ? { matching } : {}),
                 netPriceCents: money.cents,
                 valuationReason: reason,
                 condition,

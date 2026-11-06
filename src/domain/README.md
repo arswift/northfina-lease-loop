@@ -39,3 +39,45 @@ Create these as you need them. Do not commit empty files.
 - `invoicing`: the monthly invoices for a contract, including a VAT rate change mid-contract.
 - `end-of-term`: return, buy out or extend, and the value of the returned item.
 - `second-life`: refurbishment cost, matching a returned item to the waiting list, CO2 saved.
+
+## Second-life valuation policy
+
+`residual-value.ts` estimates market value from `data/residual-curves.json`.
+Callers must supply the original net list price at the first lease and the actual
+age in whole months. Missing values return an explicit result; model year and
+previous-life counts are not substitutes for history.
+
+Age percentages are interpolated linearly between curve points and held at the
+endpoints outside the curve. Usage depreciation counts completed steps, applies
+the category's percentage reduction and stops at its cap. Condition applies its
+own multiplier. The calculation uses exact integer ratios and rounds half-up to
+euro cents only once, after multiplying every factor. It never rounds an
+intermediate age-adjusted price.
+
+This is a market-value estimate, not an automatic refurbishment decision or lease
+offer. Repair costs and a documented next-lease pricing policy must be considered
+separately. Replacing a component does not erase the physical item's cumulative
+usage for this valuation.
+
+`refurbishment-options.ts` compares required work and estimated market value at
+each condition that does not downgrade the asset. Unsupported upgrades remain
+visible with a reason. Net recovery is market value minus all repair costs, not
+accounting profit: acquisition costs, overhead and future lease income are not
+included. Negative recovery is economically unviable; zero is break-even. Missing
+valuation or service history cannot establish viability.
+
+Fair condition is only a conditional option. The existing readiness function
+continues to require good condition unless the caller explicitly supplies
+`acceptsFairCondition`; matching must justify that exception with a waiting
+customer who accepts fair. Mandatory work still applies, including a laptop's
+data wipe. Plans do not record completion, reserve stock or change any asset.
+
+`second-life-matching.ts` offers the post-repair market value as the next net
+list price with zero down payment. It uses the existing coefficient engine and
+the waiting customer's preferred term. Required work, non-negative estimated
+recovery, category, condition, net monthly budget and readiness deadline must all
+pass. Selection prioritises earliest deadline, then least repair cost, then
+request ID and condition. Stable IDs break exact ties; the data has no structured
+registration timestamps, so this is not a claim of first-come-first-served.
+Every candidate retains its rejection reasons. Estimates are not completed work
+or credit approval. Imported history must be entered explicitly by the operator.
