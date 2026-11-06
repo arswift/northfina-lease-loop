@@ -7,16 +7,20 @@ import workflowEn from './messages/workflow/en.json';
 import workflowEt from './messages/workflow/et.json';
 import workflowFi from './messages/workflow/fi.json';
 import workflowSv from './messages/workflow/sv.json';
+import appearanceEn from './messages/appearance.en.json';
+import appearanceEt from './messages/appearance.et.json';
+import appearanceFi from './messages/appearance.fi.json';
+import appearanceSv from './messages/appearance.sv.json';
 import type { Locale } from './locales';
 
-export type MessageKey = keyof typeof en | keyof typeof workflowEn;
+export type MessageKey = keyof typeof en | keyof typeof workflowEn | keyof typeof appearanceEn;
 export type Messages = Record<MessageKey, string>;
 
 export const messages: Record<Locale, Messages> = {
-  en: { ...en, ...workflowEn },
-  fi: { ...fi, ...workflowFi },
-  sv: { ...sv, ...workflowSv },
-  et: { ...et, ...workflowEt },
+  en: { ...en, ...workflowEn, ...appearanceEn },
+  fi: { ...fi, ...workflowFi, ...appearanceFi },
+  sv: { ...sv, ...workflowSv, ...appearanceSv },
+  et: { ...et, ...workflowEt, ...appearanceEt },
 };
 
 export type TranslateValues = Record<string, string | number>;
