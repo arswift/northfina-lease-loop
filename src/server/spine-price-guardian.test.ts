@@ -105,24 +105,27 @@ it('previews without writes, saves only on demand and never rewrites an earlier 
   expect(await db.invoice.count()).toBe(0);
 });
 
-it.each(locales)('renders the real savings, higher buyout and draft-only action in %s', async (locale) => {
-  const data = await getBootstrap(db, await demoContext(), 'laptop-003');
-  const html = renderPrice(data, locale).replaceAll('&#x27;', "'");
-  const t = getT(locale);
-  const money = (cents: number) => formatEuro(cents, intlLocale[locale]);
-  expect(html).toContain(t('guardian.title'));
-  expect(html).toContain(
-    t('guardian.summary', { useSaving: money(9225), ownSaving: money(8280) })
-  );
-  expect(html).toContain(t('guardian.buyoutWarning', { amount: money(945) }));
-  expect(html).toContain(t('guardian.actionHelp'));
-  expect(html).toContain(t('guardian.choose', { amount: money(0) }));
-  expect(html).toContain(money(259407));
-  expect(html).toContain(money(250182));
-  expect(html).not.toMatch(/\{\w+\}|guardian\.[A-Za-z]+/);
-  expect(await db.quote.count()).toBe(0);
-  expect(await db.auditLog.count()).toBe(0);
-});
+it.each(locales)(
+  'renders the real savings, higher buyout and draft-only action in %s',
+  async (locale) => {
+    const data = await getBootstrap(db, await demoContext(), 'laptop-003');
+    const html = renderPrice(data, locale).replaceAll('&#x27;', "'");
+    const t = getT(locale);
+    const money = (cents: number) => formatEuro(cents, intlLocale[locale]);
+    expect(html).toContain(t('guardian.title'));
+    expect(html).toContain(
+      t('guardian.summary', { useSaving: money(9225), ownSaving: money(8280) })
+    );
+    expect(html).toContain(t('guardian.buyoutWarning', { amount: money(945) }));
+    expect(html).toContain(t('guardian.actionHelp'));
+    expect(html).toContain(t('guardian.choose', { amount: money(0) }));
+    expect(html).toContain(money(259407));
+    expect(html).toContain(money(250182));
+    expect(html).not.toMatch(/\{\w+\}|guardian\.[A-Za-z]+/);
+    expect(await db.quote.count()).toBe(0);
+    expect(await db.auditLog.count()).toBe(0);
+  }
+);
 
 it('removes invalid and unavailable suggestions and disables choosing during a pending save', async () => {
   const data = await getBootstrap(db, await demoContext(), 'laptop-003');
