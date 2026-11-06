@@ -113,6 +113,27 @@ try {
     }
   }
 
+  for (const mode of ['light', 'dark']) {
+    await scenario(
+      'northfina-' + mode,
+      { viewport: { width: 390, height: 850 }, colorScheme: mode },
+      async (page) => {
+        const writes = collectWrites(page);
+        await openTrap(page);
+        await page.locator('.appearance-trigger').click();
+        await page.locator('input[name="appearance-design"][value="northfina"]').check();
+        await page.locator('input[name="appearance-mode"][value="' + mode + '"]').check();
+        assert.equal(await page.locator('html').getAttribute('data-design'), 'northfina');
+        assert.equal(await page.locator('html').getAttribute('data-theme'), mode);
+        await checkGuardianLayout(page);
+        await page.locator('#price-guardian').screenshot({
+          path: resolve(output, 'northfina-' + mode + '.png'),
+        });
+        assert.deepEqual(writes, [], 'Switching design must not write business records');
+      }
+    );
+  }
+
   await scenario(
     'keyboard-draft-save',
     { viewport: { width: 1280, height: 900 } },

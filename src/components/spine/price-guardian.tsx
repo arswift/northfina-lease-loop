@@ -45,7 +45,7 @@ export function PriceGuardian({
     <section
       id="price-guardian"
       aria-labelledby="guardian-heading"
-      className="mt-6 space-y-4 rounded-xl border border-emerald-300 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950"
+      className="price-guardian mt-6 space-y-4 rounded-xl border p-4"
     >
       <h3 id="guardian-heading" className="text-lg font-semibold">
         {t('guardian.title')}
@@ -89,11 +89,11 @@ export function PriceGuardian({
           <tbody>
             {rows.map(([label, before, after]) => (
               <tr key={label}>
-                <th scope="row" className="border-t border-emerald-300 p-2 font-medium">
+                <th scope="row" className="border-t p-2 font-medium">
                   {label}
                 </th>
-                <td className="border-t border-emerald-300 p-2 tabular-nums">{money(before)}</td>
-                <td className="border-t border-emerald-300 p-2 font-semibold tabular-nums">
+                <td className="border-t p-2 tabular-nums">{money(before)}</td>
+                <td className="border-t p-2 font-semibold tabular-nums">
                   {money(after)}
                 </td>
               </tr>
