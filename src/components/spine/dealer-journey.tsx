@@ -74,6 +74,10 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
         { requestId: id, ...input },
         true
       );
+      if (input.matching) {
+        // Keep the matched lessee selected when the user switches back to Customer.
+        setSelection({ ...selection, customerId: input.matching.nextCustomerId });
+      }
       setRevision((value) => value + 1);
     } catch (cause) {
       setError(cause instanceof RequestFailure ? cause.code : 'REQUEST_FAILED');

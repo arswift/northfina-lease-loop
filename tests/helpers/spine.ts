@@ -9,6 +9,7 @@ import { createQuote } from '@/server/spine-quotes';
 import { signContract } from '@/server/spine-signing';
 
 export async function resetSpine(db: PrismaClient) {
+  await db.waitingRequest.deleteMany();
   await db.invoice.deleteMany();
   await db.assetLease.deleteMany();
   await db.contract.deleteMany();

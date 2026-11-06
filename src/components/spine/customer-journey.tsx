@@ -26,6 +26,7 @@ import { SavedPriceExplanation } from './saved-price-explanation';
 import { EndPanel, type EndForm } from './end-panel';
 import { PricePanel, type Bootstrap } from './price-panel';
 import { HistoryPanel } from './history-panel';
+import { WaitingListPanel } from './waiting-list-panel';
 import { buttonClass, messageFor, panelClass } from './ui';
 
 type ContractList = Awaited<ReturnType<typeof listContracts>>;
@@ -314,6 +315,13 @@ export function CustomerJourney({ assetId, locale }: { assetId: string; locale: 
         <p role="status">{t('spine.loading')}</p>
       ) : (
         <>
+          <WaitingListPanel
+            key={`${data.customer.id}:${data.businessDate}:${data.asset.category}`}
+            data={data}
+            locale={locale}
+            busy={busy}
+            onChanged={() => setRevision((value) => value + 1)}
+          />
           {loaded?.contracts.filter((item) => item.asset_id === assetId).length ? (
             <section className={panelClass}>
               <h2 className="font-semibold">{t('spine.savedContracts')}</h2>
