@@ -11,6 +11,9 @@ export function AppearanceSwitcher({ locale }: { locale: Locale }) {
   return (
     <details
       className="appearance"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+      }}
       onKeyDown={(event) => {
         if (event.key !== 'Escape' || !event.currentTarget.open) return;
         event.currentTarget.open = false;
