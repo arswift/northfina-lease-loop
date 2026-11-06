@@ -13,6 +13,7 @@ export const matchingSelectionSchema = matchingPreviewInputSchema.extend({
   waitingRevision: z.number().int().nonnegative().optional(),
   waitingRequestId: z.string().min(1).max(100),
   nextCustomerId: z.string().min(1).max(100),
+  overrideReason: z.string().trim().min(10).max(500).optional(),
 });
 export type MatchingPreviewInput = z.infer<typeof matchingPreviewInputSchema>;
 export type MatchingSelection = z.infer<typeof matchingSelectionSchema>;

@@ -86,3 +86,9 @@ or credit approval. Imported history must be entered explicitly by the operator.
 in suitability ranking, but the server rejects reservation without a known customer.
 Other rejection reasons continue to exclude a candidate. Team-created sample
 customer links are documented in `data/DATA.md`; they do not establish credit approval.
+
+`second-life-selection.ts` permits an operator to select another eligible request
+or target condition. Any departure from the current recommendation requires a
+written reason. Identity warnings and all other eligibility failures block allocation.
+The relist transaction rechecks the choice, records the reason and current recommendation
+in the audit, and consumes the chosen request atomically with publishing the offer.
