@@ -3,6 +3,7 @@
 @import './editorial.css';
 @import './appearance.css';
 @import './northfina.css';
+@import './language-switcher.css';
 
 @custom-variant dark {
   &:where([data-theme='dark'], [data-theme='dark'] *) {
