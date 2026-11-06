@@ -2,12 +2,21 @@
 // <html lang> attribute is always right for the page.
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Zalando_Sans_SemiExpanded } from 'next/font/google';
+import { AppearanceSwitcher } from '@/components/appearance/appearance-switcher';
+import { appearanceInit } from '@/components/appearance/preferences';
 import { notFound } from 'next/navigation';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { getT } from '@/i18n/get-t';
 import { isLocale } from '@/i18n/locales';
 import '../globals.css';
-import '../editorial.css';
+// Downloaded at build time and self-hosted; browsers do not contact a font service.
+const northfinaFont = Zalando_Sans_SemiExpanded({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-northfina',
+  display: 'swap',
+  preload: false,
+});
 
 export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
@@ -22,8 +31,11 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   const t = getT(locale);
 
   return (
-    <html lang={locale}>
-      <body className="site-shell flex min-h-dvh flex-col antialiased">
+    <html lang={locale} data-design="green" data-mode="system" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: appearanceInit }} />
+      </head>
+      <body className={northfinaFont.variable + ' site-shell flex min-h-dvh flex-col antialiased'}>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-10 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-stone-900 focus:shadow"
@@ -39,12 +51,13 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
                 <span className="block text-lg font-semibold tracking-tight">
                   {t('brand.name')}
                 </span>
-                <span className="block text-sm text-stone-600 dark:text-stone-400">
-                  {t('brand.tagline')}
-                </span>
+                <span className="brand-tagline ui-note block text-sm">{t('brand.tagline')}</span>
               </span>
             </Link>
-            <LanguageSwitcher current={locale} label={t('nav.language')} />
+            <div className="header-actions">
+              <LanguageSwitcher current={locale} label={t('nav.language')} />
+              <AppearanceSwitcher locale={locale} />
+            </div>
           </div>
         </header>
 
@@ -53,7 +66,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
         </main>
 
         <footer className="site-footer">
-          <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-stone-600 sm:px-6 dark:text-stone-400">
+          <div className="footer-note ui-note mx-auto max-w-6xl px-4 py-6 text-sm sm:px-6">
             {t('spine.demo')}
           </div>
         </footer>

@@ -79,7 +79,9 @@
   }
   .catalogue-card {
     box-shadow: 0 12px 32px rgb(15 51 35 / 5%);
-    transition: box-shadow 180ms ease, transform 180ms ease;
+    transition:
+      box-shadow 180ms ease,
+      transform 180ms ease;
   }
   .catalogue-card:hover {
     box-shadow: 0 16px 38px rgb(15 51 35 / 12%);
@@ -228,24 +230,72 @@
     filter: brightness(1.08);
   }
 }
-@media (prefers-color-scheme: dark) {
-  .site-shell {
-    background: #0e201a;
-  }
-  .catalogue-card {
-    box-shadow: none;
+@layer components {
+  :root[data-theme='dark'] {
+    .site-shell {
+      background: #0e201a;
+    }
+    .catalogue-card {
+      box-shadow: none;
+    }
   }
 }
-@media (max-width: 36rem) {
-  .asset-hero {
-    min-height: 13rem;
-    grid-template-columns: minmax(0, 1fr) 7rem;
-    padding: 1.25rem;
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .site-shell {
+    background: #0e201a;
   }
-  .asset-hero-title {
-    font-size: clamp(1.8rem, 7vw, 2.5rem);
+}
+@layer components {
+  .catalogue-intro {
+    max-width: 42rem;
   }
-  .asset-hero-art {
-    margin-right: -2.5rem;
+  .catalogue-description {
+    margin-top: 0.75rem;
+    color: var(--ui-muted);
+    font-size: 1.125rem;
+  }
+  .catalogue-date {
+    display: inline-flex;
+    margin-top: 1.25rem;
+    border: 1px solid var(--ui-line);
+    border-radius: 999px;
+    background: var(--ui-tint);
+    padding: 0.25rem 0.75rem;
+    color: var(--ui-ink);
+    font-size: 0.875rem;
+  }
+  @media (max-width: 36rem) {
+    .asset-hero {
+      min-height: 13rem;
+      padding: 1.25rem;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .asset-hero-art {
+      max-width: 12rem;
+      margin: 0 auto;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .catalogue-card:hover {
+    transform: none;
+  }
+}
+@media (forced-colors: active) {
+  .asset-hero,
+  .price-headline,
+  .catalogue-visual {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+  .asset-hero *,
+  .price-headline *,
+  .catalogue-category {
+    color: CanvasText;
+  }
+  .price-headline::after {
+    display: none;
   }
 }
