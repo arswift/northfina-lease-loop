@@ -2,13 +2,14 @@ name: UI accessibility
 
 on:
   push:
-    branches: ['feat/accessible-price-design']
+    branches: ['feat/accessible-price-design', 'feat/northfina-theme-switcher']
   pull_request:
     paths:
       - 'src/components/**'
       - 'src/app/**'
       - 'src/i18n/**'
       - 'scripts/check-ui.mjs'
+      - 'scripts/check-appearance.mjs'
       - '.github/workflows/ui-accessibility.yml'
 
 permissions:
@@ -28,6 +29,7 @@ jobs:
       - name: Check out
         uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js
@@ -43,6 +45,18 @@ jobs:
 
       - name: Install application dependencies
         run: npm ci
+
+      - name: Retain reviewed source and installed framework guides
+        run: |
+          mkdir -p "$UI_OUTPUT_DIR"
+          git archive HEAD -o "$UI_OUTPUT_DIR/source.tar"
+          if [ -d node_modules/next/dist/docs ]; then
+            tar -cf "$UI_OUTPUT_DIR/next-guides.tar" -C node_modules/next/dist docs
+          fi
+
+      - name: Check all theme branch commit messages
+        if: github.ref_name == 'feat/northfina-theme-switcher'
+        run: npx commitlint --from 934e9db1c334fd90f40d102cbeedbd159994bcbe --to "$GITHUB_SHA" --verbose
 
       - name: Prepare isolated synthetic database
         run: npm run db:setup
@@ -73,6 +87,9 @@ jobs:
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
           node scripts/check-ui.mjs
+          if [ -f scripts/check-appearance.mjs ]; then
+            node scripts/check-appearance.mjs
+          fi
 
       - name: Preserve screenshots and audit results
         if: always()
