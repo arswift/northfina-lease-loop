@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { loadAssets, loadRefurbishmentCosts } from '@/data/load';
 import type { Asset, RefurbishmentCosts } from '@/data/schemas';
 import {
+  endLeaseReadiness,
   maintenanceAfterWork,
   mayEndLease,
   missingReadinessTasks,
@@ -14,17 +15,51 @@ beforeAll(async () => {
   [assets, costs] = await Promise.all([loadAssets(), loadRefurbishmentCosts()]);
 });
 
-const end = {
+const prerequisites = {
   status: 'active',
   endDate: '2029-11-05',
   onDate: '2029-11-05',
   termMonths: 36,
   rentalInvoiceCount: 36,
+};
+const end = {
+  ...prerequisites,
   choice: 'return' as const,
   customerId: 'a',
   previousUsageValue: 1200,
   usageValue: 1500,
 };
+
+describe('endLeaseReadiness', () => {
+  it('is ready at maturity with every rent invoice issued, without inspection inputs', () => {
+    expect(endLeaseReadiness(prerequisites)).toEqual({ ok: true });
+    expect(
+      endLeaseReadiness({ ...prerequisites, latestInvoiceDate: prerequisites.onDate })
+    ).toEqual({ ok: true });
+  });
+
+  it.each([
+    [{ status: 'bought' }, 'not_active'],
+    [{ status: 'returned' }, 'not_active'],
+    [{ status: 'passed_on' }, 'not_active'],
+    [{ onDate: '2029-11-04' }, 'too_early'],
+    [{ latestInvoiceDate: '2029-11-06' }, 'too_early'],
+    [{ rentalInvoiceCount: 35 }, 'invoices_missing'],
+    [{ rentalInvoiceCount: 37 }, 'invoices_missing'],
+  ])('blocks unavailable end choices for %o', (change, reason) => {
+    expect(endLeaseReadiness({ ...prerequisites, ...change })).toEqual({ ok: false, reason });
+  });
+
+  it('becomes ready on the latest invoice date after late issuance', () => {
+    expect(
+      endLeaseReadiness({
+        ...prerequisites,
+        onDate: '2029-11-10',
+        latestInvoiceDate: '2029-11-10',
+      })
+    ).toEqual({ ok: true });
+  });
+});
 
 describe('mayEndLease', () => {
   it.each(['buy', 'return', 'pass_on'] as const)(

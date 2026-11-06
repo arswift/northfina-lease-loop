@@ -5,6 +5,33 @@ export type EndChoice = 'buy' | 'return' | 'pass_on';
 export type EndReason =
   'not_active' | 'too_early' | 'invoices_missing' | 'usage_decreased' | 'invalid_successor';
 
+export type EndReadinessReason = Extract<
+  EndReason,
+  'not_active' | 'too_early' | 'invoices_missing'
+>;
+
+/** Prerequisites common to every end choice; independent of inspection form values. */
+export function endLeaseReadiness(input: {
+  status: string;
+  endDate: string;
+  onDate: string;
+  termMonths: number;
+  rentalInvoiceCount: number;
+  latestInvoiceDate?: string;
+}): { ok: true } | { ok: false; reason: EndReadinessReason } {
+  if (input.status !== 'active') return { ok: false, reason: 'not_active' };
+  if (
+    input.onDate < input.endDate ||
+    (input.latestInvoiceDate && input.onDate < input.latestInvoiceDate)
+  ) {
+    return { ok: false, reason: 'too_early' };
+  }
+  if (input.rentalInvoiceCount !== input.termMonths) {
+    return { ok: false, reason: 'invoices_missing' };
+  }
+  return { ok: true };
+}
+
 /** Dates, readings and document ownership must already be validated by the caller. */
 export function mayEndLease(input: {
   status: string;
@@ -19,16 +46,8 @@ export function mayEndLease(input: {
   usageValue: number;
   latestInvoiceDate?: string;
 }): { ok: true } | { ok: false; reason: EndReason } {
-  if (input.status !== 'active') return { ok: false, reason: 'not_active' };
-  if (
-    input.onDate < input.endDate ||
-    (input.latestInvoiceDate && input.onDate < input.latestInvoiceDate)
-  ) {
-    return { ok: false, reason: 'too_early' };
-  }
-  if (input.rentalInvoiceCount !== input.termMonths) {
-    return { ok: false, reason: 'invoices_missing' };
-  }
+  const readiness = endLeaseReadiness(input);
+  if (!readiness.ok) return readiness;
   if (input.usageValue < input.previousUsageValue) {
     return { ok: false, reason: 'usage_decreased' };
   }
