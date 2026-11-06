@@ -46,7 +46,7 @@
   .language-menu {
     position: absolute;
     inset-block-start: calc(100% + 0.625rem);
-    inset-inline-end: 0;
+    inset-inline-start: 0;
     width: 15rem;
     max-width: calc(100vw - 2rem);
     max-height: min(24rem, calc(100dvh - 6rem));
@@ -144,11 +144,6 @@
 
     .header-actions .appearance-trigger {
       padding-inline: 0.625rem;
-    }
-
-    .language-menu {
-      inset-inline-start: 0;
-      inset-inline-end: auto;
     }
   }
 }
