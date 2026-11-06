@@ -122,7 +122,7 @@ try {
                 await page.evaluate(() => globalThis.document.fonts.ready);
                 await page.screenshot({ path: resolve(output, name + '.png') });
               }
-              await page.locator('.catalogue-intro h1').click();
+              await page.locator('.footer-note').click();
               assert.equal(await menu.evaluate((element) => element.open), false);
               // Opening one header panel closes the other without losing the pointer click.
               await page.locator('.appearance-trigger').click();
