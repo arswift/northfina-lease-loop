@@ -11,5 +11,8 @@
   "spine.companyResidence": "This demo does not apply the personal residence check to companies.",
   "spine.signatory.pricePolicy": "These saved net terms remain valid through {date}. After expiry, a new offer must be reviewed. VAT still follows each invoice date.",
   "spine.error.CUSTOMER_MODE_REQUIRED": "Switch to Customer to manage an application or agreement. The dealer cannot sign for a customer.",
-  "spine.error.SIGNATURE_HANDOFF_PENDING": "This offer is already waiting for its named signatory. The applicant cannot activate it by submitting different answers."
+  "spine.error.SIGNATURE_HANDOFF_PENDING": "This offer is already waiting for its named signatory. The applicant cannot activate it by submitting different answers.",
+  "spine.dealerReturned": "Returned items ({count})",
+  "spine.dealerEmpty": "No items are currently waiting for preparation.",
+  "spine.dealerPublished": "This item is available again at {price} before VAT. Switch to Customer and select the next lessee to start a new lease."
 }

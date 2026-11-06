@@ -11,5 +11,8 @@
   "spine.companyResidence": "Tässä demossa henkilökohtaista asuinmaatarkistusta ei sovelleta yrityksiin.",
   "spine.signatory.pricePolicy": "Tallennetut verottomat ehdot ovat voimassa {date} asti. Sen jälkeen uusi tarjous on tarkistettava. ALV määräytyy edelleen kunkin laskun päivämäärän mukaan.",
   "spine.error.CUSTOMER_MODE_REQUIRED": "Vaihda Asiakas-rooliin käsitelläksesi hakemusta tai sopimusta. Jälleenmyyjä ei voi allekirjoittaa asiakkaan puolesta.",
-  "spine.error.SIGNATURE_HANDOFF_PENDING": "Tämä tarjous odottaa jo nimetyn allekirjoittajan allekirjoitusta. Hakija ei voi aktivoida sitä lähettämällä eri vastauksia."
+  "spine.error.SIGNATURE_HANDOFF_PENDING": "Tämä tarjous odottaa jo nimetyn allekirjoittajan allekirjoitusta. Hakija ei voi aktivoida sitä lähettämällä eri vastauksia.",
+  "spine.dealerReturned": "Palautetut tuotteet ({count})",
+  "spine.dealerEmpty": "Yhtään tuotetta ei tällä hetkellä odota valmistelua.",
+  "spine.dealerPublished": "Tuote on jälleen saatavilla hintaan {price} ilman ALV:tä. Vaihda Asiakas-rooliin ja valitse seuraava vuokraaja aloittaaksesi uuden vuokrasopimuksen."
 }

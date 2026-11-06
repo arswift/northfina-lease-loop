@@ -11,5 +11,8 @@
   "spine.companyResidence": "Selles demos ei kohaldata ettevõtetele eraisiku elukohariigi kontrolli.",
   "spine.signatory.pricePolicy": "Salvestatud käibemaksuta tingimused kehtivad kuni {date}. Pärast tähtaja möödumist tuleb uus pakkumine üle vaadata. Käibemaks sõltub endiselt iga arve kuupäevast.",
   "spine.error.CUSTOMER_MODE_REQUIRED": "Taotluse või lepingu haldamiseks vali roll Klient. Edasimüüja ei saa kliendi eest allkirjastada.",
-  "spine.error.SIGNATURE_HANDOFF_PENDING": "See pakkumine ootab juba nimetatud allkirjastajat. Taotleja ei saa seda teistsuguste vastuste esitamisega aktiveerida."
+  "spine.error.SIGNATURE_HANDOFF_PENDING": "See pakkumine ootab juba nimetatud allkirjastajat. Taotleja ei saa seda teistsuguste vastuste esitamisega aktiveerida.",
+  "spine.dealerReturned": "Tagastatud esemed ({count})",
+  "spine.dealerEmpty": "Ükski ese ei oota praegu ettevalmistamist.",
+  "spine.dealerPublished": "Ese on taas saadaval hinnaga {price} ilma käibemaksuta. Uue lepingu alustamiseks vali roll Klient ja järgmine rentnik."
 }
