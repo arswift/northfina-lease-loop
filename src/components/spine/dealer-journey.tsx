@@ -157,7 +157,7 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
           </section>
           {data.asset.status === 'returned' ? (
             <RelistPanel
-              key={assetId + ':' + data.releaseRevision}
+              key={`${assetId}:${data.releaseRevision}:${data.businessDate}`}
               data={data}
               locale={locale}
               busy={busy}
