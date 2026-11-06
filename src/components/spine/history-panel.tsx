@@ -1,13 +1,16 @@
-import { auditSchema, passportSchema } from '@/data/spine-response-schemas';
+import { auditPageSchema, passportSchema } from '@/data/spine-response-schemas';
 import { useEffect, useState } from 'react';
 import type { getPassport, getScopedAudit } from '@/server/spine-history';
 import { getT } from '@/i18n/get-t';
+import { formatNumber } from '@/i18n/format';
 import { intlLocale, type Locale } from '@/i18n/locales';
 import { requestJson, type DemoSelection } from './api';
-import { messageFor, panelClass } from './ui';
+import { buttonClass, messageFor, panelClass } from './ui';
 
 type Passport = Awaited<ReturnType<typeof getPassport>>;
-type Audit = Awaited<ReturnType<typeof getScopedAudit>>;
+type AuditPage = Awaited<ReturnType<typeof getScopedAudit>>;
+
+const AUDIT_PAGE_SIZE = 10;
 
 export function HistoryPanel({
   assetId,
@@ -23,34 +26,64 @@ export function HistoryPanel({
   const t = getT(locale);
   const { customerId, businessDate } = selection;
   const key = assetId + '|' + customerId + '|' + businessDate;
-  const [loaded, setLoaded] = useState<{ key: string; passport: Passport; audit: Audit } | null>(
-    null
-  );
+  const [loaded, setLoaded] = useState<{
+    key: string;
+    passport: Passport;
+    firstPage: AuditPage;
+  } | null>(null);
+  const [auditPages, setAuditPages] = useState<AuditPage['rows']>([]);
+  const [auditCursor, setAuditCursor] = useState<string | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditFailed, setAuditFailed] = useState(false);
   const [failedKey, setFailedKey] = useState('');
   useEffect(() => {
     const controller = new AbortController();
-    const context = { customerId, businessDate };
     Promise.all([
       requestJson(
         'assets/' + encodeURIComponent(assetId) + '/passport',
-        context,
+        selection,
         passportSchema,
         undefined,
         false,
         controller.signal
       ),
-      requestJson('audit', context, auditSchema, undefined, false, controller.signal),
+      requestJson('audit', selection, auditPageSchema, undefined, false, controller.signal),
     ])
-      .then(([passport, audit]) => {
-        if (!controller.signal.aborted)
-          setLoaded({ key: assetId + '|' + customerId + '|' + businessDate, passport, audit });
+      .then(([passport, firstPage]) => {
+        if (controller.signal.aborted) return;
+        setLoaded({ key, passport, firstPage });
+        setAuditPages(firstPage.rows);
+        setAuditCursor(firstPage.cursor);
+        setAuditFailed(false);
       })
       .catch(() => {
         if (!controller.signal.aborted)
           setFailedKey(assetId + '|' + customerId + '|' + businessDate);
       });
     return () => controller.abort();
-  }, [assetId, customerId, businessDate, revision]);
+    // The audit page fetch deliberately tracks selection fields, not the object identity.
+  }, [assetId, customerId, businessDate, revision, key, selection]);
+
+  async function loadMoreAudit() {
+    if (!auditCursor || auditLoading) return;
+    setAuditLoading(true);
+    try {
+      const nextPage = await requestJson(
+        'audit?cursor=' + encodeURIComponent(auditCursor),
+        selection,
+        auditPageSchema
+      );
+      // Rows arrive newest first; append only ids that are not already rendered.
+      const known = new Set(auditPages.map((row) => row.id));
+      setAuditPages([...auditPages, ...nextPage.rows.filter((row) => !known.has(row.id))]);
+      setAuditCursor(nextPage.cursor);
+      setAuditFailed(false);
+    } catch {
+      setAuditFailed(true);
+    } finally {
+      setAuditLoading(false);
+    }
+  }
   const state = loaded?.key === key ? loaded : null;
   const auditTime = new Intl.DateTimeFormat(intlLocale[locale], {
     dateStyle: 'short',
@@ -116,7 +149,7 @@ export function HistoryPanel({
                 </tr>
               </thead>
               <tbody className="divide-y divide-hairline dark:divide-stone-800">
-                {state.audit.map((row) => (
+                {auditPages.map((row) => (
                   <tr key={row.id}>
                     <td className="p-3 text-ink-muted tabular-nums dark:text-stone-300">
                       <time dateTime={row.at}>{auditTime.format(new Date(row.at))}</time>
@@ -132,8 +165,36 @@ export function HistoryPanel({
               </tbody>
             </table>
           </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-ink-muted dark:text-stone-400" role="status">
+              {t('spine.auditShown', {
+                count: formatNumber(auditPages.length, locale),
+                total: formatNumber(
+                  AUDIT_PAGE_SIZE * Math.max(1, Math.ceil(auditPages.length / AUDIT_PAGE_SIZE)),
+                  locale
+                ),
+              })}
+            </p>
+            {auditFailed ? (
+              <p className="text-xs font-medium text-red-700 dark:text-red-300" role="alert">
+                {t('spine.error')}
+              </p>
+            ) : null}
+            {auditCursor ? (
+              <button
+                type="button"
+                className={buttonClass + ' text-xs'}
+                disabled={auditLoading}
+                onClick={() => {
+                  void loadMoreAudit();
+                }}
+              >
+                {auditLoading ? t('spine.pending') : t('spine.auditMore')}
+              </button>
+            ) : null}
+          </div>
         </>
-      ) : (
+      ) : failedKey === key ? null : (
         <p className="mt-3" role="status">
           {t('spine.loading')}
         </p>

@@ -18,6 +18,7 @@ import { GET as getQuote } from '@/app/api/spine/quotes/[id]/route';
 import { GET as getApplication } from '@/app/api/spine/applications/[id]/route';
 import { PATCH as oldStatus } from '@/app/api/assets/[id]/status/route';
 import { GET as oldAudit } from '@/app/api/audit-log/route';
+import { GET as audit } from '@/app/api/spine/audit/route';
 import { readDemoContext } from './demo-context';
 
 let cleanup: () => Promise<void>;
@@ -177,7 +178,22 @@ describe('HTTP contract', () => {
     );
     expect(other.status).toBe(404);
     const audit = await oldAudit(request('/api/audit-log', undefined, 'cust-lena'), undefined);
-    expect((await audit.json()).data).toEqual([]);
+    expect((await audit.json()).data).toEqual({ rows: [], cursor: null });
+  });
+
+  it('serves the first audit page without a cursor and pages by numeric cursor', async () => {
+    const { application } = await prepareApplication(state.db, await demoContext());
+    expect(application.decision).toBe('approved');
+    const first = await audit(request('/api/spine/audit'), undefined);
+    const firstBody = await first.json();
+    expect(first.status).toBe(200);
+    expect(firstBody.success).toBe(true);
+    expect(firstBody.data.rows.length).toBeGreaterThan(0);
+    expect(firstBody.data.cursor).toBeNull();
+
+    const invalid = await audit(request('/api/spine/audit?cursor=abc'), undefined);
+    expect(invalid.status).toBe(400);
+    expect((await invalid.json()).success).toBe(false);
   });
 
   it('retires the arbitrary status setter without changing the item', async () => {

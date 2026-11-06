@@ -14,7 +14,7 @@ import { calculatePrice } from '@/domain/pricing';
 import { getT } from '@/i18n/get-t';
 import {
   applicationViewSchema,
-  auditSchema,
+  auditPageSchema,
   bootstrapSchema,
   contractListSchema,
   contractViewSchema,
@@ -160,7 +160,7 @@ it('accepts actual response shapes throughout the loop and changes consent conte
   expect(contractViewSchema.parse(contract)).toEqual(contract);
   expect(contractListSchema.parse(await listContracts(db, context))).toHaveLength(1);
   expect(passportSchema.parse(await getPassport(db, contract.assetId)).lives).toHaveLength(1);
-  expect(auditSchema.parse(await getScopedAudit(db, context)).length).toBeGreaterThan(0);
+  expect(auditPageSchema.parse(await getScopedAudit(db, context)).rows.length).toBeGreaterThan(0);
 
   const ending = {
     locale: 'en' as const,
