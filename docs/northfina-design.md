@@ -10,7 +10,7 @@ The pricing model, APIs, database and saved financial records are unchanged.
 Reviewed on 6 November 2026: the public [home page](https://www.northfina.fi/en),
 [dealer page](https://www.northfina.fi/en/dealers) and
 [bank page](https://www.northfina.fi/en/banks), at desktop and mobile sizes.
-The read-only `Design reference` workflow captures real Chromium screenshots,
+The read-only earlier design-reference capture recorded Chromium screenshots,
 HTML and computed styles; no contact forms were submitted. Reference run:
 [42191294209](https://github.com/arswift/northfina-lease-loop/actions/runs/42191294209).
 
@@ -95,21 +95,15 @@ secondary text `#b8c5df` on `#131c32` is 9.75:1. The strengthened field boundary
 `#6d7891` against `#e6eeff` is 3.80:1. Gradients, focus, text size and actual
 composition require browser review, not just these pairs.
 
-The unchanged core CI runs formatting, lint, types, tests with coverage, file-size,
-no-AI and production build checks. The UI workflow now includes this branch and
-checks every new commit message from the green base, not only the last commit.
-The previous editorial branch's formatting errors are repaired, not ignored.
+Core CI continues to run formatting, lint, types, tested business logic,
+file-size, no-AI and a production build on every push and PR. It is the required
+quality gate. The optional `UI smoke` workflow tests a small set of real browser
+interactions on demand, without duplicating `check:all` or expanding all
+theme/language/viewport permutations. Its script is
+`scripts/check-ui-smoke.mjs`; screenshots are saved only on failure.
 
-`check-ui.mjs` retains the existing green four-language, light/dark, mobile/desktop
-regressions and financial interactions. `check-appearance.mjs` adds the Northfina
-matrix, explicit modes opposed to OS preference, open-panel axe checks, keyboard,
-text enlargement, forced colours, persistence, tab synchronization, blocked/corrupt
-storage and initialization with React bundles blocked. Both use an isolated seeded
-database. Actual results and screenshots are stored in each workflow's artifacts;
-check the final revision's run rather than treating this planned matrix as a pass.
-
-Source formatting can run in the editing environment. Full dependency installation,
-application build and browser checks run in GitHub Actions. Commits are created
-through the GitHub connector, which does not execute local Git hooks; no hook or
-quality gate is disabled. No manual screen-reader session or testing with real
-users is claimed, and automated axe results do not establish WCAG certification.
+The earlier extensive UI matrix was retired to avoid repeated multi-minute
+runs. Those historical results are not a pass for later revisions. Automated axe
+checks do not constitute WCAG certification, and no manual screen-reader/user
+testing is claimed. GitHub connector commits do not run local hooks; required
+checks remain enabled in core CI.
