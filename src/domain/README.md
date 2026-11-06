@@ -43,9 +43,17 @@ Create these as you need them. Do not commit empty files.
 ## Second-life valuation policy
 
 `residual-value.ts` estimates market value from `data/residual-curves.json`.
-Callers must supply the original net list price at the first lease and the actual
-age in whole months. Missing values return an explicit result; model year and
-previous-life counts are not substitutes for history.
+Callers supply the original net price and age in whole months from the stored
+valuation reference. `valuation-baseline.ts` uses recorded first-lease facts when
+available. For imported history, the approved, explicitly labelled assumptions
+are price list v1 and 1 January of the model year. Previous-life counts are never
+used as ages. Missing prices return an explicit result instead of invented values.
+
+Age counts completed anchored calendar months at the expected ready date (31 January
+to 28 February counts as one month). The baseline is saved on the asset in the same
+audited transaction as signing or relisting and survives release revisions. A new
+lease price does not replace the original reference. Verified operator corrections
+require their date, integer-cent price and a source/reason; previews do not save them.
 
 Age percentages are interpolated linearly between curve points and held at the
 endpoints outside the curve. Usage depreciation counts completed steps, applies
@@ -80,4 +88,15 @@ pass. Selection prioritises earliest deadline, then least repair cost, then
 request ID and condition. Stable IDs break exact ties; the data has no structured
 registration timestamps, so this is not a claim of first-come-first-served.
 Every candidate retains its rejection reasons. Estimates are not completed work
-or credit approval. Imported history must be entered explicitly by the operator.
+or credit approval. Imported assumptions are shown separately from verified history.
+
+`identity_unknown` is an allocation warning: anonymous requests still participate
+in suitability ranking, but the server rejects reservation without a known customer.
+Other rejection reasons continue to exclude a candidate. Team-created sample
+customer links are documented in `data/DATA.md`; they do not establish credit approval.
+
+`second-life-selection.ts` permits an operator to select another eligible request
+or target condition. Any departure from the current recommendation requires a
+written reason. Identity warnings and all other eligibility failures block allocation.
+The relist transaction rechecks the choice, records the reason and current recommendation
+in the audit, and consumes the chosen request atomically with publishing the offer.

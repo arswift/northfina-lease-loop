@@ -11,6 +11,8 @@ import { rethrowDatabaseConflict, requestHash, requireSameRequest } from './requ
 import type { RelistInput } from './spine-shapes';
 import { readMaintenance } from './spine-maintenance';
 import { previewSecondLife } from './second-life-matching';
+import { selectSecondLifeCandidate } from '@/domain/second-life-selection';
+import { readValuationBaseline } from './valuation-baseline';
 
 function releaseView(release: AssetRelease) {
   return {
@@ -92,6 +94,8 @@ export async function relistAsset(
       taskIds: missing,
     });
 
+  const matchingDecision: Record<string, unknown> = {};
+  const baselineAudit: Record<string, unknown> = {};
   try {
     const release = await withAudit(
       db,
@@ -106,24 +110,33 @@ export async function relistAsset(
           netPriceCents: input.netPriceCents,
           valuationReason: input.valuationReason,
           condition: input.condition,
+          valuationBaseline: baselineAudit,
           taskIds: plan.tasks.map((task) => task.id),
           ...(input.matching ? { matching: input.matching } : {}),
+          ...(input.matching ? { matchingDecision } : {}),
         },
       },
       async (tx) => {
         const latest = await tx.assetRelease.findUnique({ where: { asset_id: assetId } });
         if ((latest?.revision ?? 0) !== input.releaseRevision)
           throw new ApiError(409, 'RELIST_NOT_ALLOWED', 'The return cycle changed');
+        let baseline = await readValuationBaseline(tx, assetId);
         if (input.matching) {
           const preview = await previewSecondLife(tx, context, assetId, {
             ...input.matching,
             lastServiceUsage: input.lastServiceUsage,
           });
-          const selected = preview.recommendation;
+          if (input.matching.useAutomaticBaseline) baseline = preview.valuationBaseline;
+          const selection = selectSecondLifeCandidate(preview, {
+            requestId: input.matching.waitingRequestId,
+            condition: input.condition,
+            overrideReason: input.matching.overrideReason,
+          });
+          const selected = selection.ok ? selection.candidate : null;
           if (
             !selected ||
             selected.customerId !== input.matching.nextCustomerId ||
-            selected.waitingRevision !== input.matching.waitingRevision ||
+            selected.waitingRevision !== (input.matching.waitingRevision ?? null) ||
             selected.requestId !== input.matching.waitingRequestId ||
             selected.condition !== input.condition ||
             selected.netPriceCents !== input.netPriceCents ||
@@ -133,21 +146,37 @@ export async function relistAsset(
             throw new ApiError(
               409,
               'MATCH_CHANGED',
-              'The recommended match changed; review it again'
+              'The selected match changed or requires an override reason; review it again'
             );
           }
-          const allocated = await tx.waitingRequest.updateMany({
-            where: {
-              id: selected.requestId,
-              customer_id: selected.customerId!,
-              status: 'pending',
-              revision: selected.waitingRevision!,
-            },
-            data: { status: 'allocated', pending_key: null, allocated_asset_id: assetId },
+          Object.assign(matchingDecision, {
+            override: selection.ok && selection.override,
+            recommended: preview.recommendation
+              ? {
+                  requestId: preview.recommendation.requestId,
+                  condition: preview.recommendation.condition,
+                  monthlyNetCents: preview.recommendation.monthlyNetCents,
+                  workNetCents: preview.recommendation.workNetCents,
+                }
+              : null,
           });
-          if (allocated.count !== 1)
-            throw new ApiError(409, 'MATCH_CHANGED', 'The waiting request has changed');
+          // Imported requests are consumed by the matching audit in this transaction.
+          // Registered requests additionally change their customer-managed status.
+          if (!selected.imported) {
+            const allocated = await tx.waitingRequest.updateMany({
+              where: {
+                id: selected.requestId,
+                customer_id: selected.customerId!,
+                status: 'pending',
+                revision: selected.waitingRevision!,
+              },
+              data: { status: 'allocated', pending_key: null, allocated_asset_id: assetId },
+            });
+            if (allocated.count !== 1)
+              throw new ApiError(409, 'MATCH_CHANGED', 'The waiting request has changed');
+          }
         }
+        if (baseline) Object.assign(baselineAudit, baseline);
         const updated = await tx.asset.updateMany({
           where: {
             id: assetId,
@@ -155,7 +184,11 @@ export async function relistAsset(
             condition: row.condition,
             usage_value: row.usage_value,
           },
-          data: { condition: input.condition, status: 'available' },
+          data: {
+            condition: input.condition,
+            status: 'available',
+            ...(baseline ? { valuation_baseline_json: JSON.stringify(baseline) } : {}),
+          },
         });
         if (updated.count !== 1)
           throw new ApiError(409, 'RELIST_NOT_ALLOWED', 'The item is no longer awaiting relisting');
