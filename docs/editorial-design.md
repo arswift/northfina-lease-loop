@@ -40,6 +40,7 @@ required information.
 ## Review notes
 
 Contrast ratios, calculated from proposed hex values (not a browser audit):
+
 - Headline lime `#d9f78b` on green `#166249`: about **6.13:1**.
 - Hero light text `#f4f9eb` on bright gradient stop `#216f56`: **5.64:1**.
 - Hero secondary text `#e1eddc` on `#216f56`: **5.00:1**.

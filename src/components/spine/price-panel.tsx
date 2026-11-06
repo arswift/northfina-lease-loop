@@ -76,7 +76,9 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
       }}
     >
       <div className="price-section-title">
-        <span aria-hidden="true" className="step-mark">01</span>
+        <span aria-hidden="true" className="step-mark">
+          01
+        </span>
         <h2 id="terms-heading" className="text-2xl font-semibold tracking-tight">
           {t('spine.terms')}
         </h2>

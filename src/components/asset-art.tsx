@@ -31,9 +31,7 @@ export function AssetArt({ category }: { category: AssetCategory }) {
         <g stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="75" cy="140" r="35" />
           <circle cx="245" cy="140" r="35" />
-          <path
-            d="m75 140 58-73 51 73H75Zm58-73 41-12m-14-11h34m-10 96 61-65m-14-8h27m-123 0-13-24h-20"
-          />
+          <path d="m75 140 58-73 51 73H75Zm58-73 41-12m-14-11h34m-10 96 61-65m-14-8h27m-123 0-13-24h-20" />
           <circle cx="184" cy="140" r="8" fill="currentColor" stroke="none" />
         </g>
       ) : category === 'laptop' ? (
