@@ -95,8 +95,9 @@ export async function endLease(
           data: {
             status: input.choice === 'buy' ? 'reserved' : 'returned',
             previous_lives: { increment: 1 },
-            condition: input.condition,
-            usage_value: input.usageValue,
+            ...(input.choice === 'buy'
+              ? {}
+              : { condition: input.condition, usage_value: input.usageValue }),
           },
         });
         if (input.choice === 'buy' && buyout.ok) {

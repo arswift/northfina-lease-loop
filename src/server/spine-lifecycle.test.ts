@@ -156,15 +156,44 @@ describe('the complete loop', () => {
     expect(second.id).not.toBe(contract.id);
   });
 
+  it('automatically calculates the used-item price and reason from residual curves when omitted', async () => {
+    const { contract, endContext } = await returned();
+    const operator = { ...endContext, operator: true, actor: 'demo:operator:cust-aino' };
+    const asset = toAsset(await db.asset.findUniqueOrThrow({ where: { id: contract.assetId } }));
+    const plan = refurbishmentPlan({
+      asset,
+      targetCondition: 'good',
+      costs: await loadRefurbishmentCosts(),
+    });
+    if (!plan.ok) throw new Error('Expected available service plan');
+    const releaseRow = await db.assetRelease.findUnique({ where: { asset_id: contract.assetId } });
+    const release = await relistAsset(db, operator, contract.assetId, {
+      requestId: randomUUID(),
+      releaseRevision: releaseRow?.revision ?? 0,
+      condition: 'good',
+      completedTaskIds: plan.tasks.map((task) => task.id),
+    });
+    expect(release.offer).toEqual({
+      priceCents: 231455,
+      source: 'release:1',
+      releaseRevision: 1,
+    });
+    const storedRelease = await db.assetRelease.findUniqueOrThrow({
+      where: { asset_id: contract.assetId },
+    });
+    expect(storedRelease.valuation_reason).toContain('Auto residual formula');
+  });
+
   it('buys the asset at the locked net buyout, taxes it on the buyout date and prevents relisting', async () => {
     const contract = await createLease(db, aino, { termMonths: 12 });
+    const assetBefore = await db.asset.findUniqueOrThrow({ where: { id: contract.assetId } });
     const endContext = { ...aino, businessDate: contract.endDate };
     await issueInvoices(db, endContext, contract.id);
     const input = {
       requestId: randomUUID(),
       choice: 'buy' as const,
-      condition: 'good' as const,
-      usageValue: 1000,
+      condition: 'poor' as const,
+      usageValue: 0,
     };
     const bought = await endLease(db, endContext, contract.id, input);
     expect(bought.status).toBe('bought');
@@ -172,6 +201,11 @@ describe('the complete loop', () => {
       netCents: 155600,
       vatCents: 40456,
       grossCents: 196056,
+    });
+    expect(await db.asset.findUniqueOrThrow({ where: { id: contract.assetId } })).toMatchObject({
+      condition: assetBefore.condition,
+      usage_value: assetBefore.usage_value,
+      status: 'reserved',
     });
     expect(await endLease(db, endContext, contract.id, input)).toEqual(bought);
     await expect(
@@ -251,8 +285,14 @@ describe('lifecycle guards and evidence', () => {
     expect((await getPassport(db, 'ebike-008')).earlierLivesWithoutRecords).toBe(2);
     await createLease(db, aino);
     const lena = await demoContext('cust-lena');
-    expect(await getScopedAudit(db, lena)).toEqual([]);
-    expect(await getScopedAudit(db, { ...lena, operator: true })).toHaveLength(3);
-    expect(await getScopedAudit(db, aino)).toHaveLength(3);
+    expect(await getScopedAudit(db, lena)).toEqual({ rows: [], cursor: null });
+    const operatorTrail = await getScopedAudit(db, { ...lena, operator: true });
+    expect(operatorTrail.rows).toHaveLength(3);
+    expect(operatorTrail.cursor).toBeNull();
+    // Ids are SQLite autoincrement values, so assert order rather than literal ids.
+    expect(operatorTrail.rows.map((row) => row.id)).toEqual(
+      [...operatorTrail.rows].sort((a, b) => b.id - a.id).map((row) => row.id)
+    );
+    expect(await getScopedAudit(db, aino)).toEqual(operatorTrail);
   });
 });

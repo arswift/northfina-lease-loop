@@ -334,5 +334,16 @@
   "explain.bandLower": "Tällä ennakkomaksulla kuukausivuokra ilman ALV:tä on {amount} pienempi.",
   "explain.bandSameAmount": "Pyöristetty kuukausivuokra ilman ALV:tä pysyy samana.",
   "explain.invalidBusinessDate": "Valitse kelvollinen demopäivä ennen hinnan laskemista.",
-  "explain.savedBasis": "Nämä ovat {date} tallennetut hinnat ilman ALV:tä. Hinnaston muutokset eivät korvaa tätä tarjousta sen voimassaoloaikana."
+  "explain.savedBasis": "Nämä ovat {date} tallennetut hinnat ilman ALV:tä. Hinnaston muutokset eivät korvaa tätä tarjousta sen voimassaoloaikana.",
+  "spine.endProgressTitle": "Leasingkauden päättymisen vaiheet",
+  "spine.endNotReadyDate": "Päättämisvaihtoehdot ovat käytettävissä aikaisintaan {date}, kun kaikki kuukausilaskut on lähetetty.",
+  "spine.advanceEndDate": "Siirrä demopäivä päivään {date}",
+  "spine.endInvoiceProgress": "{issued}/{total} kuukausilaskusta on lähetetty. Lähetä kaikki kuukausilaskut ennen sopimuksen päättämistä.",
+  "spine.endInvoiceLink": "Siirry laskujen hallintaan",
+  "spine.autoValuation": "Automaattinen jäännösarvon laskenta",
+  "spine.autoValuationPrice": "Laskettu veroton tarjoushinta",
+  "spine.autoValuationFormula": "Perushinta {base} × ikä ({age} kk: {ageFactor} %) × kunto ({conditionFactor} %) × käyttö ({usage}: {usageFactor} %)",
+  "spine.autoValuationOverride": "Valinnainen manuaalinen poikkeus (jätä tyhjäksi käyttääksesi automaattista kaavaa)",
+  "spine.auditMore": "Näytä vanhemmat muutokset",
+  "spine.auditShown": "Näytetään {count}/{total} tallennetusta muutoksesta"
 }

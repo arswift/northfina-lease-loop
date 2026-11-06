@@ -334,5 +334,16 @@
   "explain.bandLower": "Selle ettemaksega on kuu üür ilma käibemaksuta {amount} väiksem.",
   "explain.bandSameAmount": "Ümardatud kuu üür ilma käibemaksuta jääb samaks.",
   "explain.invalidBusinessDate": "Vali enne hinna arvutamist sobiv demokuupäev.",
-  "explain.savedBasis": "Need on {date} salvestatud hinnad ilma käibemaksuta. Kataloogihindade muutused ei asenda seda pakkumist selle kehtivusajal."
+  "explain.savedBasis": "Need on {date} salvestatud hinnad ilma käibemaksuta. Kataloogihindade muutused ei asenda seda pakkumist selle kehtivusajal.",
+  "spine.endProgressTitle": "Liisinguperioodi lõpetamise etapid",
+  "spine.endNotReadyDate": "Lõpetamisvalikud on saadaval alates kuupäevast {date}, kui kõik kuu arved on väljastatud.",
+  "spine.advanceEndDate": "Muuda demo kuupäevaks {date}",
+  "spine.endInvoiceProgress": "Väljastatud on {issued}/{total} kavandatud kuu arvet. Enne lepingu lõpetamist väljastage kõik kuu arved.",
+  "spine.endInvoiceLink": "Ava arvete haldus",
+  "spine.autoValuation": "Automaatne jääkväärtuse arvutus",
+  "spine.autoValuationPrice": "Arvutatud käibemaksuta pakkumishind",
+  "spine.autoValuationFormula": "Baashind {base} × vanus ({age} kuud: {ageFactor}%) × seisukord ({conditionFactor}%) × kasutus ({usage}: {usageFactor}%)",
+  "spine.autoValuationOverride": "Valikuline käsitsi muutmine (jäta tühjaks, et kasutada automaatset valemit)",
+  "spine.auditMore": "Laadi vanemad muudatused",
+  "spine.auditShown": "Kuvatakse {count}/{total} salvestatud muudatusest"
 }

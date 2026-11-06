@@ -108,7 +108,10 @@ export function ContractPanel({
         />
       </div>
       <p className="mt-4 text-xs text-ink-muted dark:text-stone-400">{t('spine.taxHelp')}</p>
-      <h3 className="mt-8 border-t border-hairline pt-6 text-lg font-semibold text-navy dark:border-stone-800 dark:text-stone-100">
+      <h3
+        id="invoices-heading"
+        className="mt-8 border-t border-hairline pt-6 text-lg font-semibold text-navy dark:border-stone-800 dark:text-stone-100"
+      >
         {t('spine.invoices')}
       </h3>
       <p className="mt-1 text-sm text-ink-muted dark:text-stone-300">{t('spine.issuedHelp')}</p>

@@ -334,5 +334,16 @@
   "explain.bandLower": "Med denna förskottsbetalning är månadshyran före moms {amount} lägre.",
   "explain.bandSameAmount": "Den avrundade månadshyran före moms är oförändrad.",
   "explain.invalidBusinessDate": "Välj ett giltigt demodatum innan priset beräknas.",
-  "explain.savedBasis": "Detta är priserna före moms som sparades {date}. Ändringar i katalogpriserna ersätter inte erbjudandet så länge det är giltigt."
+  "explain.savedBasis": "Detta är priserna före moms som sparades {date}. Ändringar i katalogpriserna ersätter inte erbjudandet så länge det är giltigt.",
+  "spine.endProgressTitle": "Steg för att avsluta leasingperioden",
+  "spine.endNotReadyDate": "Valen blir tillgängliga tidigast {date}, när alla månadsfakturor har utfärdats.",
+  "spine.advanceEndDate": "Flytta demodatumet till {date}",
+  "spine.endInvoiceProgress": "{issued} av {total} schemalagda månadsfakturor har utfärdats. Utfärda alla månadsfakturor innan avtalet avslutas.",
+  "spine.endInvoiceLink": "Gå till fakturahanteringen",
+  "spine.autoValuation": "Automatisk restvärdesberäkning",
+  "spine.autoValuationPrice": "Beräknat pris exklusive moms",
+  "spine.autoValuationFormula": "Baspris {base} × ålder ({age} mån: {ageFactor} %) × skick ({conditionFactor} %) × användning ({usage}: {usageFactor} %)",
+  "spine.autoValuationOverride": "Valfri manuell justering (lämna tomt för att använda den automatiska formeln)",
+  "spine.auditMore": "Visa äldre ändringar",
+  "spine.auditShown": "Visar {count} av {total} registrerade ändringar"
 }

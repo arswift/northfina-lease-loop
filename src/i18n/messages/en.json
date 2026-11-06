@@ -334,5 +334,16 @@
   "explain.bandLower": "With this upfront payment, the monthly rent before VAT is {amount} lower.",
   "explain.bandSameAmount": "The rounded monthly rent before VAT is unchanged.",
   "explain.invalidBusinessDate": "Choose a valid demo date before calculating a price.",
-  "explain.savedBasis": "These are the net prices saved on {date}. Catalogue price changes do not replace this offer while it is valid."
+  "explain.savedBasis": "These are the net prices saved on {date}. Catalogue price changes do not replace this offer while it is valid.",
+  "spine.endProgressTitle": "End-of-lease progress",
+  "spine.endNotReadyDate": "End choices are available on or after {date}, once all monthly invoices have been issued.",
+  "spine.advanceEndDate": "Move demo date to {date}",
+  "spine.endInvoiceProgress": "{issued} of {total} scheduled monthly invoices have been issued. Issue all monthly invoices before closing this lease.",
+  "spine.endInvoiceLink": "Go to invoice controls",
+  "spine.autoValuation": "Automatic residual valuation",
+  "spine.autoValuationPrice": "Calculated net offer price",
+  "spine.autoValuationFormula": "Base {base} × age ({age} mo: {ageFactor}%) × condition ({conditionFactor}%) × usage ({usage}: {usageFactor}%)",
+  "spine.autoValuationOverride": "Optional manual override (leave blank to use the automatic formula)",
+  "spine.auditMore": "Load older changes",
+  "spine.auditShown": "Showing {count} of {total} recorded changes"
 }
