@@ -29,7 +29,6 @@ export function WaitingListPanel({
 }) {
   const t = getT(locale);
   const category = data.asset.category;
-  const canJoin = !data.availableForSelectedCustomer;
   const [condition, setCondition] = useState<AssetCondition>('good');
   const [budget, setBudget] = useState('');
   const [term, setTerm] = useState(12);
@@ -44,9 +43,6 @@ export function WaitingListPanel({
   const conditionInput = useRef<HTMLSelectElement>(null);
   const retry = useRef<{ key: string; id: string } | null>(null);
   const selection = { customerId: data.customer.id, businessDate: data.businessDate };
-  useEffect(() => {
-    if (editing) conditionInput.current?.focus();
-  }, [editing]);
   useEffect(() => {
     const controller = new AbortController();
     requestJson(
@@ -88,7 +84,6 @@ export function WaitingListPanel({
   );
   async function change(id?: string) {
     if (pending || busy) return;
-    if (!id && !editing && !canJoin) return;
     const key = JSON.stringify({ preferences, editing });
     if (!id && (!valid || (alreadyPending && !editing))) return;
     if (!id && retry.current?.key !== key) retry.current = { key, id: crypto.randomUUID() };
@@ -132,8 +127,6 @@ export function WaitingListPanel({
       setPending(false);
     }
   }
-  if (!canJoin && !error && (records === null || records.length === 0)) return null;
-  const showForm = canJoin || editing !== null;
   return (
     <details
       className={panelClass}
@@ -148,85 +141,80 @@ export function WaitingListPanel({
         }}
       >
         <h2 id="waiting-title" className="inline text-xl font-semibold">
-          {t(editing ? 'wait.editTitle' : canJoin ? 'wait.titleFor' : 'wait.manageTitle', {
+          {t(editing ? 'wait.editTitle' : 'wait.titleFor', {
             category: messageFor(locale, 'category.' + category),
           })}
         </h2>
       </summary>
       <p className="mt-2 font-medium">{t('wait.for', { name: data.customer.name })}</p>
-      {!canJoin && !editing ? <p className="mt-2 text-sm">{t('wait.availableHelp')}</p> : null}
-      {showForm ? (
-        <>
-          <p className="mt-2 text-sm">{t('wait.help')}</p>
-          <p className="mt-2 text-sm">{t('wait.categoryScope')}</p>
-          <fieldset
-            disabled={busy || pending || records === null}
-            className="mt-4 grid gap-4 sm:grid-cols-2"
+      <p className="mt-2 text-sm">{t('wait.help')}</p>
+      <p className="mt-2 text-sm">{t('wait.categoryScope')}</p>
+      <fieldset
+        disabled={busy || pending || records === null}
+        className="mt-4 grid gap-4 sm:grid-cols-2"
+      >
+        <Field id="waiting-condition" label={t('wait.condition')}>
+          <select
+            id="waiting-condition"
+            ref={conditionInput}
+            className={inputClass}
+            value={condition}
+            onChange={(event) => setCondition(event.target.value as AssetCondition)}
           >
-            <Field id="waiting-condition" label={t('wait.condition')}>
-              <select
-                id="waiting-condition"
-                ref={conditionInput}
-                className={inputClass}
-                value={condition}
-                onChange={(event) => setCondition(event.target.value as AssetCondition)}
-              >
-                {(['fair', 'good', 'like_new', 'new'] as const).map((value) => (
-                  <option key={value} value={value}>
-                    {messageFor(locale, 'condition.' + value)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field id="waiting-budget" label={t('wait.budget')}>
-              <input
-                id="waiting-budget"
-                className={inputClass}
-                inputMode="decimal"
-                value={budget}
-                onChange={(event) => setBudget(event.target.value)}
-              />
-            </Field>
-            <Field id="waiting-term" label={t('spine.term')}>
-              <select
-                id="waiting-term"
-                className={inputClass}
-                value={term}
-                onChange={(event) => setTerm(Number(event.target.value))}
-              >
-                {Object.keys(data.coefficientTable.end_of_term_buyout_percent_of_financed)
-                  .map(Number)
-                  .sort((a, b) => a - b)
-                  .map((value) => (
-                    <option key={value} value={value}>
-                      {t('spine.months', { count: value })}
-                    </option>
-                  ))}
-              </select>
-            </Field>
-            <Field id="waiting-deadline" label={t('match.deadline')}>
-              <input
-                id="waiting-deadline"
-                className={inputClass}
-                type="date"
-                min={data.businessDate}
-                value={neededBy}
-                onChange={(event) => setNeededBy(event.target.value)}
-              />
-            </Field>
-            <div className="self-end">
-              <button
-                type="button"
-                className={buttonClass}
-                disabled={!valid || (alreadyPending && !editing)}
-                onClick={() => void change()}
-              >
-                {pending ? t('spine.pending') : t(editing ? 'wait.save' : 'wait.join')}
-              </button>
-            </div>
-          </fieldset>
-        </>
-      ) : null}
+            {(['fair', 'good', 'like_new', 'new'] as const).map((value) => (
+              <option key={value} value={value}>
+                {messageFor(locale, 'condition.' + value)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field id="waiting-budget" label={t('wait.budget')}>
+          <input
+            id="waiting-budget"
+            className={inputClass}
+            inputMode="decimal"
+            value={budget}
+            onChange={(event) => setBudget(event.target.value)}
+          />
+        </Field>
+        <Field id="waiting-term" label={t('spine.term')}>
+          <select
+            id="waiting-term"
+            className={inputClass}
+            value={term}
+            onChange={(event) => setTerm(Number(event.target.value))}
+          >
+            {Object.keys(data.coefficientTable.end_of_term_buyout_percent_of_financed)
+              .map(Number)
+              .sort((a, b) => a - b)
+              .map((value) => (
+                <option key={value} value={value}>
+                  {t('spine.months', { count: value })}
+                </option>
+              ))}
+          </select>
+        </Field>
+        <Field id="waiting-deadline" label={t('match.deadline')}>
+          <input
+            id="waiting-deadline"
+            className={inputClass}
+            type="date"
+            min={data.businessDate}
+            value={neededBy}
+            onChange={(event) => setNeededBy(event.target.value)}
+          />
+        </Field>
+        <div className="self-end">
+          <button
+            type="button"
+            className={buttonClass}
+            disabled={!valid || (alreadyPending && !editing)}
+            onClick={() => void change()}
+          >
+            {pending ? t('spine.pending') : t(editing ? 'wait.save' : 'wait.join')}
+          </button>
+        </div>
+      </fieldset>
       {editing ? (
         <button
           type="button"
@@ -244,7 +232,7 @@ export function WaitingListPanel({
           {t('wait.discardEdit')}
         </button>
       ) : null}
-      {alreadyPending && !editing && canJoin ? (
+      {alreadyPending && !editing ? (
         <p className="mt-3 text-sm">{t('wait.alreadyPending')}</p>
       ) : null}
       {error ? (
@@ -304,6 +292,7 @@ export function WaitingListPanel({
                       setNeededBy(row.needed_by);
                       retry.current = null;
                       setError(null);
+                      conditionInput.current?.focus();
                     }}
                   >
                     {t('wait.edit')}

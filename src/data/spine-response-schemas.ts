@@ -136,7 +136,6 @@ export const bootstrapSchema = z.object({
   refurbishmentCosts: refurbishmentCostsSchema,
   maintenance,
   reservedForSelectedCustomer: z.boolean(),
-  availableForSelectedCustomer: z.boolean(),
   coefficientTable: coefficientTableSchema,
   vatRates: vatRatesSchema,
   questions: z.array(questionSchema),

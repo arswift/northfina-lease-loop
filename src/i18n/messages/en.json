@@ -1,6 +1,4 @@
 {
-  "wait.manageTitle": "Manage waiting requests: {category}",
-  "wait.availableHelp": "This item is available to lease. You can still edit or cancel your existing waiting requests below.",
   "wait.loadFailed": "Waiting requests could not be loaded. Retry to continue.",
   "wait.edit": "Edit request",
   "wait.editTitle": "Edit your waiting request: {category}",

@@ -1,6 +1,4 @@
 {
-  "wait.manageTitle": "Hallitse jonotuspyyntöjä: {category}",
-  "wait.availableHelp": "Tämä tuote on vuokrattavissa. Voit silti muokata tai peruuttaa olemassa olevia jonotuspyyntöjäsi alta.",
   "wait.loadFailed": "Jonotuspyyntöjä ei voitu ladata. Yritä uudelleen jatkaaksesi.",
   "wait.edit": "Muokkaa pyyntöä",
   "wait.editTitle": "Muokkaa jonotuspyyntöä: {category}",
