@@ -25,7 +25,9 @@ for (let attempt = 0; attempt < 40; attempt += 1) {
 }
 
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch();
+const browser = await chromium.launch(
+  process.env.UI_BROWSER_CHANNEL ? { channel: process.env.UI_BROWSER_CHANNEL } : {}
+);
 
 async function scenario(name, viewport, test) {
   const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
@@ -84,6 +86,34 @@ async function setAppearance(page, design, mode) {
 }
 
 try {
+  await scenario('dealer-next-actions', { width: 320, height: 850 }, async (page) => {
+    await page.goto(base + '/en/lease/ebike-007');
+    await page.locator('#demo-role').selectOption('operator');
+    await page.locator('#demo-date').fill('2026-11-06');
+    const panel = page.getByRole('region', { name: 'Needs attention', exact: true });
+    await panel.waitFor();
+    const summary = panel.locator('summary');
+    await summary.focus();
+    await summary.press('Enter');
+    assert.equal(await panel.locator('details').evaluate((element) => element.open), true);
+    const prepare = panel.getByRole('link', { name: /Prepare item:.*ebike-007/ });
+    await prepare.click();
+    await page.waitForURL('**/en/lease/ebike-007#relist-heading');
+    await page.locator('#relist-heading').waitFor();
+    let writes = 0;
+    page.on('request', (request) => {
+      if (request.method() !== 'GET') writes += 1;
+    });
+    const refreshed = page.waitForResponse((response) =>
+      response.url().includes('/api/spine/dealer?')
+    );
+    await panel.getByRole('button', { name: 'Refresh list' }).click();
+    assert.equal((await refreshed).status(), 200);
+    assert.equal(writes, 0, 'Reading the action list must not change financial records.');
+    await noOverflow(page);
+    await accessible(page);
+  });
+
   await scenario('green-mobile-keyboard', { width: 320, height: 850 }, async (page) => {
     await page.goto(base + '/en');
     const menu = page.locator('.language-disclosure');
