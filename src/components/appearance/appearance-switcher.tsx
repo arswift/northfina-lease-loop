@@ -1,23 +1,41 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { getT } from '@/i18n/get-t';
 import type { Locale } from '@/i18n/locales';
 import { useAppearance } from './use-appearance';
 
 export function AppearanceSwitcher({ locale }: { locale: Locale }) {
   const t = getT(locale);
-  const { appearance, save, ready, volatile } = useAppearance();
+  const { appearance, save, ready, volatile } = useAppearance(locale);
+  const menuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    function closeOutside(event: PointerEvent) {
+      const menu = menuRef.current;
+      if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) {
+        menu.open = false;
+      }
+    }
+    document.addEventListener('pointerdown', closeOutside, true);
+    return () => document.removeEventListener('pointerdown', closeOutside, true);
+  }, []);
 
   return (
     <details
+      ref={menuRef}
       className="appearance"
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+        // Clicking a label briefly blurs to null before its input receives focus.
+        // Keep the menu open during that native focus transfer (Chrome can crash).
+        if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) {
+          event.currentTarget.open = false;
+        }
       }}
       onKeyDown={(event) => {
         if (event.key !== 'Escape' || !event.currentTarget.open) return;
-        event.currentTarget.open = false;
         event.currentTarget.querySelector('summary')?.focus();
+        event.currentTarget.open = false;
       }}
     >
       <summary className="appearance-trigger">

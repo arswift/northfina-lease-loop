@@ -1,6 +1,7 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useLayoutEffect, useSyncExternalStore } from 'react';
+import type { Locale } from '@/i18n/locales';
 import { appearanceKey, defaultAppearance, parseAppearance, type Appearance } from './preferences';
 
 const eventName = 'lease-loop-appearance-changed';
@@ -61,8 +62,23 @@ function save(value: Appearance): void {
   window.dispatchEvent(new Event(eventName));
 }
 
-export function useAppearance() {
+export function useAppearance(locale: Locale) {
   const value = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+
+  useLayoutEffect(() => {
+    // Locale navigation replaces the root attributes; the head script does not
+    // run again. Restore the browser preference before painting the new layout.
+    let appearance = parseAppearance(snapshot());
+    let volatile = false;
+    try {
+      appearance = parseAppearance(window.localStorage.getItem(appearanceKey));
+    } catch {
+      volatile = true;
+    }
+    apply(appearance, volatile);
+    window.dispatchEvent(new Event(eventName));
+  }, [locale]);
+
   const ready = value !== 'server';
   return {
     appearance: ready ? parseAppearance(value) : defaultAppearance,

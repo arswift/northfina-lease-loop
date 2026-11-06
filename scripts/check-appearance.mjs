@@ -118,6 +118,58 @@ async function audit(page, name) {
 }
 
 try {
+  for (const width of [320, 1280]) {
+    await run(
+      `appearance-label-clicks-${width}`,
+      { colorScheme: 'light', viewport: { width, height: 900 } },
+      async (page) => {
+        await price(page);
+        const menu = page.locator('.appearance');
+        const trigger = page.locator('.appearance-trigger');
+        await trigger.click();
+        for (const [group, value, design, mode] of [
+          ['design', 'northfina', 'northfina', 'system'],
+          ['mode', 'dark', 'northfina', 'dark'],
+          ['design', 'green', 'green', 'dark'],
+          ['mode', 'light', 'green', 'light'],
+          ['mode', 'system', 'green', 'system'],
+        ]) {
+          const radio = page.locator(`input[name="appearance-${group}"][value="${value}"]`);
+          const label = page.locator('.appearance-choice').filter({ has: radio });
+          // Click the label away from its input. Direct radio checks miss the
+          // transient null blur that used to close <details> and crash Chrome.
+          const position = await label.evaluate((el) => ({
+            x: el.clientWidth - 12,
+            y: el.clientHeight / 2,
+          }));
+          await label.click({ position });
+          assert.equal(await radio.isChecked(), true);
+          assert.equal(await menu.evaluate((el) => el.open), true);
+          await theme(page, design, mode, mode === 'system' ? 'light' : mode);
+        }
+
+        await menu.locator('legend').first().click();
+        assert.equal(await menu.evaluate((el) => el.open), true);
+        // Outside clicks must also close the menu when the target cannot focus.
+        await page.locator('.footer-note').click();
+        assert.equal(await menu.evaluate((el) => el.open), false);
+
+        await trigger.click();
+        await page.locator('input[name="appearance-mode"][value="system"]').focus();
+        await page.keyboard.press('Tab');
+        assert.equal(await menu.evaluate((el) => el.open), false);
+        assert.equal(
+          await menu.evaluate((el) => el.contains(globalThis.document.activeElement)),
+          false
+        );
+
+        await trigger.click();
+        await page.keyboard.press('Shift+Tab');
+        assert.equal(await menu.evaluate((el) => el.open), false);
+      }
+    );
+  }
+
   for (const locale of ['en', 'fi', 'sv', 'et']) {
     for (const mode of ['light', 'dark']) {
       for (const width of [320, 1280]) {
@@ -186,10 +238,17 @@ try {
       await page.locator('#down').waitFor();
       await theme(page, 'northfina', 'dark', 'dark');
       assert.equal(await page.locator('#down').inputValue(), '100');
-      await page.locator('header nav a[lang="fi"]').click();
-      await page.locator('#down').waitFor();
-      await theme(page, 'northfina', 'dark', 'dark');
-      assert.equal(await page.locator('#term-select').inputValue(), '24');
+      for (const locale of ['fi', 'sv', 'et', 'en']) {
+        await page.locator(`header nav a[lang="${locale}"]`).click();
+        await page.waitForURL(`**/${locale}/lease/ebike-003`);
+        await page.waitForFunction(
+          (locale) => globalThis.document.documentElement.lang === locale,
+          locale
+        );
+        await page.locator('#down').waitFor();
+        await theme(page, 'northfina', 'dark', 'dark');
+        assert.equal(await page.locator('#term-select').inputValue(), '24');
+      }
       const other = await context.newPage();
       await other.goto(base + '/en');
       await choose(other, 'green', 'light');
