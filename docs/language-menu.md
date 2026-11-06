@@ -20,10 +20,8 @@ are introduced. Menu surfaces, selection and focus derive from the current theme
 Northfina has a white outlined trigger on its blue header. Both modes and styles
 use native language names rather than country flags as accessible labels.
 
-`language-switcher.css` is scoped to the new control. `check-language-menu.mjs`
-checks open menus in both designs, both explicit colour modes, four locales and
-320/1280px widths; it also exercises keyboard dismissal, the other header panel,
-200% text enlargement, forced colours, route/query/fragment retention, saved
-drafts and navigation without JavaScript. Existing UI and appearance regressions
-still run, with their language transitions opening the menu first. Actual pass
-results belong to the matching CI artifact, not this description of test coverage.
+`language-switcher.css` is scoped to this control. The optional `UI smoke`
+workflow runs `scripts/check-ui-smoke.mjs` for representative colour schemes,
+keyboard/focus behaviour, all four language transitions and saved draft retention.
+It does not run on every push and does not duplicate the required core CI.
+Broader manual accessibility reviews are reserved for major UI changes.
