@@ -11,16 +11,21 @@ import appearanceEn from './messages/appearance.en.json';
 import appearanceEt from './messages/appearance.et.json';
 import appearanceFi from './messages/appearance.fi.json';
 import appearanceSv from './messages/appearance.sv.json';
+import guardianEn from './messages/guardian/en.json';
+import guardianEt from './messages/guardian/et.json';
+import guardianFi from './messages/guardian/fi.json';
+import guardianSv from './messages/guardian/sv.json';
 import type { Locale } from './locales';
 
-export type MessageKey = keyof typeof en | keyof typeof workflowEn | keyof typeof appearanceEn;
+export type MessageKey =
+  keyof typeof en | keyof typeof workflowEn | keyof typeof appearanceEn | keyof typeof guardianEn;
 export type Messages = Record<MessageKey, string>;
 
 export const messages: Record<Locale, Messages> = {
-  en: { ...en, ...workflowEn, ...appearanceEn },
-  fi: { ...fi, ...workflowFi, ...appearanceFi },
-  sv: { ...sv, ...workflowSv, ...appearanceSv },
-  et: { ...et, ...workflowEt, ...appearanceEt },
+  en: { ...en, ...workflowEn, ...appearanceEn, ...guardianEn },
+  fi: { ...fi, ...workflowFi, ...appearanceFi, ...guardianFi },
+  sv: { ...sv, ...workflowSv, ...appearanceSv, ...guardianSv },
+  et: { ...et, ...workflowEt, ...appearanceEt, ...guardianEt },
 };
 
 export type TranslateValues = Record<string, string | number>;

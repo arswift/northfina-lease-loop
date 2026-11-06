@@ -14,6 +14,7 @@ import { HistoryPanel } from './history-panel';
 import { RelistPanel, type RelistForm } from './relist-panel';
 import { buttonClass, messageFor, panelClass } from './ui';
 import { useDraft } from './use-draft';
+import { DealerNextActions } from './dealer-next-actions';
 
 const retrySchema = z.object({ fingerprint: z.string(), id: z.uuid() }).nullable();
 
@@ -38,6 +39,10 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
   const [revision, setRevision] = useState(0);
   const activeRequest = useRef(false);
   const data = loaded?.key === key ? loaded.data : null;
+  const pendingSignatures =
+    data?.nextActions.find(
+      (action) => action.assetId === assetId && action.kind === 'awaiting_signer'
+    )?.pendingSignatures ?? 0;
   const heading = data
     ? `${t('spine.dealerMode')} · ${data.asset.make} ${data.asset.model}`
     : t('spine.dealerMode');
@@ -131,31 +136,31 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
         <p role="status">{t('spine.loading')}</p>
       ) : (
         <>
-          <section className={panelClass} aria-labelledby="dealer-queue-heading">
-            <h2 id="dealer-queue-heading" className="text-xl font-semibold">
-              {t('spine.dealerReturned', { count: data.returnedItems.length })}
-            </h2>
-            <ul className="mt-3 flex flex-wrap gap-4">
-              {data.returnedItems.map((item) => (
-                <li key={item.id}>
-                  {busy ? (
-                    <span>
-                      {item.make} {item.model} · {item.id}
-                    </span>
-                  ) : (
-                    <Link
-                      href={'/' + locale + '/lease/' + item.id}
-                      className="underline"
-                      aria-current={item.id === assetId ? 'page' : undefined}
-                    >
-                      {item.make} {item.model} · {item.id}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-            {!data.returnedItems.length ? <p className="mt-3">{t('spine.dealerEmpty')}</p> : null}
-          </section>
+          <DealerNextActions
+            actions={data.nextActions}
+            locale={locale}
+            assetId={assetId}
+            busy={busy}
+            onRefresh={() => {
+              setError(null);
+              setRevision((value) => value + 1);
+            }}
+          />
+          {pendingSignatures > 0 ? (
+            <section
+              id="dealer-signing-status"
+              tabIndex={-1}
+              className={panelClass}
+              aria-labelledby="dealer-signing-heading"
+            >
+              <h2 id="dealer-signing-heading" className="text-xl font-semibold">
+                {t('dealer.actions.link.awaiting_signer')}
+              </h2>
+              <p className="mt-3">{t('dealer.actions.signatures', { count: pendingSignatures })}</p>
+              <p className="mt-3">{t('dealer.actions.signingNext')}</p>
+              <p className="mt-3 text-sm">{t('dealer.actions.signingLimit')}</p>
+            </section>
+          ) : null}
           {data.asset.status === 'returned' ? (
             <RelistPanel
               key={`${assetId}:${data.releaseRevision}:${data.businessDate}`}
@@ -165,7 +170,7 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
               onRelist={(input) => void relist(input)}
             />
           ) : (
-            <section className={panelClass} role="status">
+            <section id="dealer-offer-status" tabIndex={-1} className={panelClass} role="status">
               <p>
                 {data.asset.status === 'available' && data.offer?.source.startsWith('release:')
                   ? t('spine.dealerPublished', {
@@ -177,6 +182,13 @@ export function DealerJourney({ assetId, locale }: { assetId: string; locale: Lo
                 <p className="mt-3">
                   <strong>{t('spine.valuationReason')}: </strong>
                   {data.valuationReason}
+                </p>
+              ) : null}
+              {data.reservation.reserved ? (
+                <p className="mt-3">
+                  {data.reservation.customerName
+                    ? t('dealer.actions.reservedFor', { name: data.reservation.customerName })
+                    : t('dealer.actions.reservedUnknown')}
                 </p>
               ) : null}
             </section>
