@@ -13,6 +13,7 @@ import { intlLocale, type Locale } from '@/i18n/locales';
 import { requestJson } from './api';
 import type { DealerWorkspace } from '@/server/spine-dealer';
 import { buttonClass, Field, inputClass, messageFor } from './ui';
+import { MatchingOverride } from './matching-override';
 
 export function MatchingPanel({
   data,
@@ -61,6 +62,7 @@ export function MatchingPanel({
   async function preview() {
     if (!input.success || !valid) return;
     onClear();
+    setLoaded(null);
     setPending(true);
     setFailedKey(null);
     try {
@@ -198,6 +200,18 @@ export function MatchingPanel({
             ) : (
               <p className="mt-4 font-medium">{t('match.noMatch')}</p>
             )}
+            {input.success ? (
+              <MatchingOverride
+                key={key}
+                preview={result}
+                input={input.data}
+                locale={locale}
+                disabled={busy || pending}
+                readyToday={readyOn === data.businessDate}
+                onClear={onClear}
+                onSelect={onSelect}
+              />
+            ) : null}
             <details className="mt-4">
               <summary>{t('match.compare')}</summary>
               <div className="mt-3 overflow-x-auto">

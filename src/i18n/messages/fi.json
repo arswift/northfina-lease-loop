@@ -1,4 +1,12 @@
 {
+  "match.overrideTitle": "Valitse toinen sopiva suunnitelma",
+  "match.overrideHelp": "Suositus perustuu määräaikaan ja korjauskuluihin. Voit valita toisen sopivan asiakkaan tai kunnon, kun peruste tallennetaan tapahtumalokiin. Kelpoisuusehdot ovat silti voimassa.",
+  "match.alternative": "Sopiva asiakas ja korjaussuunnitelma",
+  "match.chooseAlternative": "Valitse vaihtoehto",
+  "match.alternativeOption": "{customer} · {request} · {condition} · {term} kuukautta · Vuokra {rent}/kk · Korjaukset {cost}",
+  "match.overrideReason": "Miksi valitset tämän suunnitelman? (10–500 merkkiä)",
+  "match.useAlternative": "Käytä valittua suunnitelmaa",
+  "match.savedOverride": "Operaattorin poikkeusvalinta: {reason}",
   "wait.manageTitle": "Hallitse jonotuspyyntöjä: {category}",
   "wait.availableHelp": "Tämä tuote on vuokrattavissa. Voit silti muokata tai peruuttaa olemassa olevia jonotuspyyntöjäsi alta.",
   "wait.loadFailed": "Jonotuspyyntöjä ei voitu ladata. Yritä uudelleen jatkaaksesi.",

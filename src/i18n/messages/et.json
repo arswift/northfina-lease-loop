@@ -1,4 +1,12 @@
 {
+  "match.overrideTitle": "Vali teine sobiv plaan",
+  "match.overrideHelp": "Soovitus eelistab varasemat tähtaega ja väiksemat remondikulu. Võid valida teise sobiva kliendi või seisukorra, lisades auditilogisse salvestatava põhjenduse. Sobivusnõuded kehtivad endiselt.",
+  "match.alternative": "Sobiv klient ja remondiplaan",
+  "match.chooseAlternative": "Vali alternatiiv",
+  "match.alternativeOption": "{customer} · {request} · {condition} · {term} kuud · Rent {rent}/kuu · Remont {cost}",
+  "match.overrideReason": "Miks valid selle plaani? (10–500 märki)",
+  "match.useAlternative": "Kasuta valitud plaani",
+  "match.savedOverride": "Operaatori erandvalik: {reason}",
   "wait.manageTitle": "Halda ootenimekirja päringuid: {category}",
   "wait.availableHelp": "Seda vara saab liisida. Allpool saad endiselt muuta või tühistada oma olemasolevaid ootenimekirja päringuid.",
   "wait.loadFailed": "Ootenimekirja päringuid ei saanud laadida. Jätkamiseks proovi uuesti.",
