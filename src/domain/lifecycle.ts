@@ -64,18 +64,21 @@ export type RefurbishmentResult =
 
 const conditions: readonly AssetCondition[] = ['new', 'like_new', 'good', 'fair', 'poor'];
 
-/** A baseline readiness checklist, not the Smart Problem's economic optimizer. */
+/** Readiness checklist; fair condition requires a matching customer's explicit acceptance. */
 export function refurbishmentPlan(input: {
   asset: Asset;
   targetCondition: AssetCondition;
   costs: RefurbishmentCosts;
   lastServiceUsage?: number;
   maintenance?: MaintenanceBaselines;
+  acceptsFairCondition?: boolean;
 }): RefurbishmentResult {
   const { asset, targetCondition, costs } = input;
   const lastServiceUsage = input.maintenance?.lastServiceAtUsage ?? input.lastServiceUsage;
   const target = conditions.indexOf(targetCondition);
-  if (target > 2) return { ok: false, reason: 'condition_too_low' };
+  if (target > 2 && !(targetCondition === 'fair' && input.acceptsFairCondition)) {
+    return { ok: false, reason: 'condition_too_low' };
+  }
   const rules = costs[asset.category];
   const tasks: RefurbishmentTask[] = [];
 
