@@ -14,6 +14,7 @@ vi.mock('@/server/db', () => ({
 }));
 import { GET, POST } from '@/app/api/spine/waiting-list/route';
 import { POST as cancel } from '@/app/api/spine/waiting-list/[id]/cancel/route';
+import { POST as update } from '@/app/api/spine/waiting-list/[id]/update/route';
 
 let cleanup: () => Promise<void>;
 beforeAll(async () => {
@@ -49,6 +50,36 @@ function request(body?: unknown, customer = 'cust-aino') {
 }
 
 describe('customer-owned waiting requests', () => {
+  it('rejects cross-origin registration, editing and cancellation before writing data', async () => {
+    const joined = await joinWaitingList(
+      state.db,
+      await demoContext('cust-aino', '2026-11-06'),
+      input()
+    );
+    const forged = () =>
+      new Request('http://localhost/api/spine/waiting-list', {
+        method: 'POST',
+        headers: { origin: 'https://example.test', 'content-type': 'application/json' },
+        body: '{}',
+      });
+    const params = { params: Promise.resolve({ id: joined.id }) };
+    const responses = await Promise.all([
+      POST(forged(), undefined),
+      update(forged(), params),
+      cancel(forged(), params),
+    ]);
+    for (const response of responses) {
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({
+        success: false,
+        error: { code: 'ORIGIN_REJECTED' },
+      });
+    }
+    expect(await state.db.auditLog.count()).toBe(1);
+    expect(
+      (await state.db.waitingRequest.findUniqueOrThrow({ where: { id: joined.id } })).status
+    ).toBe('pending');
+  });
   it('registers through the route, derives ownership from context and writes one audit', async () => {
     const body = input();
     const response = await POST(request(body), undefined);
