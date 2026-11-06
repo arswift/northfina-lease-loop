@@ -31,7 +31,7 @@
   "spine.error.WAITING_REQUEST_EXISTS": "You already have a pending request for this category. Use Edit request to change it.",
   "spine.error.WAITING_REQUEST_NOT_FOUND": "This waiting request is unavailable for the selected customer.",
   "spine.error.WAITING_REQUEST_CHANGED": "The request has changed or been allocated. Refresh the list.",
-  "spine.reason.identity_unknown": "Anonymous sample: no customer identity; comparison only",
+  "spine.reason.identity_unknown": "Anonymous request: recommendation only; a known customer is required before reservation.",
   "spine.reason.reserved_for_other": "Reserved for a different nominated customer",
   "spine.action.waiting.joined": "Joined waiting list",
   "spine.action.waiting.cancelled": "Waiting request cancelled",
@@ -392,5 +392,8 @@
   "explain.bandLower": "With this upfront payment, the monthly rent before VAT is {amount} lower.",
   "explain.bandSameAmount": "The rounded monthly rent before VAT is unchanged.",
   "explain.invalidBusinessDate": "Choose a valid demo date before calculating a price.",
-  "explain.savedBasis": "These are the net prices saved on {date}. Catalogue price changes do not replace this offer while it is valid."
+  "explain.savedBasis": "These are the net prices saved on {date}. Catalogue price changes do not replace this offer while it is valid.",
+  "match.anonymousPreview": "Anonymous request: recommendation only; a known customer is required before reservation.",
+  "match.estimateExplanation": "Estimated repair cost: {cost}. Earlier deadlines win, then lower repair costs; request ID breaks remaining ties.",
+  "match.importedLink": "Team-created demo customer link. This sample request is allocated through the audit trail; it is not an editable customer registration."
 }

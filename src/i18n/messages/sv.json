@@ -31,7 +31,7 @@
   "spine.error.WAITING_REQUEST_EXISTS": "Du har redan en väntande förfrågan i denna kategori. Använd Redigera förfrågan för att ändra den.",
   "spine.error.WAITING_REQUEST_NOT_FOUND": "Denna förfrågan är inte tillgänglig för vald kund.",
   "spine.error.WAITING_REQUEST_CHANGED": "Förfrågan har ändrats eller tilldelats. Uppdatera listan.",
-  "spine.reason.identity_unknown": "Anonymt exempel: kundidentitet saknas; endast jämförelse",
+  "spine.reason.identity_unknown": "Anonym förfrågan: endast rekommendation. En känd kund krävs före reservation.",
   "spine.reason.reserved_for_other": "Reserverad för en annan utsedd kund",
   "spine.action.waiting.joined": "Gick med i väntelistan",
   "spine.action.waiting.cancelled": "Förfrågan avbruten",
@@ -392,5 +392,8 @@
   "explain.bandLower": "Med denna förskottsbetalning är månadshyran före moms {amount} lägre.",
   "explain.bandSameAmount": "Den avrundade månadshyran före moms är oförändrad.",
   "explain.invalidBusinessDate": "Välj ett giltigt demodatum innan priset beräknas.",
-  "explain.savedBasis": "Detta är priserna före moms som sparades {date}. Ändringar i katalogpriserna ersätter inte erbjudandet så länge det är giltigt."
+  "explain.savedBasis": "Detta är priserna före moms som sparades {date}. Ändringar i katalogpriserna ersätter inte erbjudandet så länge det är giltigt.",
+  "match.anonymousPreview": "Anonym förfrågan: endast rekommendation. En känd kund krävs före reservation.",
+  "match.estimateExplanation": "Beräknad reparationskostnad: {cost}. Tidigaste behovsdatum prioriteras, sedan lägre reparationskostnad. Förfrågans ID avgör återstående lika resultat.",
+  "match.importedLink": "Kundkoppling skapad av teamet för demonstrationen. Exempelförfrågan tilldelas via händelseloggen och är inte en redigerbar kundregistrering."
 }

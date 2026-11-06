@@ -97,7 +97,8 @@ export function matchSecondLife(input: MatchingInput): {
     });
   });
   const ordered = candidates
-    .filter((candidate) => candidate.reasons.length === 0)
+    // Identity is an allocation constraint, not a suitability constraint.
+    .filter((candidate) => candidate.reasons.every((reason) => reason === 'identity_unknown'))
     .sort((a, b) => {
       if (a.neededBy !== b.neededBy) return a.neededBy < b.neededBy ? -1 : 1;
       if (a.workNetCents !== b.workNetCents) return a.workNetCents! - b.workNetCents!;

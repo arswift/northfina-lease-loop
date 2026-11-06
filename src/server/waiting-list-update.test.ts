@@ -21,7 +21,8 @@ const prefs = {
   minCondition: 'fair' as const,
   monthlyBudgetCents: 9000,
   termMonths: 12,
-  neededBy: '2026-11-10',
+  // Earlier than the imported examples so these tests exercise the registered request.
+  neededBy: '2026-11-09',
 };
 const previewInput = { ageMonths: 24, originalPriceCents: 250000, readyOn: '2026-11-06' };
 function edit() {
