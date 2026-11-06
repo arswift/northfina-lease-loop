@@ -37,7 +37,12 @@ export function multiplyRatio(cents: number, numerator: number, denominator: num
   return rounded;
 }
 
-/** UI boundary: accepts 12, 12.3 or 12,34; never parses euros through a float. */
+/**
+ * UI boundary: accepts 12, 12.3 or 12,34; never parses euros through a float.
+ * Parsed money must also fit the storage cap (SQLite signed 32-bit = 2_147_483_647
+ * cents = €21,474,836.47). Larger amounts are ordinary `invalid_money` text, so
+ * the field shows its own friendly error instead of a server VALIDATION_ERROR.
+ */
 export function parseCents(
   text: string
 ): { ok: true; cents: number } | { ok: false; reason: 'invalid_money' } {
@@ -45,5 +50,7 @@ export function parseCents(
   const match = value.length <= 20 ? /^(\d+)(?:[.,](\d{1,2}))?$/.exec(value) : null;
   if (!match) return { ok: false, reason: 'invalid_money' };
   const cents = Number(BigInt(match[1] ?? '0') * 100n + BigInt((match[2] ?? '').padEnd(2, '0')));
-  return Number.isSafeInteger(cents) ? { ok: true, cents } : { ok: false, reason: 'invalid_money' };
+  return Number.isSafeInteger(cents) && cents <= 2_147_483_647
+    ? { ok: true, cents }
+    : { ok: false, reason: 'invalid_money' };
 }
