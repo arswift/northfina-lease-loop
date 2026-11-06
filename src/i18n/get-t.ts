@@ -18,10 +18,7 @@ import guardianSv from './messages/guardian/sv.json';
 import type { Locale } from './locales';
 
 export type MessageKey =
-  | keyof typeof en
-  | keyof typeof workflowEn
-  | keyof typeof appearanceEn
-  | keyof typeof guardianEn;
+  keyof typeof en | keyof typeof workflowEn | keyof typeof appearanceEn | keyof typeof guardianEn;
 export type Messages = Record<MessageKey, string>;
 
 export const messages: Record<Locale, Messages> = {
