@@ -81,3 +81,8 @@ request ID and condition. Stable IDs break exact ties; the data has no structure
 registration timestamps, so this is not a claim of first-come-first-served.
 Every candidate retains its rejection reasons. Estimates are not completed work
 or credit approval. Imported history must be entered explicitly by the operator.
+
+`identity_unknown` is an allocation warning: anonymous requests still participate
+in suitability ranking, but the server rejects reservation without a known customer.
+Other rejection reasons continue to exclude a candidate. Team-created sample
+customer links are documented in `data/DATA.md`; they do not establish credit approval.

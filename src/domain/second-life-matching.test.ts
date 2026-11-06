@@ -162,14 +162,20 @@ describe('second-life matchmaking', () => {
     ).toBeNull();
   });
 
-  it('does not allocate anonymous requests or overwrite an existing reservation', () => {
+  it('recommends anonymous requests without allowing them to overwrite a reservation', () => {
     const request = fixture.requests.find((row) => row.id === 'wait-02')!;
-    for (const change of [
-      { unidentifiedRequestIds: [request.id] },
-      { incompatibleReservationIds: [request.id] },
-    ]) {
-      expect(run({ requests: [request], ...change }).recommendation).toBeNull();
-    }
+    expect(
+      run({ requests: [request], unidentifiedRequestIds: [request.id] }).recommendation
+    ).toMatchObject({ requestId: request.id, reasons: ['identity_unknown'] });
+    expect(
+      run({ requests: [request], incompatibleReservationIds: [request.id] }).recommendation
+    ).toBeNull();
+    expect(
+      run({
+        requests: [{ ...request, max_monthly_net_rent_cents: 1 }],
+        unidentifiedRequestIds: [request.id],
+      }).recommendation
+    ).toBeNull();
   });
 
   it('never reallocates a waiting request recorded as fulfilled', () => {

@@ -31,7 +31,7 @@
   "spine.error.WAITING_REQUEST_EXISTS": "Sul on selles kategoorias juba ootel päring. Selle muutmiseks vali Muuda päringut.",
   "spine.error.WAITING_REQUEST_NOT_FOUND": "See ootenimekirja päring pole valitud kliendile kättesaadav.",
   "spine.error.WAITING_REQUEST_CHANGED": "Päring on muutunud või vara on juba määratud. Värskenda nimekirja.",
-  "spine.reason.identity_unknown": "Anonüümne näide: kliendi identiteet puudub; ainult võrdlemiseks",
+  "spine.reason.identity_unknown": "Anonüümne soov: ainult soovitus. Broneerimiseks on vaja teadaolevat klienti.",
   "spine.reason.reserved_for_other": "Broneeritud teisele määratud kliendile",
   "spine.action.waiting.joined": "Liitus ootenimekirjaga",
   "spine.action.waiting.cancelled": "Ootenimekirja päring tühistatud",
@@ -392,5 +392,8 @@
   "explain.bandLower": "Selle ettemaksega on kuu üür ilma käibemaksuta {amount} väiksem.",
   "explain.bandSameAmount": "Ümardatud kuu üür ilma käibemaksuta jääb samaks.",
   "explain.invalidBusinessDate": "Vali enne hinna arvutamist sobiv demokuupäev.",
-  "explain.savedBasis": "Need on {date} salvestatud hinnad ilma käibemaksuta. Kataloogihindade muutused ei asenda seda pakkumist selle kehtivusajal."
+  "explain.savedBasis": "Need on {date} salvestatud hinnad ilma käibemaksuta. Kataloogihindade muutused ei asenda seda pakkumist selle kehtivusajal.",
+  "match.anonymousPreview": "Anonüümne soov: ainult soovitus. Broneerimiseks on vaja teadaolevat klienti.",
+  "match.estimateExplanation": "Hinnanguline remondikulu: {cost}. Eelistatakse varasemat tähtaega, seejärel väiksemat remondikulu. Võrdse tulemuse korral otsustab soovi ID.",
+  "match.importedLink": "Meeskonna loodud demokliendi seos. Näidissoov määratakse auditilogi kaudu; see ei ole muudetav kliendi registreering."
 }

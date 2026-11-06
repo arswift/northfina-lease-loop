@@ -48,11 +48,13 @@ export async function previewSecondLife(
     return parsed.success && parsed.data.matching ? [parsed.data.matching.waitingRequestId] : [];
   });
   const identities = new Map(
-    registered.map((request) => [
+    [...requests, ...registered].map((request) => [
       request.id,
       {
-        customerId: request.customer_id,
-        waitingRevision: request.revision,
+        customerId: customers.some((customer) => customer.id === request.customer_id)
+          ? request.customer_id
+          : null,
+        waitingRevision: 'revision' in request ? request.revision : null,
         customerName:
           customers.find((customer) => customer.id === request.customer_id)?.name ?? null,
       },
@@ -82,16 +84,15 @@ export async function previewSecondLife(
     onDate: context.businessDate,
     allocatedRequestIds,
     unidentifiedRequestIds: [
-      ...requests.map((request) => request.id),
-      ...registered
+      ...[...requests, ...registered]
         .filter((request) => !identities.get(request.id)?.customerName)
         .map((request) => request.id),
     ],
-    incompatibleReservationIds: registered
+    incompatibleReservationIds: [...requests, ...registered]
       .filter(
         (request) =>
           release?.reserved_for_customer_id &&
-          release.reserved_for_customer_id !== request.customer_id
+          release.reserved_for_customer_id !== identities.get(request.id)?.customerId
       )
       .map((request) => request.id),
   });
@@ -102,7 +103,7 @@ export async function previewSecondLife(
       customerId: identity?.customerId ?? null,
       waitingRevision: identity?.waitingRevision ?? null,
       customerName: identity?.customerName ?? null,
-      imported: !identity,
+      imported: requests.some((request) => request.id === candidate.requestId),
     };
   }
   return {

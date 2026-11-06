@@ -157,7 +157,20 @@ export function MatchingPanel({
                   {t('spine.monthlyNet')}: {moneyText(recommendation.monthlyNetCents)}
                 </p>
                 <fieldset disabled={busy || pending} className="mt-4 space-y-3">
-                  <p className="text-sm">{t('wait.autoLinked')}</p>
+                  <p className="text-sm">
+                    {t('match.estimateExplanation', {
+                      cost: moneyText(recommendation.workNetCents),
+                    })}
+                  </p>
+                  <p className="text-sm">
+                    {t(
+                      !recommendation.customerId
+                        ? 'match.anonymousPreview'
+                        : recommendation.imported
+                          ? 'match.importedLink'
+                          : 'wait.autoLinked'
+                    )}
+                  </p>
                   <p className="text-sm">{t('match.readinessHelp')}</p>
                   <button
                     type="button"

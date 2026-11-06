@@ -31,7 +31,7 @@
   "spine.error.WAITING_REQUEST_EXISTS": "Sinulla on jo avoin pyyntö tässä luokassa. Muuta sitä kohdasta Muokkaa pyyntöä.",
   "spine.error.WAITING_REQUEST_NOT_FOUND": "Tämä jonotuspyyntö ei ole valitun asiakkaan käytettävissä.",
   "spine.error.WAITING_REQUEST_CHANGED": "Pyyntö muuttui tai sille on varattu tuote. Päivitä lista.",
-  "spine.reason.identity_unknown": "Nimetön esimerkki: asiakasta ei tunneta; vain vertailuun",
+  "spine.reason.identity_unknown": "Anonyymi pyyntö: vain suositus. Varaus edellyttää tunnettua asiakasta.",
   "spine.reason.reserved_for_other": "Varattu toiselle nimetylle asiakkaalle",
   "spine.action.waiting.joined": "Liittyi jonotuslistalle",
   "spine.action.waiting.cancelled": "Jonotuspyyntö peruttu",
@@ -392,5 +392,8 @@
   "explain.bandLower": "Tällä ennakkomaksulla kuukausivuokra ilman ALV:tä on {amount} pienempi.",
   "explain.bandSameAmount": "Pyöristetty kuukausivuokra ilman ALV:tä pysyy samana.",
   "explain.invalidBusinessDate": "Valitse kelvollinen demopäivä ennen hinnan laskemista.",
-  "explain.savedBasis": "Nämä ovat {date} tallennetut hinnat ilman ALV:tä. Hinnaston muutokset eivät korvaa tätä tarjousta sen voimassaoloaikana."
+  "explain.savedBasis": "Nämä ovat {date} tallennetut hinnat ilman ALV:tä. Hinnaston muutokset eivät korvaa tätä tarjousta sen voimassaoloaikana.",
+  "match.anonymousPreview": "Anonyymi pyyntö: vain suositus. Varaus edellyttää tunnettua asiakasta.",
+  "match.estimateExplanation": "Arvioitu korjauskustannus: {cost}. Aikaisempi määräaika voittaa, sitten pienemmät korjauskulut. Tasatilanne ratkaistaan pyynnön tunnuksella.",
+  "match.importedLink": "Tiimin luoma demoasiakaslinkki. Mallipyyntö kohdistetaan tapahtumalokin kautta; se ei ole muokattava asiakasrekisteröinti."
 }
