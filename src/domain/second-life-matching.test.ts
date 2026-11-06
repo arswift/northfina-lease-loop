@@ -105,6 +105,19 @@ describe('second-life matchmaking', () => {
     );
   });
 
+  it('prefers better condition when eligible repairs have exactly the same cost', () => {
+    const costs = structuredClone(fixture.costs);
+    costs.e_bike.condition_upgrades['fair->good'] = 0;
+    costs.e_bike.condition_upgrades['good->like_new'] = 0;
+    const request = fixture.requests.find((row) => row.id === 'wait-02')!;
+    expect(run({ costs, requests: [request] }).recommendation).toMatchObject({
+      requestId: request.id,
+      condition: 'like_new',
+      workNetCents: 39500,
+      reasons: [],
+    });
+  });
+
   it.each(['ageMonths', 'originalPriceCents'] as const)(
     'cannot recommend with unknown %s',
     (field) => {

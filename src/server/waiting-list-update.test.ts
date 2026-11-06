@@ -115,6 +115,38 @@ describe('editing a pending waiting request', () => {
     ).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
     expect(await state.db.auditLog.count({ where: { action: 'waiting.updated' } })).toBe(1);
   });
+
+  it('returns the same result for overlapping retries of one edit', async () => {
+    const context = await demoContext('cust-aino', '2026-11-06');
+    const input = edit();
+    const results = await Promise.all([
+      updateWaitingRequest(state.db, context, id, input),
+      updateWaitingRequest(state.db, context, id, input),
+    ]);
+    expect(results).toEqual([{ id }, { id }]);
+    expect((await state.db.waitingRequest.findUniqueOrThrow({ where: { id } })).revision).toBe(1);
+    expect(await state.db.auditLog.count({ where: { action: 'waiting.updated' } })).toBe(1);
+  });
+
+  it('does not let an old registration retry reset edited preferences', async () => {
+    const context = await demoContext('cust-aino', '2026-11-06');
+    await updateWaitingRequest(state.db, context, id, edit());
+    expect(
+      await joinWaitingList(state.db, context, { ...prefs, category: 'e_bike', requestId: id })
+    ).toEqual({ id });
+    expect(await state.db.waitingRequest.findUniqueOrThrow({ where: { id } })).toMatchObject({
+      revision: 1,
+      max_monthly_net_rent_cents: 10000,
+    });
+    expect(await state.db.waitingRequest.count()).toBe(1);
+  });
+
+  it('does not edit a request before its recorded signup date', async () => {
+    await expect(
+      updateWaitingRequest(state.db, await demoContext('cust-aino', '2026-11-05'), id, edit())
+    ).rejects.toMatchObject({ code: 'WAITING_REQUEST_CHANGED' });
+    expect((await state.db.waitingRequest.findUniqueOrThrow({ where: { id } })).revision).toBe(0);
+  });
   it('does not overwrite a newer edit or modify a cancelled request', async () => {
     const context = await demoContext('cust-aino', '2026-11-06');
     await updateWaitingRequest(state.db, context, id, edit());

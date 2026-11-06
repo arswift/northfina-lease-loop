@@ -104,6 +104,9 @@ describe('matching preview and allocation', () => {
     expect(
       (await state.db.waitingRequest.findUniqueOrThrow({ where: { id: waitingId } })).status
     ).toBe('allocated');
+    await expect(cancelWaitingRequest(state.db, context, waitingId)).rejects.toMatchObject({
+      code: 'WAITING_REQUEST_CHANGED',
+    });
     await expect(
       createQuote(state.db, await demoContext('cust-lena', '2026-11-06'), {
         requestId: randomUUID(),
@@ -296,5 +299,42 @@ describe('matching preview and allocation', () => {
         })
       ).recommendation
     ).toBeNull();
+  });
+
+  it('keeps a missing customer profile unallocatable rather than guessing an identity', async () => {
+    await state.db.waitingRequest.update({
+      where: { id: waitingId },
+      data: { customer_id: 'removed-profile' },
+    });
+    const preview = await previewSecondLife(
+      state.db,
+      await demoContext('cust-aino', '2026-11-06', true),
+      'ebike-007',
+      previewInput
+    );
+    expect(preview.recommendation).toBeNull();
+    expect(
+      preview.candidates
+        .filter((row) => row.requestId === waitingId)
+        .every((row) => row.customerName === null && row.reasons.includes('identity_unknown'))
+    ).toBe(true);
+  });
+
+  it('explains why a request cannot take an item nominated to someone else', async () => {
+    await state.db.assetRelease.create({
+      data: { asset_id: 'ebike-007', revision: 0, reserved_for_customer_id: 'cust-lena' },
+    });
+    const preview = await previewSecondLife(
+      state.db,
+      await demoContext('cust-aino', '2026-11-06', true),
+      'ebike-007',
+      previewInput
+    );
+    expect(preview.recommendation).toBeNull();
+    expect(
+      preview.candidates
+        .filter((row) => row.requestId === waitingId)
+        .every((row) => row.reasons.includes('reserved_for_other'))
+    ).toBe(true);
   });
 });
