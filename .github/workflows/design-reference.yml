@@ -1,0 +1,70 @@
+name: Design reference
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feat/northfina-theme-switcher']
+    paths: ['.github/workflows/design-reference.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Install isolated reference browser
+        run: |
+          npm install --prefix "$RUNNER_TEMP/reference-tools" --no-save --package-lock=false playwright@1.57.0 prettier@3.9.10
+          node "$RUNNER_TEMP/reference-tools/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Inspect public visual reference without submitting forms
+        env:
+          TOOLS: ${{ runner.temp }}/reference-tools
+          OUTPUT: ${{ runner.temp }}/reference-results
+        run: |
+          mkdir -p "$OUTPUT"
+          git archive HEAD -o "$OUTPUT/source.tar"
+          cp -r "$TOOLS/node_modules/prettier" "$OUTPUT/prettier"
+          node --input-type=module <<'NODE'
+          import { createRequire } from 'node:module';
+          import { mkdir, writeFile } from 'node:fs/promises';
+          const require = createRequire(process.env.TOOLS + '/package.json');
+          const { chromium } = require('playwright');
+          const browser = await chromium.launch();
+          const out = process.env.OUTPUT;
+          const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+          try {
+            for (const route of ['en', 'en/dealers', 'en/banks']) {
+              const name = route.replaceAll('/', '-');
+              await page.goto('https://www.northfina.fi/' + route, { waitUntil: 'networkidle', timeout: 60000 });
+              await page.screenshot({ path: out + '/' + name + '.png', fullPage: true });
+              await writeFile(out + '/' + name + '.html', await page.content());
+              const styles = await page.evaluate(() => {
+                const props = ['color', 'backgroundColor', 'backgroundImage', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'borderRadius', 'borderColor', 'borderWidth', 'boxShadow', 'padding', 'gap', 'backdropFilter', 'clipPath', 'transform'];
+                const nodes = [...document.querySelectorAll('body,header,nav,main,section,article,h1,h2,h3,p,button,a,input,textarea,select,[class*="gradient"],[class*="blur"],[class*="rounded"]')];
+                const elements = nodes.filter(el => el.getBoundingClientRect().width > 0).slice(0, 300).map(el => ({ tag: el.tagName, text: el.textContent?.trim().slice(0, 160), classes: el.className, styles: Object.fromEntries(props.map(p => [p, getComputedStyle(el)[p]])) }));
+                const css = [...document.styleSheets].flatMap(s => { try { return [...s.cssRules].map(r => r.cssText); } catch { return []; } });
+                return { url: location.href, elements, css };
+              });
+              await writeFile(out + '/' + name + '-styles.json', JSON.stringify(styles, null, 2));
+            }
+            await page.setViewportSize({ width: 390, height: 844 });
+            await page.goto('https://www.northfina.fi/en', { waitUntil: 'networkidle' });
+            await page.screenshot({ path: out + '/en-mobile.png', fullPage: true });
+          } finally {
+            await browser.close();
+          }
+          NODE
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: northfina-reference-${{ github.sha }}
+          path: ${{ runner.temp }}/reference-results
+          retention-days: 7
