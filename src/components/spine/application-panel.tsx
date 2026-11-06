@@ -41,6 +41,14 @@ export function ApplicationPanel(props: Props) {
     application?.decision === 'incomplete'
       ? [...application.invalidQuestionIds, ...application.missingQuestionIds]
       : (application?.conflictQuestionIds ?? []);
+  const nextMessage =
+    application?.decision === 'approved'
+      ? 'spine.nextApproved'
+      : application?.decision === 'declined'
+        ? 'spine.nextDeclined'
+        : application?.decision === 'manual_review'
+          ? 'spine.nextManual'
+          : null;
 
   function change(id: string, value: Answer) {
     const next = { ...answers, [id]: value };
@@ -213,17 +221,9 @@ export function ApplicationPanel(props: Props) {
               </ul>
             </>
           ) : null}
-          <p className="mt-3 font-medium">
-            {messageFor(
-              locale,
-              {
-                approved: 'spine.nextApproved',
-                declined: 'spine.nextDeclined',
-                manual_review: 'spine.nextManual',
-                incomplete: 'spine.nextIncomplete',
-              }[application.decision]
-            )}
-          </p>
+          {nextMessage ? (
+            <p className="mt-3 font-medium">{messageFor(locale, nextMessage)}</p>
+          ) : null}
         </div>
       ) : null}
       {application?.decision === 'approved' ? (
