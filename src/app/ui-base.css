@@ -394,3 +394,16 @@
     outline-offset: 2px;
   }
 }
+
+/* Guardian uses shared design and colour-mode tokens, never a fixed green palette. */
+@layer components {
+  .price-guardian {
+    border-color: var(--ui-control);
+    background: var(--ui-tint);
+    color: var(--ui-ink);
+  }
+
+  .price-guardian :is(th, td) {
+    border-color: var(--ui-line);
+  }
+}

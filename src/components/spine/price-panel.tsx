@@ -6,10 +6,12 @@ import { getT } from '@/i18n/get-t';
 import { intlLocale, type Locale } from '@/i18n/locales';
 import { buttonClass, Field, inputClass, panelClass } from './ui';
 import { priceFailureMessage } from './price-feedback';
+import { moneyInputText } from './form-values';
 import { PriceExplanation } from './price-explanation';
 import { PriceCalculation } from './price-calculation';
 import { PriceBandNotice } from './price-band-notice';
 import { PriceComparison } from './price-comparison';
+import { PriceGuardian } from './price-guardian';
 
 export type Bootstrap = Awaited<ReturnType<typeof getBootstrap>>;
 export type TermDraft = { termMonths: number; downText: string; startDate: string };
@@ -216,6 +218,28 @@ export function PricePanel({ data, locale, draft, busy, onChange, onSave }: Prop
           </div>
         ) : null}
       </div>
+      <PriceGuardian
+        input={
+          down.ok && option?.ok
+            ? {
+                listPriceCents: data.offer.priceCents,
+                downPaymentCents: down.cents,
+                termMonths: draft.termMonths,
+                table: data.coefficientTable,
+                startDate,
+                upfrontDate: data.businessDate,
+                vatRates: data.vatRates,
+              }
+            : null
+        }
+        locale={locale}
+        busy={busy}
+        onChoose={(downPaymentCents) => {
+          if (busy) return;
+          onChange({ ...draft, downText: moneyInputText(downPaymentCents) });
+          document.getElementById('down')?.focus();
+        }}
+      />
       <PriceComparison
         data={data}
         locale={locale}
