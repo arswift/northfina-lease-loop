@@ -10,6 +10,7 @@ on:
       - 'src/i18n/**'
       - 'scripts/check-ui.mjs'
       - 'scripts/check-appearance.mjs'
+      - 'scripts/check-language-menu.mjs'
       - '.github/workflows/ui-accessibility.yml'
 
 permissions:
@@ -90,6 +91,7 @@ jobs:
           if [ -f scripts/check-appearance.mjs ]; then
             node scripts/check-appearance.mjs
           fi
+          node scripts/check-language-menu.mjs
 
       - name: Preserve screenshots and audit results
         if: always()
