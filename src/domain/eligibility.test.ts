@@ -128,7 +128,7 @@ describe('disclosed answers, not hidden persona facts', () => {
     expect(customerTypeFromAnswers({ q_customer_type: value })).toBe(value);
   });
 
-  it.each([{}, { q_customer_type: 'unknown' }, { q_customer_type: 0 }])(
+  it.each<Answers>([{}, { q_customer_type: 'unknown' }, { q_customer_type: 0 }])(
     'does not select a persona branch for invalid or missing type %j',
     (answers) => {
       expect(customerTypeFromAnswers(answers)).toBeUndefined();
@@ -187,10 +187,8 @@ describe('visible age, residence and company rules', () => {
       'invalid_business_id',
     ]);
     expect(
-      evaluate(
-        { ...customer, business_id: '1234567-8' },
-        { q_business_id: customer.business_id }
-      ).status
+      evaluate({ ...customer, business_id: '1234567-8' }, { q_business_id: customer.business_id })
+        .status
     ).toBe('approved');
   });
 
@@ -299,19 +297,28 @@ describe('money and financing boundaries', () => {
 });
 
 describe('question-specific blocking rules', () => {
-  it.each([true, false])('applies an active=%s usage blocker only to disclosed answers', (active) => {
-    const bank: Question[] = questions.map((question) =>
-      question.id === 'q_usage_purpose'
-        ? {
-            ...question,
-            ask_when: active ? [] : [{ field: 'category', op: 'in', value: ['farm_machine'] }],
-            blocks_application_when: [{ rule: 'answer_in', value: ['delivery'] }],
-          }
-        : question
-    );
-    const result = evaluate(persona('cust-aino'), { q_usage_purpose: 'delivery' }, 389000, 13466, {
-      questions: bank,
-    });
-    expect(result.reasons).toEqual(active ? ['blocked_answer'] : []);
-  });
+  it.each([true, false])(
+    'applies an active=%s usage blocker only to disclosed answers',
+    (active) => {
+      const bank: Question[] = questions.map((question) =>
+        question.id === 'q_usage_purpose'
+          ? {
+              ...question,
+              ask_when: active ? [] : [{ field: 'category', op: 'in', value: ['farm_machine'] }],
+              blocks_application_when: [{ rule: 'answer_in', value: ['delivery'] }],
+            }
+          : question
+      );
+      const result = evaluate(
+        persona('cust-aino'),
+        { q_usage_purpose: 'delivery' },
+        389000,
+        13466,
+        {
+          questions: bank,
+        }
+      );
+      expect(result.reasons).toEqual(active ? ['blocked_answer'] : []);
+    }
+  );
 });

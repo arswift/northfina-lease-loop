@@ -20,9 +20,7 @@ export type QuestionFlow = {
 /** An absent or invalid customer-type answer cannot select a hidden persona branch. */
 export function customerTypeFromAnswers(answers: Answers): Customer['type'] | undefined {
   const value = answers.q_customer_type;
-  return value === 'consumer' || value === 'sole_trader' || value === 'company'
-    ? value
-    : undefined;
+  return value === 'consumer' || value === 'sole_trader' || value === 'company' ? value : undefined;
 }
 
 function matches(condition: AskWhenCondition, context: QuestionContext, answers: Answers): boolean {
