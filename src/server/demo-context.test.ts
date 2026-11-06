@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 import { NextRequest } from 'next/server';
 import { loadCustomers } from '@/data/load';
 import { handleRoute, ok } from './api-response';
-import { checkRequestOrigin, readDemoContext, requireOperator } from './demo-context';
+import { checkRequestOrigin, readDemoContext, requireCustomer, requireOperator } from './demo-context';
 
 afterEach(() => vi.useRealTimers());
 
@@ -24,9 +24,10 @@ describe('demo context', () => {
       operator: false,
       actor: `demo:customer:${customers[0]!.id}`,
     });
+    expect(() => requireCustomer(result)).not.toThrow();
   });
 
-  it('uses explicitly selected persona, date and operator mode', async () => {
+  it('uses a distinct dealer actor rather than impersonating the selected customer', async () => {
     const result = await readDemoContext(
       request({
         'x-demo-customer': 'cust-norvi',
@@ -39,9 +40,12 @@ describe('demo context', () => {
       businessDate: '2028-02-29',
       simulated: true,
       operator: true,
-      actor: 'demo:operator:cust-norvi',
+      actor: 'demo:operator:dealer',
     });
     expect(() => requireOperator(result)).not.toThrow();
+    expect(() => requireCustomer(result)).toThrow(
+      expect.objectContaining({ status: 403, code: 'CUSTOMER_MODE_REQUIRED' })
+    );
   });
 
   it('marks an explicitly supplied current date as simulated', async () => {
