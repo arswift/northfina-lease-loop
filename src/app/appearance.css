@@ -119,3 +119,18 @@
     outline-offset: -3px;
   }
 }
+
+/* Two-tone focus remains distinguishable on white pills and the blue header. */
+@layer components {
+  :root[data-design='northfina'] .site-header :is(a, .appearance-trigger):focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 3px #0b2562;
+  }
+}
+@media (forced-colors: active) {
+  :root[data-design='northfina'] .site-header :is(a, .appearance-trigger):focus-visible {
+    outline-color: Highlight;
+    box-shadow: none;
+  }
+}
