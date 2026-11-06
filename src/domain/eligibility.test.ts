@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { loadCoefficientTable, loadCustomers, loadQuestions } from '@/data/load';
 import type { CoefficientTable, Customer, Question } from '@/data/schemas';
 import { evaluateEligibility } from './eligibility';
-import { answersFromCustomer, type Answers } from './question-flow';
+import { answersFromCustomer, customerTypeFromAnswers, type Answers } from './question-flow';
 
 let table: CoefficientTable;
 let questions: Question[];
@@ -45,279 +45,232 @@ function evaluate(
   });
 }
 
-describe('application decisions', () => {
-  it('approves Aino using rules rather than her identifier', () => {
-    const renamed = { ...persona('cust-aino'), id: 'a-new-id' };
-    const result = evaluate(renamed);
+describe('disclosed answers, not hidden persona facts', () => {
+  it('approves Aino independently of the demo identifier', () => {
+    const result = evaluate({ ...persona('cust-aino'), id: 'another-id' });
     expect(result.status).toBe('approved');
     expect(result.reasons).toEqual([]);
-    expect(result.answers.q_pep).toBeUndefined();
-  });
-
-  it('declines an underage applicant even if the form claims an older birth date', () => {
-    const result = evaluate(persona('cust-mikko'), { q_birth_date: '1990-01-01' });
-    expect(result.status).toBe('declined');
-    expect(result.reasons).toEqual(expect.arrayContaining(['under_age', 'profile_conflict']));
-  });
-
-  it('uses start-date age and allows a birthday exactly at eighteen', () => {
-    const aino = persona('cust-aino');
-    if (aino.type !== 'consumer') throw new Error('consumer fixture required');
-    expect(evaluate({ ...aino, birth_date: '2008-11-05' }).status).toBe('approved');
-    expect(evaluate({ ...aino, birth_date: '2008-11-06' }).reasons).toContain('under_age');
-  });
-
-  it('applies affordability below the income-question threshold from profile evidence', () => {
-    const aino = persona('cust-aino');
-    if (aino.type !== 'consumer') throw new Error('consumer fixture required');
-    const customer = { ...aino, monthly_net_income_cents: 100000 };
-    expect(evaluate(customer, {}, 199999, 30000).status).toBe('approved');
-    const rejected = evaluate(customer, {}, 199999, 30001);
-    expect(rejected.status).toBe('declined');
-    expect(rejected.reasons).toContain('unaffordable');
-    expect(rejected.answers.q_monthly_income).toBeUndefined();
-  });
-
-  it('does not lower financial risk merely because an answer claims higher income', () => {
-    const result = evaluate(persona('cust-sanna'), { q_monthly_income: 10000000 }, 549000, 27001);
-    expect(result.status).toBe('declined');
-    expect(result.reasons).toEqual(expect.arrayContaining(['unaffordable', 'profile_conflict']));
-  });
-
-  it('keeps a hidden positive PEP fact in manual review', () => {
-    const aino = persona('cust-aino');
-    const result = evaluate({ ...aino, is_pep: true }, { q_pep: 'no' });
-    expect(result.status).toBe('manual_review');
-    expect(result.reasons).toContain('pep');
-  });
-
-  it('requests signatory handoff and rejects the deliberately broken business ID', () => {
-    const norvi = evaluate(persona('cust-norvi'), { q_signatory_email: 'signer@example.com' });
-    expect(norvi.status).toBe('manual_review');
-    expect(norvi.reasons).toContain('signatory_required');
-    expect(evaluate(persona('cust-norvi'), { q_can_sign: 'yes' }).status).toBe('manual_review');
-    const broken = evaluate(persona('cust-broken-id'));
-    expect(broken.status).toBe('declined');
-    expect(broken.reasons).toContain('invalid_business_id');
-  });
-
-  it('shows required big-ticket farm questions and ends in PEP review', () => {
-    const customer = persona('cust-haapala');
-    const result = evaluateEligibility({
-      customer,
-      answers: {
-        ...answersFromCustomer(customer),
-        q_farm_registry: 'SYNTHETIC-FARM-01',
-        q_pep_details: 'A synthetic owner holds office',
-      },
-      questions,
-      category: 'farm_machine',
-      financedCents: 12500000,
-      termMonths: 48,
-      monthlyGrossCents: 341000,
-      startDate: '2026-11-05',
-      table,
-    });
-    expect(result.status).toBe('manual_review');
-    expect(result.reasons).toEqual(['pep']);
-    expect(result.answers).toHaveProperty('q_annual_revenue');
-    expect(result.answers).toHaveProperty('q_beneficial_owners');
-    expect(result.answers).not.toHaveProperty('q_usage_purpose');
-  });
-
-  it('returns incomplete for blank/malformed required fields rather than approving', () => {
-    const result = evaluate(persona('cust-aino'), { q_email: 'bad', q_usage_purpose: '' });
-    expect(result.status).toBe('incomplete');
-    expect(result.reasons).toEqual(expect.arrayContaining(['answers_invalid', 'answers_missing']));
-    expect(result.missingQuestionIds).toEqual(
-      expect.arrayContaining(['q_email', 'q_usage_purpose'])
-    );
-  });
-
-  it('declines unsupported residence/amount and preserves a disclosed adverse country', () => {
-    expect(evaluate({ ...persona('cust-aino'), country: 'US' }).reasons).toContain('residency');
-    expect(evaluate(persona('cust-aino'), { q_country: 'other' }).reasons).toContain('residency');
-    expect(evaluate(persona('cust-aino'), {}, 29999).reasons).toContain('financed_limits');
-  });
-
-  it('does not approve a conflict that leaves all thresholds otherwise acceptable', () => {
-    const result = evaluate(persona('cust-aino'), { q_country: 'SE' });
-    expect(result.status).toBe('manual_review');
-    expect(result.reasons).toContain('profile_conflict');
-    expect(() => evaluate(persona('cust-aino'), {}, 389000, 0.1)).toThrow(RangeError);
-  });
-});
-
-describe('decision priorities and evidence', () => {
-  it('keeps all reasons when a decline takes priority over incomplete and review', () => {
-    const result = evaluate(
-      { ...persona('cust-mikko'), is_pep: true },
-      { q_email: 'bad', q_country: 'SE' }
-    );
-    expect(result.status).toBe('declined');
-    expect(result.reasons).toEqual([
-      'under_age',
-      'unaffordable',
-      'pep',
-      'profile_conflict',
-      'answers_invalid',
-      'answers_missing',
-    ]);
-    expect(result.invalidQuestionIds).toEqual(['q_email']);
-    expect(result.missingQuestionIds).toEqual(['q_email']);
-    expect(new Set(result.reasons).size).toBe(result.reasons.length);
-  });
-
-  it('keeps PEP evidence while an incomplete questionnaire takes priority', () => {
-    const result = evaluate({ ...persona('cust-aino'), is_pep: true }, { q_email: 'bad' });
-    expect(result.status).toBe('incomplete');
-    expect(result.reasons).toEqual(['pep', 'answers_invalid', 'answers_missing']);
-    expect(result.answers).not.toHaveProperty('q_email');
     expect(result.answers).not.toHaveProperty('q_pep');
   });
 
-  it('distinguishes an absent answer from an invalid one', () => {
-    const customer = persona('cust-aino');
-    const { q_email: _email, ...answers } = answersFromCustomer(customer);
-    const result = evaluate(customer, {}, 389000, 13466, {
-      answers: { ...answers, q_usage_purpose: 'commuting' },
+  it('uses an edited visible answer without a profile-conflict penalty', () => {
+    const result = evaluate(persona('cust-sanna'), {
+      q_country: 'SE',
+      q_monthly_income: 10000000,
     });
-    expect(result.status).toBe('incomplete');
-    expect(result.reasons).toEqual(['answers_missing']);
-    expect(result.missingQuestionIds).toEqual(['q_email']);
+    expect(result.status).toBe('approved');
+    expect(result.reasons).toEqual([]);
+    expect(result.answers.q_country).toBe('SE');
+  });
+
+  it.each([199999, 200000])('runs affordability only when income is asked: %s', (amount) => {
+    const result = evaluate(persona('cust-aino'), { q_monthly_income: 0 }, amount);
+    expect(result.status).toBe(amount < 200000 ? 'approved' : 'declined');
+    expect(result.reasons).toEqual(amount < 200000 ? [] : ['unaffordable']);
+    expect(Object.hasOwn(result.answers, 'q_monthly_income')).toBe(amount >= 200000);
+  });
+
+  it('does not use even invalid stale income or PEP answers when their questions are hidden', () => {
+    const result = evaluate(
+      { ...persona('cust-aino'), is_pep: true },
+      { q_monthly_income: -1, q_pep: 'yes', q_pep_details: 'Old details' },
+      199999
+    );
+    expect(result.status).toBe('approved');
     expect(result.invalidQuestionIds).toEqual([]);
+    expect(result.answers).not.toHaveProperty('q_monthly_income');
+    expect(result.answers).not.toHaveProperty('q_pep');
+    expect(result.answers).not.toHaveProperty('q_pep_details');
   });
 
   it.each([
-    { profilePep: false, answer: 'yes' },
-    { profilePep: true, answer: 'no' },
-  ])(
-    'retains positive PEP evidence with profile=$profilePep and answer=$answer',
-    ({ profilePep, answer }) => {
-      const result = evaluate(
-        { ...persona('cust-aino'), is_pep: profilePep },
-        { q_pep: answer, q_pep_details: 'Synthetic public office' },
-        1000000
+    { amount: 999999, answer: 'yes', status: 'approved', reasons: [] },
+    { amount: 1000000, answer: 'yes', status: 'manual_review', reasons: ['pep'] },
+    { amount: 1000000, answer: 'no', status: 'approved', reasons: [] },
+  ])('checks PEP at $amount with answer $answer', ({ amount, answer, status, reasons }) => {
+    const result = evaluate(
+      { ...persona('cust-aino'), is_pep: true },
+      { q_pep: answer, q_pep_details: 'Synthetic public office' },
+      amount
+    );
+    expect(result.status).toBe(status);
+    expect(result.reasons).toEqual(reasons);
+    expect(Object.hasOwn(result.answers, 'q_pep_details')).toBe(
+      amount >= 1000000 && answer === 'yes'
+    );
+  });
+
+  it('requires visible risk answers rather than filling them behind the customer', () => {
+    const customer = persona('cust-aino');
+    const { q_pep: _pep, q_monthly_income: _income, ...answers } = answersFromCustomer(customer);
+    const result = evaluate(customer, {}, 1000000, 13466, {
+      answers: { ...answers, q_usage_purpose: 'commuting' },
+    });
+    expect(result.status).toBe('incomplete');
+    expect(result.missingQuestionIds).toEqual(['q_monthly_income', 'q_pep']);
+    expect(result.reasons).toEqual(['answers_missing']);
+  });
+
+  it('selects the form branch from the visible customer-type answer', () => {
+    const customer = persona('cust-mikko');
+    const answers = {
+      ...answersFromCustomer(persona('cust-kettukoodi')),
+      q_usage_purpose: 'commuting',
+    };
+    const result = evaluate(customer, {}, 389000, 13466, { answers });
+    expect(result.status).toBe('approved');
+    expect(result.answers.q_customer_type).toBe('company');
+    expect(result.answers).not.toHaveProperty('q_birth_date');
+    expect(result.answers).not.toHaveProperty('q_country');
+  });
+
+  it.each(['consumer', 'sole_trader', 'company'])('recognises customer type %s', (value) => {
+    expect(customerTypeFromAnswers({ q_customer_type: value })).toBe(value);
+  });
+
+  it.each([{}, { q_customer_type: 'unknown' }, { q_customer_type: 0 }])(
+    'does not select a persona branch for invalid or missing type %j',
+    (answers) => {
+      expect(customerTypeFromAnswers(answers)).toBeUndefined();
+      expect(evaluate(persona('cust-aino'), {}, 389000, 13466, { answers }).status).toBe(
+        'incomplete'
       );
-      expect(result.status).toBe('manual_review');
-      expect(result.reasons).toEqual(['pep', 'profile_conflict']);
     }
   );
-
-  it('honors a disclosed lack of signing authority even when the profile permits signing', () => {
-    const result = evaluate(persona('cust-kettukoodi'), {
-      q_can_sign: 'no',
-      q_signatory_email: 'signer@example.com',
-    });
-    expect(result.status).toBe('manual_review');
-    expect(result.reasons).toEqual(['signatory_required', 'profile_conflict']);
-  });
-
-  it('keeps conflicting owner lists for review without mutating the profile or answers', () => {
-    const company = persona('cust-kettukoodi');
-    if (company.type !== 'company') throw new Error('company fixture required');
-    const customer = { ...company, beneficial_owners: ['Owner A'] };
-    const answers = {
-      ...answersFromCustomer(customer),
-      q_usage_purpose: 'commuting',
-      q_beneficial_owners: [' Owner B '],
-    };
-    Object.freeze(customer.beneficial_owners);
-    Object.freeze(customer);
-    Object.freeze(answers.q_beneficial_owners);
-    Object.freeze(answers);
-    const result = evaluate(customer, {}, 5000000, 13466, { answers });
-    expect(result.status).toBe('manual_review');
-    expect(result.reasons).toEqual(['profile_conflict']);
-    expect(result.answers.q_beneficial_owners).toEqual(['Owner B']);
-    expect(customer.beneficial_owners).toEqual(['Owner A']);
-    expect(answers.q_beneficial_owners).toEqual([' Owner B ']);
-    expect(evaluate(customer, {}, 5000000, 13466, { answers })).toEqual(result);
-  });
 });
 
-describe('age, residence and business ID rules', () => {
-  it('blocks a disclosed young age even when the profile is an adult', () => {
-    const result = evaluate(persona('cust-aino'), { q_birth_date: '2009-01-01' });
-    expect(result.status).toBe('declined');
-    expect(result.reasons).toEqual(['under_age', 'profile_conflict']);
+describe('visible age, residence and company rules', () => {
+  it.each([
+    { birth: '2008-11-05', status: 'approved' },
+    { birth: '2008-11-06', status: 'declined' },
+  ])('checks disclosed age on the start date: $birth', ({ birth, status }) => {
+    const result = evaluate(persona('cust-aino'), { q_birth_date: birth });
+    expect(result.status).toBe(status);
+    expect(result.reasons).toEqual(status === 'declined' ? ['under_age'] : []);
   });
 
-  it('checks a sole trader age independently of a claimed company type', () => {
-    const trader = persona('cust-pekka');
-    if (trader.type !== 'sole_trader') throw new Error('sole trader fixture required');
-    const result = evaluate(
-      { ...trader, birth_date: '2009-01-01' },
-      { q_customer_type: 'company' }
-    );
-    expect(result.status).toBe('declined');
-    expect(result.reasons).toEqual(['under_age', 'profile_conflict']);
+  it('still blocks the underage scenario using its visible prefilled birth date', () => {
+    expect(evaluate(persona('cust-mikko')).reasons).toContain('under_age');
   });
 
   it.each([
     { startDate: '2026-02-28', status: 'declined' },
     { startDate: '2026-03-01', status: 'approved' },
-  ])('uses the leap-day birthday policy on $startDate', ({ startDate, status }) => {
-    const aino = persona('cust-aino');
-    if (aino.type !== 'consumer') throw new Error('consumer fixture required');
-    const result = evaluate({ ...aino, birth_date: '2008-02-29' }, {}, 389000, 13466, {
+  ])('preserves the leap-day birthday policy on $startDate', ({ startDate, status }) => {
+    const result = evaluate(persona('cust-aino'), { q_birth_date: '2008-02-29' }, 389000, 13466, {
       startDate,
     });
     expect(result.status).toBe(status);
-    expect(result.reasons).toEqual(status === 'declined' ? ['under_age'] : []);
   });
 
-  it.each(['FI', 'SE', 'EE'])('accepts the supported country %s', (country) => {
-    expect(evaluate({ ...persona('cust-aino'), country }).status).toBe('approved');
+  it.each(['FI', 'SE', 'EE'])('accepts an edited supported residence %s', (country) => {
+    expect(evaluate(persona('cust-aino'), { q_country: country }).status).toBe('approved');
   });
 
-  it('checks company residence even when its country answer is hidden', () => {
-    const result = evaluate({ ...persona('cust-kettukoodi'), country: 'US' }, { q_country: 'FI' });
-    expect(result.status).toBe('declined');
-    expect(result.reasons).toEqual(['residency']);
+  it('rejects other residence and maps unsupported persona countries to the visible option', () => {
+    const customer = { ...persona('cust-aino'), country: 'US' };
+    expect(answersFromCustomer(customer).q_country).toBe('other');
+    expect(evaluate(customer).reasons).toEqual(['residency']);
+    expect(evaluate(customer, { q_country: 'FI' }).status).toBe('approved');
+  });
+
+  it('does not apply the unasked residence rule to companies', () => {
+    const result = evaluate({ ...persona('cust-kettukoodi'), country: 'US' });
+    expect(result.status).toBe('approved');
     expect(result.answers).not.toHaveProperty('q_country');
   });
 
-  it.each(['cust-pekka', 'cust-kettukoodi'])('checks both business ID sources for %s', (id) => {
+  it.each(['cust-pekka', 'cust-kettukoodi'])('validates the disclosed business ID for %s', (id) => {
     const customer = persona(id);
     if (customer.type === 'consumer') throw new Error('business fixture required');
-    expect(evaluate(customer).status).toBe('approved');
-    const badAnswer = evaluate(customer, { q_business_id: '1234567-8' });
-    expect(badAnswer.status).toBe('declined');
-    expect(badAnswer.reasons).toEqual(['invalid_business_id', 'profile_conflict']);
-    const badProfile = evaluate(
-      { ...customer, business_id: '1234567-8' },
-      { q_business_id: customer.business_id }
+    expect(evaluate(customer, { q_business_id: '1234567-8' }).reasons).toEqual([
+      'invalid_business_id',
+    ]);
+    expect(
+      evaluate(
+        { ...customer, business_id: '1234567-8' },
+        { q_business_id: customer.business_id }
+      ).status
+    ).toBe('approved');
+  });
+
+  it('requires an email for a disclosed lack of company signing authority', () => {
+    const customer = persona('cust-norvi');
+    const waiting = evaluate(customer, { q_signatory_email: 'signer@example.com' });
+    expect(waiting.status).toBe('manual_review');
+    expect(waiting.reasons).toEqual(['signatory_required']);
+    expect(evaluate(customer).status).toBe('incomplete');
+    const authorised = evaluate(customer, { q_can_sign: 'yes' });
+    expect(authorised.status).toBe('approved');
+    expect(authorised.answers).not.toHaveProperty('q_signatory_email');
+  });
+
+  it('retains the big-ticket farm questions and the disclosed PEP review', () => {
+    const result = evaluate(
+      persona('cust-haapala'),
+      { q_farm_registry: 'SYNTHETIC-FARM-01', q_pep_details: 'Synthetic public office' },
+      12500000,
+      341000,
+      { category: 'farm_machine', termMonths: 48 }
     );
-    expect(badProfile.status).toBe('declined');
-    expect(badProfile.reasons).toEqual(['invalid_business_id', 'profile_conflict']);
+    expect(result.status).toBe('manual_review');
+    expect(result.reasons).toEqual(['pep']);
+    expect(result.answers).toHaveProperty('q_annual_revenue');
+    expect(result.answers).toHaveProperty('q_beneficial_owners');
   });
 });
 
-describe('affordability and financing boundaries', () => {
-  it('uses a lower declared income and includes VAT in the supplied monthly amount', () => {
-    const result = evaluate(persona('cust-aino'), { q_monthly_income: 40000 });
+describe('validation, priorities and immutable input', () => {
+  it('keeps invalid and missing active answers distinct and does not silently prefill them', () => {
+    const result = evaluate(persona('cust-aino'), { q_email: 'bad', q_usage_purpose: '' });
+    expect(result.status).toBe('incomplete');
+    expect(result.reasons).toEqual(['answers_invalid', 'answers_missing']);
+    expect(result.missingQuestionIds).toEqual(['q_email', 'q_usage_purpose']);
+  });
+
+  it('retains all disclosed reasons while decline takes priority', () => {
+    const result = evaluate(
+      persona('cust-aino'),
+      { q_birth_date: '2009-01-01', q_email: 'bad', q_pep: 'yes', q_pep_details: 'Office' },
+      1000000
+    );
     expect(result.status).toBe('declined');
-    expect(result.reasons).toEqual(['unaffordable', 'profile_conflict']);
+    expect(result.reasons).toEqual(['under_age', 'pep', 'answers_invalid', 'answers_missing']);
   });
 
+  it('uses incomplete before manual review for missing visible PEP details', () => {
+    const result = evaluate(persona('cust-aino'), { q_pep: 'yes' }, 1000000);
+    expect(result.status).toBe('incomplete');
+    expect(result.reasons).toEqual(['pep', 'answers_missing']);
+    expect(result.missingQuestionIds).toEqual(['q_pep_details']);
+  });
+
+  it('accepts edited owners without changing the persona or input', () => {
+    const customer = persona('cust-kettukoodi');
+    const changes = { q_beneficial_owners: Object.freeze([' Owner B ']) as unknown as string[] };
+    Object.freeze(changes);
+    const before = JSON.stringify(customer);
+    const result = evaluate(customer, changes, 5000000);
+    expect(result.status).toBe('approved');
+    expect(result.answers.q_beneficial_owners).toEqual(['Owner B']);
+    expect(changes.q_beneficial_owners).toEqual([' Owner B ']);
+    expect(JSON.stringify(customer)).toBe(before);
+    expect(evaluate(customer, changes, 5000000)).toEqual(result);
+  });
+});
+
+describe('money and financing boundaries', () => {
   it.each([
-    { gross: 0, status: 'approved' },
-    { gross: 1, status: 'declined' },
-  ])('handles zero income with monthly gross $gross', ({ gross, status }) => {
-    const aino = persona('cust-aino');
-    if (aino.type !== 'consumer') throw new Error('consumer fixture required');
-    const result = evaluate({ ...aino, monthly_net_income_cents: 0 }, {}, 199999, gross);
+    { income: 0, gross: 0, status: 'approved' },
+    { income: 0, gross: 1, status: 'declined' },
+    { income: 100000, gross: 30000, status: 'approved' },
+    { income: 100000, gross: 30001, status: 'declined' },
+    { income: 9007199254740990, gross: 2702159776422297, status: 'approved' },
+    { income: 9007199254740990, gross: 2702159776422298, status: 'declined' },
+  ])('checks exact affordability for $income / $gross', ({ income, gross, status }) => {
+    const result = evaluate(persona('cust-aino'), { q_monthly_income: income }, 200000, gross);
     expect(result.status).toBe(status);
-    expect(result.reasons).toEqual(gross === 0 ? [] : ['unaffordable']);
-  });
-
-  it('keeps the exact 30 percent boundary when intermediate products exceed safe integers', () => {
-    const aino = persona('cust-aino');
-    if (aino.type !== 'consumer') throw new Error('consumer fixture required');
-    const customer = { ...aino, monthly_net_income_cents: 9007199254740990 };
-    expect(evaluate(customer, {}, 199999, 2702159776422297).status).toBe('approved');
-    expect(evaluate(customer, {}, 199999, 2702159776422298).reasons).toEqual(['unaffordable']);
+    expect(result.reasons).toEqual(status === 'approved' ? [] : ['unaffordable']);
   });
 
   it.each([
@@ -325,20 +278,20 @@ describe('affordability and financing boundaries', () => {
     { financed: 30000, status: 'approved' },
     { financed: 25000000, status: 'approved' },
     { financed: 25000001, status: 'declined' },
-  ])('checks the financed amount boundary at $financed cents', ({ financed, status }) => {
+  ])('checks the financing boundary at $financed', ({ financed, status }) => {
     const result = evaluate(persona('cust-aino'), {}, financed);
     expect(result.status).toBe(status);
     expect(result.reasons).toEqual(status === 'declined' ? ['financed_limits'] : []);
   });
 
-  it.each([0, 18, 36.5])('declines an unsupported term of %s months', (termMonths) => {
-    const result = evaluate(persona('cust-aino'), {}, 389000, 13466, { termMonths });
-    expect(result.status).toBe('declined');
-    expect(result.reasons).toEqual(['financed_limits']);
+  it.each([0, 18, 36.5])('rejects unsupported term %s', (termMonths) => {
+    expect(evaluate(persona('cust-aino'), {}, 389000, 13466, { termMonths }).reasons).toEqual([
+      'financed_limits',
+    ]);
   });
 
   it.each([-1, 0.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1])(
-    'rejects invalid monthly gross cents: %s',
+    'rejects invalid monthly gross cents %s',
     (gross) => {
       expect(() => evaluate(persona('cust-aino'), {}, 389000, gross)).toThrow(RangeError);
     }
@@ -346,17 +299,7 @@ describe('affordability and financing boundaries', () => {
 });
 
 describe('question-specific blocking rules', () => {
-  it.each([
-    { answer: 'delivery', active: true, status: 'declined', reasons: ['blocked_answer'] },
-    { answer: 'commuting', active: true, status: 'approved', reasons: [] },
-    {
-      answer: '',
-      active: true,
-      status: 'incomplete',
-      reasons: ['answers_invalid', 'answers_missing'],
-    },
-    { answer: 'delivery', active: false, status: 'approved', reasons: [] },
-  ])('evaluates active=$active usage answer "$answer"', ({ answer, active, status, reasons }) => {
+  it.each([true, false])('applies an active=%s usage blocker only to disclosed answers', (active) => {
     const bank: Question[] = questions.map((question) =>
       question.id === 'q_usage_purpose'
         ? {
@@ -366,10 +309,9 @@ describe('question-specific blocking rules', () => {
           }
         : question
     );
-    const result = evaluate(persona('cust-aino'), { q_usage_purpose: answer }, 389000, 13466, {
+    const result = evaluate(persona('cust-aino'), { q_usage_purpose: 'delivery' }, 389000, 13466, {
       questions: bank,
     });
-    expect(result.status).toBe(status);
-    expect(result.reasons).toEqual(reasons);
+    expect(result.reasons).toEqual(active ? ['blocked_answer'] : []);
   });
 });

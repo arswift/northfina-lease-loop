@@ -2,7 +2,7 @@ import type { AssetCategory, CoefficientTable, Customer, Question } from '@/data
 import { isFinnishBusinessId } from './business-id';
 import { ageOn } from './calendar';
 import { monthlyFactorFor } from './coefficient';
-import { answersFromCustomer, normaliseAnswers, type Answers } from './question-flow';
+import { customerTypeFromAnswers, normaliseAnswers, type Answers } from './question-flow';
 
 export type EligibilityReason =
   | 'under_age'
@@ -37,17 +37,16 @@ type EligibilityInput = {
   table: CoefficientTable;
 };
 
-/** Implements the six named eligibility rules from the supplied synthetic question bank. */
+/** Decisions use disclosed active answers; demo personas only prefill the questionnaire. */
 export function evaluateEligibility(input: EligibilityInput): EligibilityDecision {
-  const { customer, questions, financedCents, termMonths, monthlyGrossCents, startDate, table } =
-    input;
+  const { questions, financedCents, termMonths, monthlyGrossCents, startDate, table } = input;
   if (!Number.isSafeInteger(monthlyGrossCents) || monthlyGrossCents < 0) {
     throw new RangeError('monthly gross must be non-negative safe integer cents');
   }
   const flow = normaliseAnswers(
     questions,
     {
-      customer_type: customer.type,
+      customer_type: customerTypeFromAnswers(input.answers),
       category: input.category,
       financed_amount_cents: financedCents,
       term_months: termMonths,
@@ -57,46 +56,21 @@ export function evaluateEligibility(input: EligibilityInput): EligibilityDecisio
   const declined = new Set<EligibilityReason>();
   const review = new Set<EligibilityReason>();
 
-  // The server's synthetic profile remains evidence even when a question is not asked.
-  if (customer.type !== 'company' && ageOn(customer.birth_date, startDate) < 18)
-    declined.add('under_age');
-  if (!['FI', 'SE', 'EE'].includes(customer.country)) declined.add('residency');
   if (!monthlyFactorFor(table, financedCents, termMonths).ok) declined.add('financed_limits');
-  if (customer.is_pep || flow.answers.q_pep === 'yes') review.add('pep');
-
-  if (customer.type === 'consumer') {
-    const statedIncome = flow.answers.q_monthly_income;
-    const income =
-      typeof statedIncome === 'number'
-        ? Math.min(customer.monthly_net_income_cents, statedIncome)
-        : customer.monthly_net_income_cents;
-    // Compare integer products: dividing income into floats could shift the 30% boundary.
+  if (flow.answers.q_pep === 'yes') review.add('pep');
+  const income = flow.answers.q_monthly_income;
+  if (flow.answers.q_customer_type === 'consumer' && typeof income === 'number') {
+    // BigInt keeps the exact 30% boundary, including VAT, without fractional cents.
     if (BigInt(monthlyGrossCents) * 100n > BigInt(income) * 30n) declined.add('unaffordable');
-  } else {
-    const statedId = flow.answers.q_business_id;
-    if (
-      !isFinnishBusinessId(customer.business_id) ||
-      (typeof statedId === 'string' && !isFinnishBusinessId(statedId))
-    ) {
-      declined.add('invalid_business_id');
-    }
   }
-  if (
-    customer.type === 'company' &&
-    (!customer.applicant_can_sign || flow.answers.q_can_sign === 'no')
-  ) {
-    review.add('signatory_required');
+  const businessId = flow.answers.q_business_id;
+  if (typeof businessId === 'string' && !isFinnishBusinessId(businessId)) {
+    declined.add('invalid_business_id');
   }
+  if (flow.answers.q_can_sign === 'no') review.add('signatory_required');
 
-  // A changed form answer is a request to resolve evidence, not authority to overwrite it.
-  const profileAnswers = answersFromCustomer(customer);
-  for (const [id, answer] of Object.entries(flow.answers)) {
-    const profileAnswer = profileAnswers[id];
-    if (profileAnswer !== undefined && JSON.stringify(answer) !== JSON.stringify(profileAnswer)) {
-      review.add('profile_conflict');
-    }
-  }
-
+  // Age and residence apply only when their questions are active and validly answered.
+  // Companies are not subject to the consumer/sole-trader residence check in this demo.
   for (const question of flow.activeQuestions) {
     const answer = flow.answers[question.id];
     for (const rule of question.blocks_application_when ?? []) {

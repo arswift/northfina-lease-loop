@@ -4,7 +4,7 @@ import { isIsoDate } from './calendar';
 export type Answer = string | number | string[];
 export type Answers = Record<string, Answer>;
 export type QuestionContext = {
-  customer_type: Customer['type'];
+  customer_type: Customer['type'] | undefined;
   category: AssetCategory;
   financed_amount_cents: number;
   term_months: number;
@@ -16,6 +16,14 @@ export type QuestionFlow = {
   invalidIds: string[];
   missingIds: string[];
 };
+
+/** An absent or invalid customer-type answer cannot select a hidden persona branch. */
+export function customerTypeFromAnswers(answers: Answers): Customer['type'] | undefined {
+  const value = answers.q_customer_type;
+  return value === 'consumer' || value === 'sole_trader' || value === 'company'
+    ? value
+    : undefined;
+}
 
 function matches(condition: AskWhenCondition, context: QuestionContext, answers: Answers): boolean {
   const value = condition.field.startsWith('answers.')
@@ -97,12 +105,12 @@ export function normaliseAnswers(
   };
 }
 
-/** Synthetic profile prefill. Eligibility still reads the server's profile independently. */
+/** Editable demo prefill, not independent evidence for an eligibility decision. */
 export function answersFromCustomer(customer: Customer): Answers {
   const answers: Answers = {
     q_customer_type: customer.type,
     q_email: customer.email,
-    q_country: customer.country,
+    q_country: ['FI', 'SE', 'EE'].includes(customer.country) ? customer.country : 'other',
     q_pep: customer.is_pep ? 'yes' : 'no',
   };
   if (customer.type === 'company') {
